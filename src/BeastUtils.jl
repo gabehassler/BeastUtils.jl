@@ -1,5 +1,6 @@
 module BeastUtils
 
-greet() = print("Hello World!")
+include("Trees.jl")
+greet() = print("Hello World!!!!!!!!!!!!!")
 
 end # module
