@@ -1,5 +1,6 @@
 const NEWICK_ERROR = "Error parsing newick"
 const TAXON_REGEX = r"\s*([^:,\)]+)?\s*(:\s*([0-9\.\-]+))?\s*[,\)]"
+const ROOT_REGEX = r"\s*([^:]+)?\s*(:\s*([0-9\.\-]+))?\s*;"
 
 struct TreeBuilder
     # start::Int
@@ -51,7 +52,9 @@ function parse_newick(newick::String)
 
     # tb = TreeBuilder(1, 0, 1, n_tips + 1, n_tips, n_internal)
     try
-        recurse_newick(newick, tree, 2, 1, n_tips + 2, n_tips + 1, 1)
+        tb = recurse_newick(newick, tree, 2, 1, n_tips + 2, n_tips + 1, 1)
+        root_label = parse_root(newick, tb.stop)
+        tree.node_labels[1] = root_label
     catch e
         @warn "Parser failed"
         msg = sprint(showerror, e, catch_backtrace())
@@ -59,6 +62,26 @@ function parse_newick(newick::String)
     end
 
     return tree
+end
+
+function check_empty(newick::T where T <: AbstractString, ind::Int;
+                    end_chars::Array{Char} = [',', ')'])
+    searching = true
+    valid = true
+    while searching
+        char = newick[ind]
+        if char in end_chars
+            searching = false
+        elseif !isspace(char)
+            valid = false
+            searching = false
+        end
+        ind += 1
+    end
+
+    return valid
+
+
 end
 
 function parse_taxon(newick:: T where T <: AbstractString, offset::Int)
@@ -70,18 +93,7 @@ function parse_taxon(newick:: T where T <: AbstractString, offset::Int)
     @show m
 
     if isnothing(m[1]) && isnothing(m[3])
-        searching = true
-        valid = true
-        while searching
-            char = newick[ind]
-            if char == ',' || char == ')'
-                searching = false
-            elseif !isspace(char)
-                valid = false
-                searching = false
-            end
-        end
-
+        valid = check_empthy(newick, offset)
         if !valid
             error("$NEWICK_ERROR: Unable to parse taxon $(m.match)")
         end
@@ -106,16 +118,43 @@ function parse_taxon(newick:: T where T <: AbstractString, offset::Int)
     return label, branch_length, m.offset + length(m.match) - 1
 end
 
+function parse_root(newick::T where T<: AbstractString, offset::Int)
+
+    @show newick[offset:end]
+
+    m = match(ROOT_REGEX, newick, offset)
+    @show m
+    if isnothing(m[1]) && isnothing(m[3])
+        valid = check_empty(newick, offset, end_chars=[';'])
+        if !valid
+            error("$NEWICK_ERROR: Unable to parse taxon at root.")
+        end
+    end
+
+    if !isnothing(m[3]) && parse(Float64, m[3]) != 0.0
+        @warn "Removing illegal root edge length."
+    end
+
+    if !isnothing(m[1])
+        return m[1]
+    end
+
+    return ""
+
+end
+
 function recurse_newick(newick::T where T<:AbstractString, tree::Tree,
                         start::Int,
                         current_tip::Int,
                         current_internal::Int,
                         parent::Int,
                         edge_ind::Int)
+    println("in\n")
 
-
+    @show tree
     @show current_tip
     @show current_internal
+    @show parent
     @show edge_ind
 
     started = false
@@ -132,7 +171,7 @@ function recurse_newick(newick::T where T<:AbstractString, tree::Tree,
     group_taxa = 0
     while searching
         char = newick[ind]
-        if isspace(char) || char == ',' # ignore whitespace
+        if isspace(char) || char == ',' # ignore whitespace and commas (commas already taken care of in regex)
             ind += 1
             continue
         end
@@ -142,15 +181,18 @@ function recurse_newick(newick::T where T<:AbstractString, tree::Tree,
             println("Entering '('")
 
             this_node = current_internal
+            @show this_node
             this_edge = edge_ind
 
             tree.edges[edge_ind, 1] = parent
             tree.edges[edge_ind, 2] = this_node
-            current_internal += 1
 
-            tb = recurse_newick(newick, tree, ind + 1, current_tip, current_internal, this_node, edge_ind + 1) # add others
+            tb = recurse_newick(newick, tree, ind + 1, current_tip, this_node + 1, this_node, edge_ind + 1) # add others
 
-            label, branch_length, ind = parse_taxon(newick, tb.stop + 1)
+            current_internal += tb.n_internal
+
+            label, branch_length, ind = parse_taxon(newick, tb.stop)
+            @show this_node
             tree.node_labels[this_node - tree.n_tips] = label
             tree.edge_lengths[this_edge] = branch_length
 
@@ -185,8 +227,10 @@ function recurse_newick(newick::T where T<:AbstractString, tree::Tree,
 
 
     end
+    @show "out"
+    println('\n')
 
-    return TreeBuilder(stop, n_tips, n_internal)
+    return TreeBuilder(ind + 1, n_tips, n_internal)
 
 
 end
