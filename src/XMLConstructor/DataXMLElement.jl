@@ -1,5 +1,3 @@
-using Trees2
-
 mutable struct DataXMLElement <: MyXMLElement
     el::XMLOrNothing
     data_mats::Vector{Matrix{Float64}}
@@ -89,12 +87,12 @@ function format_data_line(data::Matrix{Float64}, ind::Int)
 end
 
 function get_node_times(taxa::Vector{String}, newick::String)
-    tree = Trees2.parse_newick(newick)
+    tree = RTrees.parse_newick(newick)
     node_times = zeros(tree.n_tips)
     for i = 1:tree.n_tips
         taxon = taxa[i]
         # ind = findfirst(x -> x == taxon, tree.tip_labels)
-        node_times[i] = Trees2.distance_to_root(tree, taxon)
+        node_times[i] = RTrees.distance_to_root(tree, taxon)
     end
     return node_times
 end
