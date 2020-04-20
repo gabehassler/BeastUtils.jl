@@ -1,6 +1,7 @@
 module BeastUtils
 
-include("Trees2.jl")
+include("RTrees.jl")
+include("XMLConstructor.jl")
 # greet() = print("Hello World!!!!!!!!!!!!!")
 
 end # module
