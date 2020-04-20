@@ -59,7 +59,7 @@ function get_loggables(el::RepeatedMeasuresXMLElement)
 end
 
 function get_matrix_parameter(el::RepeatedMeasuresXMLElement)
-    return get_loggable(el)
+    return get_loggables(el)[1]
 end
 
 function get_priors(xml::RepeatedMeasuresXMLElement)

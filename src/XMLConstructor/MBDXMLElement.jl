@@ -53,7 +53,7 @@ function get_loggables(el::MBDXMLElement)
 end
 
 function get_matrix_parameter(el::MBDXMLElement)
-    return get_loggable(el)
+    return get_loggables(el)[1]
 end
 
 function get_priors(xml::MBDXMLElement)

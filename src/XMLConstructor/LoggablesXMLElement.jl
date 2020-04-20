@@ -39,9 +39,9 @@ function make_xml(mi_el::MatrixInverseXMLElement)
     return el
 end
 
-function get_loggable(mi_el::MatrixInverseXMLElement)
+function get_loggables(mi_el::MatrixInverseXMLElement)
     make_xml(mi_el)
-    return mi_el.el
+    return [mi_el.el]
 end
 
 
@@ -72,9 +72,9 @@ function make_xml(cm_el::CorrelationMatrixXMLElement)
     return el
 end
 
-function get_loggable(cm_el::CorrelationMatrixXMLElement)
+function get_loggables(cm_el::CorrelationMatrixXMLElement)
     make_xml(cm_el)
-    return cm_el.el
+    return [cm_el.el]
 end
 
 mutable struct VarianceProportionXMLElement <: MyXMLElement
@@ -117,9 +117,9 @@ function make_xml(vp_el::VarianceProportionXMLElement)
     return el
 end
 
-function get_loggable(vp_el::VarianceProportionXMLElement)
+function get_loggables(vp_el::VarianceProportionXMLElement)
     make_xml(vp_el)
-    return vp_el.el
+    return [vp_el.el]
 end
 
 mutable struct ModelExtensionLoggerXMLElement <: MyXMLElement
