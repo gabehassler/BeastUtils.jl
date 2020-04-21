@@ -135,7 +135,7 @@ function make_xml(mel_el::ModelExtensionLoggerXMLElement)
     el = new_element(bn.MODEL_EXTENSION_TRAIT_LOGGER)
     set_attributes(el, [(bn.ID, bn.MODEL_EXTENSION_TRAIT_LOGGER),
                         (bn.DIMENSIONS, bn.MISSING),
-                        (bn.TRAIT_NAME, mel_el.tl_el.trait_name)])
+                        (bn.TRAIT_NAME, mel_el.tl_el.attrs[bn.TRAIT_NAME])])
 
     make_xml(mel_el.tl_el)
     make_xml(mel_el.ext_el)
@@ -147,8 +147,8 @@ function make_xml(mel_el::ModelExtensionLoggerXMLElement)
     return el
 end
 
-function get_loggable(mel_el::ModelExtensionLoggerXMLElement)
-    return mel_el.el
+function get_loggables(mel_el::ModelExtensionLoggerXMLElement)
+    return [mel_el.el]
 end
 
 # mutable struct MatrixValidationXMLElement <: MyXMLElement
