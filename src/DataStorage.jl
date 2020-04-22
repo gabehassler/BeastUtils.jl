@@ -89,5 +89,10 @@ function df_to_data(df::DataFrame)
     return convert(Vector{String}, df[!, 1]), data
 end
 
+function csv_to_data(path::String)
+    df = CSV.read(path)
+    return df_to_data(df)
+end
+
 
 end
