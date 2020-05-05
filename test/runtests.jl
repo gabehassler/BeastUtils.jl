@@ -1,6 +1,3 @@
-using BeastUtils
-using Test
+using Test, SafeTestsets
 
-@testset "BeastUtils.jl" begin
-    # Write your own tests here.
-end
+@time @safetestset "Data simulation test" begin include("diffusionSimulation_test.jl") end
