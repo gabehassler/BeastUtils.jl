@@ -1,8 +1,5 @@
 using Test, SafeTestsets
 
-import Pkg
-Pkg.add("Random")
-
 using RCall
 r"install.packages(\"ape\")"
 
