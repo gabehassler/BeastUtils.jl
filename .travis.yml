@@ -18,7 +18,7 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq -y; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install --allow-unauthenticated git r-base r-base-dev r-recommended -y; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install littler; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo RScript r_init.R; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo Rscript r_init.R; fi
 
   # osx
   # faster than using homebrew/science tap
