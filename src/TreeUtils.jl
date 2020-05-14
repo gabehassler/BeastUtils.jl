@@ -1,36 +1,30 @@
-module Trees
+module TreeUtils
+
+# Internal library for working with trees. functions rely heavily on PhyloNetworks.jl
 
 
-export Tree
-export parse_newick
+using PhyloNetworks
 
-mutable struct Tree
-    edges::Matrix{Int}
-    edge_lengths::Vector{Float64}
-    n_tips::Int
-    tip_labels::Vector{String}
-    node_labels::Vector{String}
-
-    function Tree(n_tips::Int, n_internal::Int)
-        n_nodes = n_tips + n_internal
-        n_edges = n_nodes - 1
-
-        edges = zeros(Int, n_edges, 2)
-        edge_lengths = zeros(Int, n_edges)
-
-        return new(edges,
-                    edge_lengths,
-                    n_tips,
-                    Vector{String}(undef, n_tips),
-                    Vector{String}(undef, n_internal)
-                    )
-    end
-
+function parse_newick(newick::String)
+    return readTopology(newick)
 end
 
-include(joinpath(@__DIR__, "trees", "newick.jl"))
+@deprecate parse_newick(newick) PhyloNetworks.readTopology(newick)
 
+function rtree(n::Int; labels::Array{String} = ["t$i" for i = 1:n])
+    label_internals
 
+    if length(labels) == n
+        label_internals = false
+    elseif length(labels) == 2 * n - 1
+        label_internals = true
+    else
+        throw(ArgumentError("The `labels` argument must be an array of length" *
+            " n (only tip labels) or 2 * n - 1 (tip and internal labels)."))
+    end
+
+    return n
+end
 
 
 # function get_root(edges::Matrix{Int})

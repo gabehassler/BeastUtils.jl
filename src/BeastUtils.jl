@@ -1,5 +1,7 @@
 module BeastUtils
 
+greet() = print("Hello World!!!!!!!!!!!!!")
+
 include("MatrixUtils.jl")
 include("RTrees.jl")
 include("BeastNames.jl")
@@ -9,6 +11,6 @@ include("DiffusionSimulation.jl")
 include("DataStorage.jl")
 include("XMLTools.jl")
 include("ESS.jl")
-# greet() = print("Hello World!!!!!!!!!!!!!")
+include("TreeUtils.jl")
 
 end # module
