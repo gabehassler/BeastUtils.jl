@@ -3,7 +3,7 @@ module TreeUtils
 # Internal library for working with trees. functions rely heavily on PhyloNetworks.jl
 
 
-using PhyloNetworks
+using PhyloNetworks, Distributions
 pn = PhyloNetworks
 
 function parse_newick(newick::String)
@@ -43,8 +43,20 @@ function random_tips!(net::HybridNetwork,
 
 end
 
-function rtree(n::Int; labels::Array{String} = ["t$i" for i = 1:n],
-                        keep_order::Bool = false)
+function random_edges!(net::HybridNetwork,
+                        edge_dist::ContinuousUnivariateDistribution)
+
+    for edge in net.edge
+        edge.length = rand(edge_dist)
+    end
+end
+
+function rtree(n::Int;
+                labels::Array{String} = ["t$i" for i = 1:n],
+                keep_order::Bool = false,
+                ultrametric::Bool = false,
+                edge_dist::ContinuousUnivariateDistribution = Exponential(1.0))
+
     label_internals = true
 
     n_internal = n - 1
@@ -76,6 +88,13 @@ function rtree(n::Int; labels::Array{String} = ["t$i" for i = 1:n],
 
     pn.pushNode!(net, root)
     net.root = 2 * n - 1
+
+    if ultrametric
+        error("Not yet implemented for ultrametric trees")
+    else
+        random_edges!(net, edge_dist)
+    end
+
 
     return net
 end
