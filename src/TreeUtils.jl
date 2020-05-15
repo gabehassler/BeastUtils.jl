@@ -4,6 +4,7 @@ module TreeUtils
 
 
 using PhyloNetworks
+pn = PhyloNetworks
 
 function parse_newick(newick::String)
     return readTopology(newick)
@@ -11,19 +12,72 @@ end
 
 @deprecate parse_newick(newick) PhyloNetworks.readTopology(newick)
 
-function rtree(n::Int; labels::Array{String} = ["t$i" for i = 1:n])
-    label_internals
+
+function random_tips!(net::HybridNetwork,
+                        parent::pn.Node,
+                        rng::UnitRange{Int},
+                        labels::Array{String})
+
+
+    split_ind = rand(first(rng):(last(rng) - 1))
+
+    l_rng = first(rng):split_ind
+    r_rng = (split_ind + 1):last(rng)
+
+    num_internal = parent.number
+
+    for new_rng in (l_rng, r_rng)
+        if length(new_rng) > 1
+            new_parent = pn.Node(num_internal - 1, false)
+            pn.parseTreeNode!(new_parent, parent, net)
+            random_tips!(net, new_parent, new_rng, labels)
+
+            num_internal -= 2 * length(new_rng) - 1
+        else
+            leaf_node = pn.Node(new_rng[1], true)
+            leaf_node.name = labels[new_rng[1]]
+            #TODO push to net.names
+            pn.parseTreeNode!(leaf_node, parent, net)
+        end
+    end
+
+end
+
+function rtree(n::Int; labels::Array{String} = ["t$i" for i = 1:n],
+                        keep_order::Bool = false)
+    label_internals = true
+
+    n_internal = n - 1
 
     if length(labels) == n
         label_internals = false
-    elseif length(labels) == 2 * n - 1
-        label_internals = true
-    else
+    elseif length(labels) != 2 * n - 1
         throw(ArgumentError("The `labels` argument must be an array of length" *
             " n (only tip labels) or 2 * n - 1 (tip and internal labels)."))
     end
 
-    return n
+    tip_order = collect(1:n)
+
+    if !keep_order
+        tip_order = sortperm(rand(n))
+
+        if label_internals
+            internal_order = sortperm(rand(n_internal))
+        end
+    end
+
+
+    net = HybridNetwork()
+
+    root = pn.Node(-2, false)
+
+
+    random_tips!(net, root, 1:n, labels[tip_order])
+
+    pn.pushNode!(net, root)
+    net.root = 2 * n - 1
+
+    return net
 end
 
 
