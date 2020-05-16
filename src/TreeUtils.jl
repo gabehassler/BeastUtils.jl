@@ -16,7 +16,8 @@ end
 function random_tips!(net::HybridNetwork,
                         parent::pn.Node,
                         rng::UnitRange{Int},
-                        labels::Array{String})
+                        leaf_labels::Array{String}
+                        )
 
 
     split_ind = rand(first(rng):(last(rng) - 1))
@@ -29,13 +30,15 @@ function random_tips!(net::HybridNetwork,
     for new_rng in (l_rng, r_rng)
         if length(new_rng) > 1
             new_parent = pn.Node(num_internal - 1, false)
+
             pn.parseTreeNode!(new_parent, parent, net)
-            random_tips!(net, new_parent, new_rng, labels)
+
+            random_tips!(net, new_parent, new_rng, leaf_labels)
 
             num_internal -= 2 * length(new_rng) - 1
         else
             leaf_node = pn.Node(new_rng[1], true)
-            leaf_node.name = labels[new_rng[1]]
+            leaf_node.name = leaf_labels[new_rng[1]]
             push!(net.names, leaf_node.name)
             pn.parseTreeNode!(leaf_node, parent, net)
         end
@@ -51,48 +54,43 @@ function random_edges!(net::HybridNetwork,
     end
 end
 
+
 function rtree(n::Int;
                 labels::Array{String} = ["t$i" for i = 1:n],
                 keep_order::Bool = false,
                 ultrametric::Bool = false,
                 edge_dist::ContinuousUnivariateDistribution = Exponential(1.0))
 
-    label_internals = true
-
-    n_internal = n - 1
-
-    if length(labels) == n
-        label_internals = false
-    elseif length(labels) != 2 * n - 1
+    if length(labels) != n
         throw(ArgumentError("The `labels` argument must be an array of length" *
-            " n (only tip labels) or 2 * n - 1 (tip and internal labels)."))
+            " n (only tip labels are currently supported)."))
     end
+
 
     tip_order = collect(1:n)
 
     if !keep_order
         tip_order = sortperm(rand(n))
-
-        if label_internals
-            internal_order = sortperm(rand(n_internal))
-        end
     end
 
 
     net = HybridNetwork()
 
-    root = pn.Node(-2, false)
+    if !ultrametric
+
+        root = pn.Node(-2, false)
 
 
-    random_tips!(net, root, 1:n, labels[tip_order])
+        random_tips!(net, root, 1:n, labels[tip_order])
 
-    pn.pushNode!(net, root)
-    net.root = 2 * n - 1
+        pn.pushNode!(net, root)
+        net.root = 2 * n - 1
 
-    if ultrametric
-        error("Not yet implemented for ultrametric trees")
-    else
         random_edges!(net, edge_dist)
+
+
+    else
+        # TODO
     end
 
 
