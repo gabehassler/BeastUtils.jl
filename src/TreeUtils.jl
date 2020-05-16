@@ -56,6 +56,7 @@ end
 
 
 
+
 function rtree(n::Int;
                 labels::Array{String} = ["t$i" for i = 1:n],
                 keep_order::Bool = false,
@@ -97,9 +98,7 @@ function rtree(n::Int;
         # code largely copied from nj.jl in PhyloNetworks.jl
 
         available_nodes = [pn.Node(i, true) for i = 1:n]
-        for i = 1:n
-            available_nodes[i].name = labels[tip_order[i]] #TODO node labels will be scrambled
-        end
+
         node_heights = zeros(n)
         t = 0.0
 
@@ -140,10 +139,16 @@ function rtree(n::Int;
         end
 
         net.root = net.numNodes
-    end
 
-    directEdges!(net)
-    preorder!(net)
+        directEdges!(net)
+        preorder!(net)
+
+        for i = 1:n
+            nm = labels[tip_order[i]]
+            net.leaf[i].name = nm
+            push!(net.names, nm)
+        end
+    end
 
     return net
 end
