@@ -54,6 +54,15 @@ function random_edges!(net::HybridNetwork,
     end
 end
 
+function coalescent_tips!(net::HybridNetwork,
+                            available_edges::AbstractVector{pn.Edge};
+                            λ::Float64 = 1.0) # λ is the coalescent intensity
+
+
+
+end
+
+
 
 function rtree(n::Int;
                 labels::Array{String} = ["t$i" for i = 1:n],
@@ -90,11 +99,69 @@ function rtree(n::Int;
 
 
     else
-        # TODO
+        root = pn.Node(-2, false)
+
+        available_edges = Vector{pn.Edge}(undef, n)
+
+        for i = 1:n
+            node = pn.Node(i, true)
+            node.name = labels[tip_order[i]]
+            push!(net.names, node.name)
+            pn.parseTreeNode!(node, root, net)
+            available_edges[i] = node.edge[1]
+        end
+
+        pn.pushNode!(net, root)
+        net.root = n + 1
+
+        @show net.edge
+
+        for i = 1:(n - 2)
+            m = length(available_edges)
+            @show m
+
+            inds = sample(1:m, 2, replace = false)
+
+
+            # first edge is split
+            edge = available_edges[inds[1]]
+
+            new_node, new_edge = pn.breakedge!(edge, net)
+
+            @assert pn.getChild(new_edge) == pn.getParent(edge) == new_node # TODO: remove
+
+            other_edge = available_edges[inds[2]]
+            other_node = pn.getChild(other_edge)
+
+            pn.deleteEdge!(net, other_edge)
+            pn.deleteNode!(net, other_node)
+            # other_node.edge = Vector{pn.Edge}(undef, 0)
+            pn.parseTreeNode!(other_node, new_node, net)
+
+            #TODO: branch lengths
+
+            # TODO: delete egdes[2]?
+            # deleteat!(net.edge, findfirst(x -> x == available_edges[inds[2]], net.edge))
+
+            available_edges[inds[1]] = new_edge
+            deleteat!(available_edges, inds[2]) #TODO: maybe make this more memory efficient with views?
+        end
+
+        display(net.edge)
+        display(net.node)
+
+
+
+        # pn.resetNodeNumbers!(net)
+        # pn.resetEdgeNumbers!(net)
+
+
+
+
     end
 
 
-    return net
+    return 1
 end
 
 
