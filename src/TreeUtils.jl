@@ -111,9 +111,10 @@ function rtree(n::Int;
         node_heights = zeros(n)
         t = 0.0
 
-        net = HybridNetwork(available_nodes, pn.Edge[])
+        net = HybridNetwork(copy(available_nodes), pn.Edge[])
         for i = 1:(n - 1)
             m = n + 1 - i
+            @show m
             i1, i2 = sample(1:m, 2, replace = false)
 
             n1 = available_nodes[i1]
@@ -145,7 +146,25 @@ function rtree(n::Int;
             deleteat!(available_nodes, i2) #TODO: make more memory efficient with @view
         end
 
+        net.root = net.numNodes
     end
+
+    directEdges!(net)
+    preorder!(net)
+
+    @show length(available_nodes)
+    println("----------------------------------")
+    println("Available")
+    display(available_nodes)
+
+    println("----------------------------------")
+    println("Edges")
+    display(net.edge)
+
+    println("----------------------------------")
+    println("Nodes")
+    display(net.node)
+
 
 
     return net
