@@ -15,8 +15,7 @@ end
 
 function random_tips!(net::HybridNetwork,
                         parent::pn.Node,
-                        rng::UnitRange{Int},
-                        leaf_labels::Array{String}
+                        rng::UnitRange{Int}
                         )
 
 
@@ -33,28 +32,16 @@ function random_tips!(net::HybridNetwork,
 
             pn.parseTreeNode!(new_parent, parent, net)
 
-            random_tips!(net, new_parent, new_rng, leaf_labels)
+            random_tips!(net, new_parent, new_rng)
 
             num_internal -= 2 * length(new_rng) - 1
         else
             leaf_node = pn.Node(new_rng[1], true)
-            leaf_node.name = leaf_labels[new_rng[1]]
-            push!(net.names, leaf_node.name)
             pn.parseTreeNode!(leaf_node, parent, net)
         end
     end
 
 end
-
-function random_edges!(net::HybridNetwork,
-                        edge_dist::ContinuousUnivariateDistribution)
-
-    for edge in net.edge
-        edge.length = rand(edge_dist)
-    end
-end
-
-
 
 
 function rtree(n::Int;
@@ -69,14 +56,6 @@ function rtree(n::Int;
     end
 
 
-    tip_order = collect(1:n)
-
-    if !keep_order
-        tip_order = sortperm(rand(n))
-    end
-
-
-
     if !ultrametric
 
         net = HybridNetwork()
@@ -84,12 +63,14 @@ function rtree(n::Int;
         root = pn.Node(-2, false)
 
 
-        random_tips!(net, root, 1:n, labels[tip_order])
+        random_tips!(net, root, 1:n)
 
         pn.pushNode!(net, root)
         net.root = 2 * n - 1
 
-        random_edges!(net, edge_dist)
+        for edge in net.edge
+            edge.length = rand(edge_dist)
+        end
 
 
     else
@@ -140,14 +121,21 @@ function rtree(n::Int;
 
         net.root = net.numNodes
 
-        directEdges!(net)
-        preorder!(net)
+    end
 
-        for i = 1:n
-            nm = labels[tip_order[i]]
-            net.leaf[i].name = nm
-            push!(net.names, nm)
-        end
+    directEdges!(net) # not sure this is necessary
+    preorder!(net) # not sure this is necessary
+
+    tip_order = collect(1:n)
+
+    if !keep_order
+        tip_order = sortperm(rand(n))
+    end
+
+    for i = 1:n
+        nm = labels[tip_order[i]]
+        net.leaf[i].name = nm
+        push!(net.names, nm)
     end
 
     return net
