@@ -36,7 +36,7 @@ function random_tips!(net::HybridNetwork,
         else
             leaf_node = pn.Node(new_rng[1], true)
             leaf_node.name = labels[new_rng[1]]
-            #TODO push to net.names
+            push!(net.names, leaf_node.name)
             pn.parseTreeNode!(leaf_node, parent, net)
         end
     end
