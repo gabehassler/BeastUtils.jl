@@ -83,9 +83,10 @@ function rtree(n::Int;
     end
 
 
-    net = HybridNetwork()
 
     if !ultrametric
+
+        net = HybridNetwork()
 
         root = pn.Node(-2, false)
 
@@ -99,69 +100,55 @@ function rtree(n::Int;
 
 
     else
-        root = pn.Node(-2, false)
 
-        available_edges = Vector{pn.Edge}(undef, n)
 
+        # code largely copied from nj.jl in PhyloNetworks.jl
+
+        available_nodes = [pn.Node(i, true) for i = 1:n]
         for i = 1:n
-            node = pn.Node(i, true)
-            node.name = labels[tip_order[i]]
-            push!(net.names, node.name)
-            pn.parseTreeNode!(node, root, net)
-            available_edges[i] = node.edge[1]
+            available_nodes[i].name = labels[tip_order[i]]
         end
+        node_heights = zeros(n)
+        t = 0.0
 
-        pn.pushNode!(net, root)
-        net.root = n + 1
+        net = HybridNetwork(available_nodes, pn.Edge[])
+        for i = 1:(n - 1)
+            m = n + 1 - i
+            i1, i2 = sample(1:m, 2, replace = false)
 
-        @show net.edge
+            n1 = available_nodes[i1]
+            n2 = available_nodes[i2]
+            t += rand(Exponential(1/m)) #new maximum height
 
-        for i = 1:(n - 2)
-            m = length(available_edges)
-            @show m
+            t1 = t - node_heights[i1]
+            t2 = t - node_heights[i2]
 
-            inds = sample(1:m, 2, replace = false)
+            e1 = pn.Edge(net.numEdges + 1, t1)
+            e2 = pn.Edge(net.numEdges + 2, t2)
 
+            new_node = pn.Node(net.numNodes + 1, false, false, [e1, e2])
 
-            # first edge is split
-            edge = available_edges[inds[1]]
+            pn.setNode!(e1, pn.Node[n1, new_node])
+            pn.setNode!(e2, pn.Node[n2, new_node])
 
-            new_node, new_edge = pn.breakedge!(edge, net)
+            pn.setEdge!(n1, e1)
+            pn.setEdge!(n2, e2)
 
-            @assert pn.getChild(new_edge) == pn.getParent(edge) == new_node # TODO: remove
+            pn.pushEdge!(net, e1)
+            pn.pushEdge!(net, e2)
 
-            other_edge = available_edges[inds[2]]
-            other_node = pn.getChild(other_edge)
+            pn.pushNode!(net, new_node)
 
-            pn.deleteEdge!(net, other_edge)
-            pn.deleteNode!(net, other_node)
-            # other_node.edge = Vector{pn.Edge}(undef, 0)
-            pn.parseTreeNode!(other_node, new_node, net)
+            available_nodes[i1] = new_node
+            node_heights[i1] = t
 
-            #TODO: branch lengths
-
-            # TODO: delete egdes[2]?
-            # deleteat!(net.edge, findfirst(x -> x == available_edges[inds[2]], net.edge))
-
-            available_edges[inds[1]] = new_edge
-            deleteat!(available_edges, inds[2]) #TODO: maybe make this more memory efficient with views?
+            deleteat!(available_nodes, i2) #TODO: make more memory efficient with @view
         end
-
-        display(net.edge)
-        display(net.node)
-
-
-
-        # pn.resetNodeNumbers!(net)
-        # pn.resetEdgeNumbers!(net)
-
-
-
 
     end
 
 
-    return 1
+    return net
 end
 
 
