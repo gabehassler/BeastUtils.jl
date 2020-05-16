@@ -54,14 +54,6 @@ function random_edges!(net::HybridNetwork,
     end
 end
 
-function coalescent_tips!(net::HybridNetwork,
-                            available_edges::AbstractVector{pn.Edge};
-                            λ::Float64 = 1.0) # λ is the coalescent intensity
-
-
-
-end
-
 
 
 function rtree(n::Int;
@@ -106,7 +98,7 @@ function rtree(n::Int;
 
         available_nodes = [pn.Node(i, true) for i = 1:n]
         for i = 1:n
-            available_nodes[i].name = labels[tip_order[i]]
+            available_nodes[i].name = labels[tip_order[i]] #TODO node labels will be scrambled
         end
         node_heights = zeros(n)
         t = 0.0
@@ -144,6 +136,7 @@ function rtree(n::Int;
             node_heights[i1] = t
 
             deleteat!(available_nodes, i2) #TODO: make more memory efficient with @view
+            deleteat!(node_heights, i2)
         end
 
         net.root = net.numNodes
@@ -151,21 +144,6 @@ function rtree(n::Int;
 
     directEdges!(net)
     preorder!(net)
-
-    @show length(available_nodes)
-    println("----------------------------------")
-    println("Available")
-    display(available_nodes)
-
-    println("----------------------------------")
-    println("Edges")
-    display(net.edge)
-
-    println("----------------------------------")
-    println("Nodes")
-    display(net.node)
-
-
 
     return net
 end
