@@ -202,7 +202,9 @@ end
 function add_el(bx::BEASTXMLElement, if_el::IntegratedFactorsXMLElement)
     make_xml(if_el)
     add_child(bx.el, bx.extension_el.loadings_el)
-    add_child(bx.el, bx.extension_el.loadings_prior_el)
+    for prior_el = bx.extension_el.loadings_prior_els
+        add_child(bx.el, prior_el)
+    end
     add_child(bx.el, bx.extension_el.el)
     add_child(bx.el, bx.extension_el.precision_prior_el)
 end
@@ -357,7 +359,8 @@ function make_PFA_XML(data::Matrix{Float64}, taxa::Vector{T},
             chain_length::Int = 100,
             useHMC::Bool = true,
             timing::Bool = false,
-            log_factors::Bool = false) where T <: AbstractString
+            log_factors::Bool = false,
+            shrink_loadings::Bool = false) where T <: AbstractString
 
     beastXML = BEASTXMLElement()
     beastXML.data_el = DataXMLElement(data, taxa, newick)
@@ -370,6 +373,7 @@ function make_PFA_XML(data::Matrix{Float64}, taxa::Vector{T},
 
     beastXML.extension_el = IntegratedFactorsXMLElement(beastXML.treeModel_el,
                                                     beastXML.MBD_el, k)
+    beastXML.extension_el.shrink_loadings = shrink_loadings
     beastXML.traitLikelihood_el = TraitLikelihoodXMLElement(beastXML.MBD_el,
                             beastXML.treeModel_el, beastXML.extension_el)
 

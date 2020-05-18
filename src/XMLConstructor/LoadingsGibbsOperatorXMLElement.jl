@@ -25,7 +25,7 @@ function make_xml(lgoxml::LoadingsGibbsOperatorXMLElement)
 
     add_ref_el(el, lgoxml.if_xml.el)
     add_ref_el(el, lgoxml.tdl_xml.el)
-    add_ref_el(el, lgoxml.if_xml.loadings_prior_el, new_name = bn.NORMAL_PRIOR)
+    add_ref_el(el, get_normal_prior(lgoxml.if_xml), new_name = bn.NORMAL_PRIOR)
 
     lgoxml.el = el
 end

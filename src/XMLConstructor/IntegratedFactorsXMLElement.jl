@@ -4,7 +4,7 @@ abstract type LoadingsPriorXMLElement <: MyXMLElement end
 mutable struct IntegratedFactorsXMLElement <: ModelExtensionXMLElement
     el::XMLOrNothing
     loadings_el::XMLOrNothing
-    loadings_prior_el::XMLOrNothing
+    loadings_prior_els::AbstractArray{XMLElement}
     precision_prior_el::XMLOrNothing
     loadings::S where S <: AbstractArray{Float64, 2}
     precision::S where S <: AbstractArray{Float64, 1}
@@ -16,6 +16,7 @@ mutable struct IntegratedFactorsXMLElement <: ModelExtensionXMLElement
     trait_name::String
     tp_name::String
     standardize_traits::Bool
+    shrink_loadings::Bool
 
 
     function IntegratedFactorsXMLElement(treeModel_el::TreeModelXMLElement,
@@ -32,12 +33,12 @@ mutable struct IntegratedFactorsXMLElement <: ModelExtensionXMLElement
         precision_scale = 1.0
         precision_shape = 1.0
         tree_trait_ind = 1
-        return new(nothing, nothing, nothing, nothing,
+        return new(nothing, nothing, XMLElement[], nothing,
                 L,
                 precision, precision_scale,
                 precision_shape,
                 treeModel_el,
-                mbd_el, tree_trait_ind, trait_name, tp_name, true)
+                mbd_el, tree_trait_ind, trait_name, tp_name, true, false)
     end
 end
 
@@ -56,7 +57,11 @@ end
 
 function make_xml(ifxml::IntegratedFactorsXMLElement)
     ifxml.loadings_el = make_loadings(ifxml.loadings)
-    ifxml.loadings_prior_el = make_loadings_prior(ifxml)
+    if ifxml.shrink_loadings
+        ifxml.loadings_prior_els = [make_shrinkage_priors(ifxml)]
+    else
+        ifxml.loadings_prior_els = [make_loadings_normal_prior(ifxml)]
+    end
 
 
     el = new_element(bn.INTEGRATED_FACTORS)
@@ -114,7 +119,11 @@ function make_loadings(L::AbstractArray{Float64, 2})
     return el
 end
 
-function make_loadings_prior(ifxml::IntegratedFactorsXMLElement)
+function get_normal_prior(ifxml::IntegratedFactorsXMLElement)
+    return ifxml.loadings_prior_els[1]
+end
+
+function make_loadings_normal_prior(ifxml::IntegratedFactorsXMLElement)
     el = new_element(bn.DISTRIBUTION_LIKELIHOOD)
     set_attribute(el, bn.ID, "$(bn.DEFAULT_LOADINGS_ID).prior")
 
@@ -132,9 +141,12 @@ function make_loadings_prior(ifxml::IntegratedFactorsXMLElement)
     return el
 end
 
+function make_shrinkage_priors(ifxml::IntegratedFactorsXMLElement)
+end
+
 function get_priors(xml::IntegratedFactorsXMLElement)
     make_xml(xml)
-    return [xml.loadings_prior_el, xml.precision_prior_el]
+    return [xml.loadings_prior_els; xml.precision_prior_el]
 end
 
 function get_loggables(xml::IntegratedFactorsXMLElement)
