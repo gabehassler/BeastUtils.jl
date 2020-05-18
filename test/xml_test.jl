@@ -4,7 +4,7 @@ using BeastUtils.TreeUtils, PhyloNetworks
 using DataFrames, CSV, LightXML, Test
 ### Making sure https://github.com/suchard-group/incomplete_measurements/blob/master/scripts/xml_setup.jl works
 
-function make_xml(data_path::String, newick_path::String, xml_path::String,
+function make_mbd(data_path::String, newick_path::String, xml_path::String,
                 filename::String; dates_path::String = "")
 
     df = CSV.read(data_path)
@@ -66,10 +66,25 @@ newick = writeTopology(TreeUtils.rtree(n, labels = taxa))
 write(newick_path, newick)
 
 
-make_xml(data_path, newick_path, xml_path, filename)
+make_mbd(data_path, newick_path, xml_path, filename)
 
 @test isfile(xml_path)
 
-make_xml(data_path, newick_path, dates_xml_path, filename, dates_path = dates_path)
+make_mbd(data_path, newick_path, dates_xml_path, filename, dates_path = dates_path)
 
 @test isfile(dates_xml_path)
+
+
+
+### Testing Factor xml
+k = 2
+
+bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = false)
+xdoc_hmc = XMLConstructor.make_xml(bx)
+save_file(xdoc_hmc, "facHMC.xml")
+@test isfile("facHMC.xml")
+
+bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = true)
+xdoc_gibbs = XMLConstructor.make_xml(bx)
+save_file(xdoc_gibbs, "facGibbs.xml")
+@test isfile("facGibbs.xml")
