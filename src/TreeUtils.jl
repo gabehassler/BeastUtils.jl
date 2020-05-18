@@ -141,6 +141,16 @@ function rtree(n::Int;
     return net
 end
 
+# mutable struct ParamsMBM <: pn.ParamsProcess
+#     mu::Vector{Real}
+#     sigma::Matrix{Real}
+#     randomRoog::Bool
+#     varRoot::Matrix{Real}
+#     shift::Union{ShiftNet, Missing}
+# end
+
+
+
 
 # function get_root(edges::Matrix{Int})
 #     @assert size(edges, 2) == 2
