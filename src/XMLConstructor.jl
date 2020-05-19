@@ -278,7 +278,24 @@ function add_loggables(bx::BEASTXMLElement)
 end
 
 
+function save_xml(path::String, bx::BEASTXMLElement;
+                    change_filename::Bool = true)
+    nm = basename(path)
+    s = split(nm, '.')
+    @assert length(s) == 2
+    @assert s[2] == "xml"
 
+
+    if change_filename
+        filename = s[1]
+        bx.mcmc_el.filename = filename
+    end
+
+    xdoc = make_xml(bx)
+    save_file(xdoc, path)
+    free(xdoc)
+
+end
 
 function make_xml(bx::BEASTXMLElement)
     xdoc = XMLDocument()
@@ -384,7 +401,9 @@ function make_PFA_XML(data::Matrix{Float64}, taxa::Vector{T},
             useHMC::Bool = true,
             timing::Bool = false,
             log_factors::Bool = false,
-            shrink_loadings::Bool = false) where T <: AbstractString
+            shrink_loadings::Bool = false,
+            fle::Int = 10,
+            sle::Int = 100) where T <: AbstractString
 
     beastXML = BEASTXMLElement()
     beastXML.data_el = DataXMLElement(data, taxa, newick)
@@ -448,6 +467,8 @@ function make_PFA_XML(data::Matrix{Float64}, taxa::Vector{T},
                     beastXML.extension_el,
                     beastXML.operators_el,
                     chain_length = chain_length)
+    beastXML.mcmc_el.file_logEvery = fle
+    beastXML.mcmc_el.screen_logEvery = sle
 
     if log_factors
         add_loggable(beastXML.mcmc_el.loggables, beastXML.traitLog_el)

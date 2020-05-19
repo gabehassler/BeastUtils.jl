@@ -1,7 +1,7 @@
 using BeastUtils.XMLConstructor
 using BeastUtils.TreeUtils, PhyloNetworks
 
-using DataFrames, CSV, LightXML, Test
+using DataFrames, CSV, Test
 ### Making sure https://github.com/suchard-group/incomplete_measurements/blob/master/scripts/xml_setup.jl works
 
 function make_mbd(data_path::String, newick_path::String, xml_path::String,

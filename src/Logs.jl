@@ -31,6 +31,16 @@ function get_log(inpath::String; burnin::Float64 = 0.1)
     return string.(col_labels), data
 end
 
+function read_last_line(inpath::String)
+    col_labels, labels_ind = get_cols_and_ind(inpath)
+    p = length(col_labels)
+    f = open(inpath)
+    m = countlines(f)
+
+    data = readdlm(inpath, skipstart = m-1, dims = (1, p))
+    return string.(col_labels), vec(data)
+end
+
 function get_log(inpath::String, cols::Array{Int}; burnin::Float64 = 0.1)
     col_labels, data = get_log(inpath, burnin = burnin)
     return col_labels[cols], data[:, cols]
