@@ -56,11 +56,20 @@ mutable struct LoadingsGradientXMLElement <: AbstractGradientXMLElement
 end
 
 function make_xml(gxml::LoadingsGradientXMLElement)
-    make_xml(gxml.ifxml)
+    ifxml = gxml.ifxml
+    make_xml(ifxml)
 
-    el = new_element(bn.GRADIENT)
-    add_ref_el(el, get_normal_prior(gxml.ifxml))
-    add_ref_el(el, gxml.ifxml.loadings_el)
+    if isnothing(ifxml.msls)
+
+        el = new_element(bn.GRADIENT)
+        add_ref_el(el, get_normal_prior(gxml.ifxml))
+        add_ref_el(el, gxml.ifxml.loadings_el)
+
+
+    else
+        make_xml(ifxml.msls, ifxml.loadings_el)
+        el = reference_element(ifxml.msls.ms_el)
+    end
 
     gxml.el = el
     return el

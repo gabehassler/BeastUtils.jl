@@ -164,6 +164,11 @@ function reference_element(el::XMLElement, nm::String)
     return ref_el
 end
 
+function xml_vec(n::Int)
+    v = Vector{XMLOrNothing}(undef, n)
+    fill!(v, nothing)
+    return v
+end
 
 
 struct VarPropXMLElement
@@ -421,7 +426,15 @@ function make_PFA_XML(data::Matrix{Float64}, taxa::Vector{T},
                             beastXML.extension_el,
                             beastXML.traitLikelihood_el)
 
-    beastXML.operators_el = OperatorsXMLElement([loadings_op, normal_gamma_op])
+    ops_vec = [loadings_op, normal_gamma_op]
+    if shrink_loadings
+        push!(ops_vec, ShrinkageScaleOperators(beastXML.extension_el.msls,
+                                            beastXML.extension_el))
+    end
+
+
+
+    beastXML.operators_el = OperatorsXMLElement(ops_vec)
 
     if log_factors
         beastXML.traitLog_el = TraitLoggerXMLElement(beastXML.treeModel_el,

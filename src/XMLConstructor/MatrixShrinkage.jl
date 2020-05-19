@@ -33,10 +33,8 @@ mutable struct MatrixShrinkageLikelihoods
     end
 end
 
-function xml_vec(n::Int)
-    v = Vector{XMLOrNothing}(undef, n)
-    fill!(v, nothing)
-    return v
+function get_fac_dim(msl::MatrixShrinkageLikelihoods)
+    return length(msl.gp_els)
 end
 
 

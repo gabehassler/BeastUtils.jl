@@ -230,4 +230,9 @@ const LOCAL_SCALE = "localScale"
 const MATRIX_SHRINKAGE_LIKELIHOOD = "matrixShrinkageLikelihood"
 const ROW_PRIORS = "rowPriors"
 
+const SCALE_OPERATOR = "scaleOperator"
+const SCALE_FACTOR = "scaleFactor"
+
+const BAYESIAN_BRIDGE_GIBBS_OP = "bayesianBridgeGibbsOperator"
+
 end

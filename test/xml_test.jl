@@ -91,6 +91,13 @@ xdoc_gibbs = XMLConstructor.make_xml(bx)
 save_file(xdoc_gibbs, "facGibbs.xml")
 @test isfile("facGibbs.xml")
 
+# HMC, shrinkage
+bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = true,
+            shrink_loadings = true)
+xdoc_hmc = XMLConstructor.make_xml(bx)
+save_file(xdoc_hmc, "facHMCShrink.xml")
+@test isfile("facHMCShrink.xml")
+
 # Gibbs, shrinkage
 bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = false,
             shrink_loadings = true)
