@@ -77,14 +77,23 @@ make_mbd(data_path, newick_path, dates_xml_path, filename, dates_path = dates_pa
 
 
 ### Testing Factor xml
-k = 2
+k = 4
 
+# HMC, no shrinkage
 bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = false)
 xdoc_hmc = XMLConstructor.make_xml(bx)
 save_file(xdoc_hmc, "facHMC.xml")
 @test isfile("facHMC.xml")
 
+# Gibbs, no shrinkage
 bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = true)
 xdoc_gibbs = XMLConstructor.make_xml(bx)
 save_file(xdoc_gibbs, "facGibbs.xml")
 @test isfile("facGibbs.xml")
+
+# Gibbs, shrinkage
+bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = false,
+            shrink_loadings = true)
+xdoc_gibbs = XMLConstructor.make_xml(bx)
+save_file(xdoc_gibbs, "facGibbsShrink.xml")
+@test isfile("facGibbsShrink.xml")

@@ -17,6 +17,7 @@ include(joinpath(dir_name, "NewickXMLElement.jl"))
 include(joinpath(dir_name, "TreeModelXMLElement.jl"))
 include(joinpath(dir_name, "MBDXMLElement.jl"))
 include(joinpath(dir_name, "RepeatedMeasuresXMLElement.jl"))
+include(joinpath(dir_name, "MatrixShrinkage.jl"))
 include(joinpath(dir_name, "IntegratedFactorsXMLElement.jl"))
 include(joinpath(dir_name, "TraitLikelihoodXMLElement.jl"))
 include(joinpath(dir_name, "LatentFactorModelXMLElement.jl"))
@@ -50,7 +51,7 @@ function add_parameter_id(pel::XMLElement, id::String)
     return el
 end
 
-function add_parameter(pel::XMLElement; id::String = "",
+function make_parameter(;id::String = "",
         value::AbstractArray{T} = Vector{Int8}(undef, 0),
         lower::String = "", upper::String = "", dim::Int = 0) where T <: Real
 
@@ -70,8 +71,26 @@ function add_parameter(pel::XMLElement; id::String = "",
     if dim > 0
         set_attribute(el, bn.DIMENSION, dim)
     end
+
+    return el
+end
+
+function add_parameter(pel::XMLElement; id::String = "",
+        value::AbstractArray{T} = Vector{Int8}(undef, 0),
+        lower::String = "", upper::String = "", dim::Int = 0) where T <: Real
+
+    el = make_parameter(id = id, value = value, lower = lower, upper = upper,
+                        dim = dim)
     add_child(pel, el)
     return el
+end
+
+function get_id(el::XMLElement)
+    return attribute(el, bn.ID)
+end
+
+function set_id(el::XMLElement, id::String)
+    set_attribute(el, bn.ID, id)
 end
 
 function make_Wishart_prior(scale::AbstractArray{Float64, 2},
@@ -373,7 +392,11 @@ function make_PFA_XML(data::Matrix{Float64}, taxa::Vector{T},
 
     beastXML.extension_el = IntegratedFactorsXMLElement(beastXML.treeModel_el,
                                                     beastXML.MBD_el, k)
-    beastXML.extension_el.shrink_loadings = shrink_loadings
+
+    if shrink_loadings
+        beastXML.extension_el.msls = MatrixShrinkageLikelihoods(k)
+    end
+
     beastXML.traitLikelihood_el = TraitLikelihoodXMLElement(beastXML.MBD_el,
                             beastXML.treeModel_el, beastXML.extension_el)
 

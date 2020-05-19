@@ -215,4 +215,19 @@ const TAXON_EXPLICIT = "taxonNameExplicit"
 const NODES = "nodes"
 const EXTERNAL = "external"
 
+const PRODUCT_PARAMETER = "productParameter"
+const TRANSFORMED_PARAMETER = "transformedParameter"
+const TYPE = "type"
+const POWER = "power"
+const POWER_TRANSFORM = "powerTransform"
+const TRANSFORM = "transform"
+
+const BAYESIAN_BRIDGE = "bayesianBridge"
+const GLOBAL_SCALE = "globalScale"
+const EXPONENT = "exponent"
+const LOCAL_SCALE = "localScale"
+
+const MATRIX_SHRINKAGE_LIKELIHOOD = "matrixShrinkageLikelihood"
+const ROW_PRIORS = "rowPriors"
+
 end

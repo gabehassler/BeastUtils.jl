@@ -16,7 +16,7 @@ mutable struct IntegratedFactorsXMLElement <: ModelExtensionXMLElement
     trait_name::String
     tp_name::String
     standardize_traits::Bool
-    shrink_loadings::Bool
+    msls::Union{MatrixShrinkageLikelihoods, Nothing}
 
 
     function IntegratedFactorsXMLElement(treeModel_el::TreeModelXMLElement,
@@ -38,7 +38,7 @@ mutable struct IntegratedFactorsXMLElement <: ModelExtensionXMLElement
                 precision, precision_scale,
                 precision_shape,
                 treeModel_el,
-                mbd_el, tree_trait_ind, trait_name, tp_name, true, false)
+                mbd_el, tree_trait_ind, trait_name, tp_name, true, nothing)
     end
 end
 
@@ -57,8 +57,8 @@ end
 
 function make_xml(ifxml::IntegratedFactorsXMLElement)
     ifxml.loadings_el = make_loadings(ifxml.loadings)
-    if ifxml.shrink_loadings
-        ifxml.loadings_prior_els = [make_shrinkage_priors(ifxml)]
+    if !isnothing(ifxml.msls)
+        ifxml.loadings_prior_els = make_xml(ifxml.msls, ifxml.loadings_el)
     else
         ifxml.loadings_prior_els = [make_loadings_normal_prior(ifxml)]
     end
@@ -120,7 +120,11 @@ function make_loadings(L::AbstractArray{Float64, 2})
 end
 
 function get_normal_prior(ifxml::IntegratedFactorsXMLElement)
-    return ifxml.loadings_prior_els[1]
+    if isnothing(ifxml.msls)
+        return ifxml.loadings_prior_els[1]
+    else
+        return ifxml.msls.ms_el
+    end
 end
 
 function make_loadings_normal_prior(ifxml::IntegratedFactorsXMLElement)
@@ -141,17 +145,26 @@ function make_loadings_normal_prior(ifxml::IntegratedFactorsXMLElement)
     return el
 end
 
-function make_shrinkage_priors(ifxml::IntegratedFactorsXMLElement)
-end
-
 function get_priors(xml::IntegratedFactorsXMLElement)
     make_xml(xml)
-    return [xml.loadings_prior_els; xml.precision_prior_el]
+    if isnothing(xml.msls)
+        return [xml.loadings_prior_els; xml.precision_prior_el]
+    else
+        return [get_priors(xml.msls); xml.precision_prior_el]
+    end
 end
 
 function get_loggables(xml::IntegratedFactorsXMLElement)
     make_xml(xml)
-    return [xml.loadings_el, xml.el[bn.PRECISION][1][bn.PARAMETER][1]]
+
+    loggables = [xml.loadings_el, xml.el[bn.PRECISION][1][bn.PARAMETER][1]]
+
+    if !isnothing(xml.msls)
+        make_xml(xml.msls, xml.loadings_el)
+        loggables = [loggables; get_loggables(xml.msls)]
+    end
+
+    return loggables
 end
 
 function get_precision_prior(xml::IntegratedFactorsXMLElement)
