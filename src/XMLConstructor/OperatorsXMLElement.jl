@@ -66,7 +66,6 @@ mutable struct ShrinkageScaleOperators <: CompoundOperatorXMLElement
     scale_factors::Vector{Float64}
     scale_weights::Vector{Float64}
     bb_weights::Vector{Float64}
-    fix_first::Bool
 
     function ShrinkageScaleOperators(msl::MatrixShrinkageLikelihoods,
                                     ifxml::IntegratedFactorsXMLElement)
@@ -76,8 +75,7 @@ mutable struct ShrinkageScaleOperators <: CompoundOperatorXMLElement
                     ifxml,
                     fill(0.5, k),
                     ones(k),
-                    ones(k),
-                    false)
+                    ones(k))
     end
 end
 
@@ -104,42 +102,16 @@ function make_xml(xml::ShrinkageScaleOperators)
     make_xml(msl, xml.ifxml.loadings_el)
     k = get_fac_dim(msl)
 
-    if fix_first
-        if length(xml.els) != 2 * k
-            xml.els = xml_vec(2 * k)
-        end
-    else
-        if length(xml.els) != 2 * k - 1
-            xml.els = xml_vec(2 * k - 1)
-        end
+    xml.els[1] = make_scale_operator(msl.gp_els[1], xml.scale_factors[1],
+                                    xml.scale_weights[1])
+    for i = 2:k
+        xml.els[i] = make_scale_operator(msl.mult_els[i - 1],
+                                        xml.scale_factors[i],
+                                        xml.scale_weights[i])
     end
 
-    if fix_first
-        mult_rng = 1:(k - 1)
-        bb_rng = k:(2 * k - 1)
-
-        xml.els[1] = make_scale_operator(msl.gp_els[1], xml.scale_factors[1],
-                                        xml.scale_weights[1])
-    else
-        mult_rng = 2:k
-        bb_rng = (k + 1):(2 * k)
+    for i = 1:k
+        xml.els[i + k] = make_bb_operator(msl.bb_els[i], xml.bb_weights[i])
     end
-
-
-    mult_counter = 0
-    for i in mult_rng
-        mult_counter += 1
-        xml.els[i] = make_scale_operator(msl.mult_els[mult_counter],
-                                        xml.scale_factors[mult_counter + 1],
-                                        xml.scale_weights[mult_counter + 1])
-    end
-
-    bb_counter = 0
-    for i in bb_rng
-        bb_counter += 1
-        xml.els[i] = make_bb_operator(msl.bb_els[bb_counter],
-                                            xml.bb_weights[bb_counter])
-    end
-
 
 end
