@@ -66,6 +66,7 @@ mutable struct ShrinkageScaleOperators <: CompoundOperatorXMLElement
     scale_factors::Vector{Float64}
     scale_weights::Vector{Float64}
     bb_weights::Vector{Float64}
+    fix_first::Bool
 
     function ShrinkageScaleOperators(msl::MatrixShrinkageLikelihoods,
                                     ifxml::IntegratedFactorsXMLElement)
@@ -75,7 +76,8 @@ mutable struct ShrinkageScaleOperators <: CompoundOperatorXMLElement
                     ifxml,
                     fill(0.5, k),
                     ones(k),
-                    ones(k))
+                    ones(k),
+                    false)
     end
 end
 
@@ -102,8 +104,13 @@ function make_xml(xml::ShrinkageScaleOperators)
     make_xml(msl, xml.ifxml.loadings_el)
     k = get_fac_dim(msl)
 
-    xml.els[1] = make_scale_operator(msl.gp_els[1], xml.scale_factors[1],
-                                    xml.scale_weights[1])
+    if xml.fix_first
+        xml.els[1] = nothing
+    else
+        xml.els[1] = make_scale_operator(msl.gp_els[1], xml.scale_factors[1],
+                                        xml.scale_weights[1])
+    end
+
     for i = 2:k
         xml.els[i] = make_scale_operator(msl.mult_els[i - 1],
                                         xml.scale_factors[i],
