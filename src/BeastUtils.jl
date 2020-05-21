@@ -10,5 +10,6 @@ include("DataStorage.jl")
 include("XMLTools.jl")
 include("ESS.jl")
 include("TreeUtils.jl")
+include("RunBeast.jl")
 
 end
