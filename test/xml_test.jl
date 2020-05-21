@@ -32,10 +32,8 @@ function make_mbd(data_path::String, newick_path::String, xml_path::String,
     XMLConstructor.add_MBD_loggables!(bx)
 
 
-    xdoc = XMLConstructor.make_xml(bx)
 
-    save_file(xdoc, xml_path)
-    free(xdoc)
+    XMLConstructor.save_xml(xml_path, bx)
 end
 
 
@@ -81,26 +79,22 @@ k = 4
 
 # HMC, no shrinkage
 bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = false)
-xdoc_hmc = XMLConstructor.make_xml(bx)
-save_file(xdoc_hmc, "facHMC.xml")
+XMLConstructor.save_xml("facHMC.xml", bx)
 @test isfile("facHMC.xml")
 
 # Gibbs, no shrinkage
 bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = true)
-xdoc_gibbs = XMLConstructor.make_xml(bx)
-save_file(xdoc_gibbs, "facGibbs.xml")
+XMLConstructor.save_xml("facGibbs.xml", bx)
 @test isfile("facGibbs.xml")
 
 # HMC, shrinkage
 bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = true,
             shrink_loadings = true)
-xdoc_hmc = XMLConstructor.make_xml(bx)
-save_file(xdoc_hmc, "facHMCShrink.xml")
+XMLConstructor.save_xml("facHMCShrink.xml", bx)
 @test isfile("facHMCShrink.xml")
 
 # Gibbs, shrinkage
 bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = false,
             shrink_loadings = true)
-xdoc_gibbs = XMLConstructor.make_xml(bx)
-save_file(xdoc_gibbs, "facGibbsShrink.xml")
+XMLConstructor.save_xml("facGibbsShrink.xml", bx)
 @test isfile("facGibbsShrink.xml")
