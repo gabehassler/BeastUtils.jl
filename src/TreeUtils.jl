@@ -3,7 +3,7 @@ module TreeUtils
 # Internal library for working with trees. functions rely heavily on PhyloNetworks.jl
 
 
-using PhyloNetworks, Distributions
+using PhyloNetworks, Distributions, LinearAlgebra
 pn = PhyloNetworks
 
 # for backward compatibility with earlier code
@@ -184,7 +184,88 @@ function leaf_distances(net::HybridNetwork)
 end
 
 
+mutable struct ParamsMultiBM <: pn.ParamsProcess
+    mu::AbstractArray{Float64, 1}
+    sigma::AbstractArray{Float64, 2}
+    randomRoot::Bool
+    varRoot::AbstractArray{Float64, 2}
+    shift::Union{ShiftNet, Missing}
+    L::LowerTriangular{Float64}
+end
 
+ParamsMultiBM(mu::AbstractArray{Float64, 1},
+                sigma::AbstractArray{Float64, 2}) =
+        ParamsMultiBM(mu, sigma, false, Diagonal([NaN]), missing, cholesky(sigma).L)
+
+
+
+function process_dim(params::ParamsMultiBM)
+    return length(params.mu)
+end
+
+function anyShift(params::ParamsMultiBM)
+    # TODO
+    @warn "Shifts not currently implemented. Returning false."
+    return false
+end
+
+
+
+function initSimulateMBD(nodes::Vector{pn.Node}, params::Tuple{ParamsMultiBM})
+    n = length(nodes)
+    p = process_dim(params[1])
+    vals = zeros(p, n) # random values
+    means = zeros(p, n) # means
+    return (means, vals)
+end
+
+function updateRootSimulateMBD!(X::Tuple{Matrix{Float64}, Matrix{Float64}},
+                                i::Int,
+                                params::Tuple{ParamsMultiBM})
+    params = params[1]
+    means = X[1]
+    vals = X[2]
+    if (params.randomRoot)
+        means[:, i] .= params.mu # expectation
+        vals[:, i] .= params.mu + params.L * randn(length(params.mu)) # random value #TODO: make memory efficient
+    else
+        means[:, i] .= params.mu # expectation
+        vals[:, i] .= params.mu # random value
+    end
+end
+
+# Going down to a tree node
+function updateTreeSimulateBM!(X::Tuple{Matrix{Float64}, Matrix{Float64}},
+                               i::Int,
+                               parentIndex::Int,
+                               edge::pn.Edge,
+                               params::Tuple{ParamsBM})
+    params = params[1]
+    means = X[1]
+    vals = X[2]
+    means[:, i] .= means[:, parentIndex] + params.shift.shift[i] # expectation
+    vals[:, i] .= vals[:, parentIndex] + params.shift.shift[i] + sqrt(edge.length) * parasm.L * randn(length(params.mu)) # random value #TODO: make memory efficient
+end
+
+# Going down to an hybrid node
+function updateHybridSimulateBM!(X::Tuple{Matrix{Float64}, Matrix{Float64}},
+                                 i::Int,
+                                 parentIndex1::Int,
+                                 parentIndex2::Int,
+                                 edge1::pn.Edge,
+                                 edge2::pn.Edge,
+                                 params::Tuple{ParamsBM})
+
+    params = params[1]
+    means = X[1]
+    vals = X[2]
+    p = process_dim(params)
+    means[:, i] .= edge1.gamma * means[:, parentIndex1] + edge2.gamma * means[:, parentIndex2] # expectation
+    vals[:, i] .=  edge1.gamma * (vals[:, parentIndex1] + sqrt(edge1.length) * params.L * randn(p)) +
+                    edge2.gamma * (vals[:, parentIndex2] + sqrt(edge2.length) * params.L * randn(p)) # random value
+    # TODO: shifts?
+    # TODO: memory efficincy
+end
 
 
 
