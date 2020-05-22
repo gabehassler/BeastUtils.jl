@@ -1,7 +1,7 @@
 module XMLConstructor
 
-using LightXML, LinearAlgebra, DataFrames
-import BeastUtils.BeastNames, BeastUtils.RTrees
+using LightXML, LinearAlgebra, DataFrames, PhyloNetworks
+import BeastUtils.BeastNames, BeastUtils.TreeUtils
 bn = BeastNames
 
 XMLOrNothing = Union{XMLElement, Nothing}

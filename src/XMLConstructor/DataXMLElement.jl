@@ -87,12 +87,14 @@ function format_data_line(data::Matrix{Float64}, ind::Int)
 end
 
 function get_node_times(taxa::Vector{String}, newick::String)
-    tree = RTrees.parse_newick(newick)
-    node_times = zeros(tree.n_tips)
-    for i = 1:tree.n_tips
+    tree = PhyloNetworks.readTopology(newick)
+    root_dists = TreeUtils.leaf_distances(tree)
+    tree_taxa = [tree.leaf[i].name for i = 1:tree.numTaxa]
+    node_times = zeros(tree.numTaxa)
+    for i = 1:length(taxa)
         taxon = taxa[i]
-        # ind = findfirst(x -> x == taxon, tree.tip_labels)
-        node_times[i] = RTrees.distance_to_root(tree, taxon)
+        ind = findfirst(x -> x == taxon, tree_taxa)
+        node_times[i] = root_dists[ind]
     end
     return node_times
 end
