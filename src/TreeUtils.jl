@@ -147,5 +147,45 @@ function rtree(n::Int; # number of taxa
 end
 
 
+function traverse_node_distances!(dists::Vector{Float64},
+                                net::HybridNetwork,
+                                node::PhyloNetworks.Node,
+                                next_leaf::Int
+                                )
+
+    start_ind = next_leaf
+    for edge in node.edge
+        child = edge.isChild1 ? edge.node[1] : edge.node[2]
+        if child !== node
+            if child.leaf
+                dists[next_leaf] = edge.length
+                println("$next_leaf: $(net.leaf[next_leaf].name)")
+                next_leaf += 1
+            else
+                rng = traverse_node_distances!(dists, net, child, next_leaf)
+                for i in rng
+                    dists[i] += edge.length
+                end
+
+                next_leaf = last(rng) + 1
+            end
+        end
+    end
+    return start_ind:(next_leaf - 1)
+end
+
+
+function leaf_distances(net::HybridNetwork)
+    root = net.node[net.root]
+    dists = zeros(length(net.leaf))
+
+    traverse_node_distances!(dists, net, root, 1)
+    return dists
+end
+
+
+
+
+
 
 end
