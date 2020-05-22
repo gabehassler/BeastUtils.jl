@@ -2,19 +2,7 @@ module Simulation
 
 using PhyloNetworks, LinearAlgebra, DataFrames
 
-mutable struct TraitSimulationModel
-    treeModel::TreeDiffusionModel
-    extensionModel::Untion{Nothing, ModelExtension}
-
-    function TraitSimulationModel(treeModel::TreeDiffusionModel,
-                                    extensionModel::ModelExtension)
-        return new(treeModel, extensionModel)
-    end
-
-    function TraitSimulationModel(treeModel::TreeDiffusionModel)
-        return new(treeModel, nothing)
-    end
-end
+abstract type ModelExtension end
 
 mutable struct TreeDiffusionModel
     tree::HybridNetwork
@@ -23,7 +11,7 @@ mutable struct TreeDiffusionModel
 
     function TreeDiffusionModel(tree::HybridNetwork,
                                 Σ::AbstractArray{Float64, 2})
-        p, q = size(Σ, 1)
+        p, q = size(Σ)
         if p != q
             error("Σ must be square.")
         end
@@ -39,22 +27,46 @@ mutable struct TreeDiffusionModel
 
 end
 
-function recuse_tree_diffusion!(df::Matrix{Float64}, )
+mutable struct TraitSimulationModel
+    taxa::AbstractArray{AbstractString, 1}
+    treeModel::TreeDiffusionModel
+    extensionModel::Union{Nothing, ModelExtension}
 
-function simulate_on_tree(model::TreeDiffusionModel)
-    p = length(model.μ)
-    tree = model.tree
-    n = tree.numTaxa
-    taxa = [leaf.name for leaf in tree.leaf]
-    data = zeros(n, p)
-    root = tree.nodes[tree.root]
+    function TraitSimulationModel(treeModel::TreeDiffusionModel,
+                                    extensionModel::ModelExtension)
+        return new(treeModel, extensionModel)
+    end
 
-    recurse_tree_diffusion!(data, root, μ)
-
-    return df
+    function TraitSimulationModel(treeModel::TreeDiffusionModel)
+        return new(treeModel, nothing)
+    end
 end
 
-function simulate_traits(tsm::TraitSimulationModel)
+
+
+function get_dimension(tdm::TreeDiffusionModel)
+    return length(tdm.μ)
+end
+
+function simulate_on_tree(model::TreeDiffusionModel,
+                        taxa::AbstractArray{T, 1}) where T <: AbstractString
+    params = PhyloNetworks.ParamsMultiBM(model.μ, model.Σ)
+    trait_sim = simulate(model.tree, params)
+    sim_taxa = trait_sim.M.tipNames
+    perm = indexin(taxa, sim_taxa)
+    @assert sim_taxa[perm] == taxa #TODO remove
+
+    n = length(taxa)
+    p = get_dimension(model)
+
+    sim_Y = trait_sim[:Tips]
+    Y = sim_Y'[perm, :]
+
+    return Y
+end
+
+
+function simulate(tsm::TraitSimulationModel)
 
     data = simulate_on_tree(tsm.treeModel)
 

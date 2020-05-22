@@ -2,6 +2,7 @@ module BeastUtils
 
 include("MatrixUtils.jl")
 include("TreeUtils.jl")
+include("Simulation.jl")
 include("RTrees.jl")
 include("BeastNames.jl")
 include("XMLConstructor.jl")

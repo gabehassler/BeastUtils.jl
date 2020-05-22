@@ -91,7 +91,6 @@ function rtree(n::Int; # number of taxa
         net = HybridNetwork(copy(available_nodes), pn.Edge[])
         for i = 1:(n - 1)
             m = n + 1 - i
-            @show m
             i1, i2 = sample(1:m, 2, replace = false)
 
             n1 = available_nodes[i1]
@@ -183,7 +182,13 @@ function leaf_distances(net::HybridNetwork)
     return dists
 end
 
+function vcv(net::HybridNetwork, taxa::Vector{String})
+    v = vcv(net)
+    sim_taxa = string.(names(v))
 
+    perm = indexin(taxa, sim_taxa)
+    V = Matrix(v)[perm, perm]
+end
 
 
 end
