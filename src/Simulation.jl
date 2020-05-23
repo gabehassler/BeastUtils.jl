@@ -117,10 +117,11 @@ end
 function add_extension(data::Matrix{Float64}, lfm::LatentFactorModel)
     n, k = size(data)
     p = size(lfm.L, 2)
-    Y = zeros(n, p)
+    Y = data * lfm.L
+    chol_vec = sqrt.(lfm.Λ.diag) # Λ is diagonal
 
     for i = 1:n
-        error("not yet implemented")
+        Y[i, :] .+= chol_vec .* randn(p)
     end
 
     return Y
