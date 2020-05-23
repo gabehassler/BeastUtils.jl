@@ -48,8 +48,35 @@ taxa = ["taxon$i" for i = 1:n]
 
 ## Tree only
 
+# Known tree
+newick = "((A:1.0,(B:0.5,C:0.8):0.1):2.0,(D:0.5,E:2.0):1.5);"
+tree = readTopology(newick)
+Σ = randn(p, p)
+Σ = Σ * Σ' # needs to be positive definite
+Ψ1 = [3.0 2.0 2.0 0.0 0.0;
+      2.0 2.6 2.1 0.0 0.0;
+      2.0 2.1 2.9 0.0 0.0;
+      0.0 0.0 0.0 2.0 1.5;
+      0.0 0.0 0.0 1.5 3.5]
 
+taxa1 = ["A", "B", "C", "D", "E"]
+μ_true = zeros(n * p)
+V_true = kron(Σ, Ψ1)
+tdm = Simulation.TreeDiffusionModel(tree, Σ)
+tsm = Simulation.TraitSimulationModel(taxa1, tdm)
+check_simulation(tsm, μ_true, V_true)
 
+perm = [3, 2, 5, 4, 1] # scramble order
+taxa2 = taxa1[perm]
+Ψ2 = Ψ1[perm, perm]
+
+μ_true = zeros(n * p)
+V_true = kron(Σ, Ψ2)
+tdm = Simulation.TreeDiffusionModel(tree, Σ)
+tsm = Simulation.TraitSimulationModel(taxa2, tdm)
+check_simulation(tsm, μ_true, V_true)
+
+# Random Tree
 tree = TreeUtils.rtree(n, labels = taxa, keep_order = false, ultrametric = false)
 Σ = randn(p, p)
 Σ = Σ * Σ' # needs to be positive definite
