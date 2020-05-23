@@ -183,7 +183,7 @@ function leaf_distances(net::HybridNetwork)
 end
 
 function vcv(net::HybridNetwork, taxa::Vector{String})
-    v = vcv(net)
+    v = PhyloNetworks.vcv(net)
     sim_taxa = string.(names(v))
 
     perm = indexin(taxa, sim_taxa)

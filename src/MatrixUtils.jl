@@ -14,7 +14,8 @@ export cov2corr,
     findnans,
     replace_nans!,
     permutation_matrix,
-    standardize_data!
+    standardize_data!,
+    issquare
 
 function cov2corr(Σ::Matrix{Float64})
     n, p = size(Σ)
@@ -180,6 +181,11 @@ function standardize_data!(data::Matrix{Float64})
         data[:, j] .-= means[j]
         data[:, j] ./= sds[j]
     end
+end
+
+function issquare(x::AbstractArray{T, 2}) where T <: Any
+    n, m = size(x)
+    return n == m
 end
 
 
