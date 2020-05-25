@@ -157,6 +157,8 @@ function traverse_node_distances!(dists::Vector{Float64},
         child = edge.isChild1 ? edge.node[1] : edge.node[2]
         if child !== node
             if child.leaf
+                @show net.leaf[next_leaf].name
+                @show child.name
                 @assert net.leaf[next_leaf] === child
                 dists[next_leaf] = edge.length
                 next_leaf += 1
@@ -188,6 +190,18 @@ function vcv(net::HybridNetwork, taxa::Vector{String})
 
     perm = indexin(taxa, sim_taxa)
     V = Matrix(v)[perm, perm]
+end
+
+function scale_to!(net::HybridNetwork, height::Float64)
+    original_height = maximum(leaf_distances(net))
+    mult = height / original_height
+    for edge in net.edge
+        edge.length *= mult
+    end
+end
+
+function standardize_height!(net::HybridNetwork)
+    scale_to!(net, 1.0)
 end
 
 
