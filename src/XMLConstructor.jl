@@ -200,6 +200,42 @@ mutable struct BEASTXMLElement
     end
 end
 
+function get_data(bx::BEASTXMLElement)
+    return bx.data_el
+end
+
+function get_newick(bx::BEASTXMLElement)
+    return bx.newick_el
+end
+
+function get_treeModel(bx::BEASTXMLElement)
+    return bx.treeModel_el
+end
+
+function get_MBD(bx::BEASTXMLElement)
+    return bx.MBD_el
+end
+
+function get_extension(bx::BEASTXMLElement)
+    return bx.extension_el
+end
+
+function get_traitLikelihood(bx::BEASTXMLElement)
+    return bx.traitLikelihood_el
+end
+
+function get_operators(bx::BEASTXMLElement)
+    return bx.operators_el
+end
+
+function get_mcmc(bx::BEASTXMLElement)
+    return bx.mcmc_el
+end
+
+
+
+
+
 include(joinpath(dir_name, "utils.jl"))
 
 
