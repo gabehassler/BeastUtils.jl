@@ -157,8 +157,8 @@ function traverse_node_distances!(dists::Vector{Float64},
         child = edge.isChild1 ? edge.node[1] : edge.node[2]
         if child !== node
             if child.leaf
-                @show net.leaf[next_leaf].name
-                @show child.name
+                # @show net.leaf[next_leaf].name
+                # @show child.name
                 @assert net.leaf[next_leaf] === child
                 dists[next_leaf] = edge.length
                 next_leaf += 1
