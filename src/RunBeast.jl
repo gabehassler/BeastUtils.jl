@@ -2,6 +2,25 @@ module RunBeast #module for running BEAST
 
 const BEAST_JAR = "beast.jar"
 
+function execute(cmd::Cmd) #code copied from
+  out = Pipe()
+  err = Pipe()
+
+  process = run(pipeline(ignorestatus(cmd), stdout=out, stderr=err))
+  close(out.in)
+  close(err.in)
+
+  stdout = @async String(read(out))
+  stderr = @async String(read(err))
+
+  (
+    stdout = wait(stdout),
+    stderr = wait(stderr),
+    code = process.exitcode
+  )
+end
+
+
 function find_beast(beast_home::String)
     path = joinpath(beast_home, BEAST_JAR)
     if isfile(path)
@@ -51,10 +70,13 @@ function run_beast(xml_path::String;
 
     push!(cmds, xml_path)
 
-    run(Cmd(cmds))
+    out = run(Cmd(cmds))
+    # out = execute(Cmd(cmds))
+    # @show out
 
     cd(old_directory)
 
+    return out
 end
 
 
