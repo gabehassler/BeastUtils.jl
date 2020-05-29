@@ -736,14 +736,14 @@ function insert_element(xdoc::XMLDocument,
         # @show name(el)
         new_el = xml_deepcopy(el)
         if name(el) != reference_name
-            add_child_level(xroot2, new_el, 1)
+            add_child(xroot2, new_el)
         else
             if above
-                add_child_level(xroot2, n_element, 1)
-                add_child_level(xroot2, new_el, 1)
+                add_child(xroot2, n_element)
+                add_child(xroot2, new_el)
             else
-                add_child_level(xroot2, new_el, 1)
-                add_child_level(xroot2, n_element, 1)
+                add_child(xroot2, new_el)
+                add_child(xroot2, n_element)
             end
         end
 
@@ -760,6 +760,8 @@ function insert_element(xdoc::XMLDocument,
     free(xdoc2)
     return 0
 end
+
+
 
 function xml_deepcopy(el::XMLElement)
     xdoc = parse_string(string(el))

@@ -8,17 +8,33 @@ mutable struct TraitLikelihoodXMLElement <: MyXMLElement
     attrs::Dict{String, String}
     xml_name::String
 
-    function TraitLikelihoodXMLElement(mbd_el::MBDXMLElement,
-                        treeModel_el::TreeModelXMLElement,
-                        extension_el::Union{ModelExtensionXMLElement, Nothing})
-        μ = zeros(size(mbd_el.precision, 1))
-        pss = 0.001
-        trait_name = treeModel_el.node_traits[1]
-        attrs = deepcopy(DEFAULT_TRAITLIKELIHOOD_ATTRS)
-        attrs[bn.TRAIT_NAME] = trait_name
-        return new(nothing, mbd_el, treeModel_el, extension_el, μ, pss, attrs,
-                    bn.TRAIT_DATA_LIKELIHOOD)
-    end
+
+end
+
+function TraitLikelihoodXMLElement(mbd_el::MBDXMLElement,
+                    treeModel_el::TreeModelXMLElement,
+                    extension_el::Union{ModelExtensionXMLElement, Nothing})
+    μ = zeros(size(mbd_el.precision, 1))
+    pss = 0.001
+    trait_name = treeModel_el.node_traits[1]
+    attrs = deepcopy(DEFAULT_TRAITLIKELIHOOD_ATTRS)
+    attrs[bn.TRAIT_NAME] = trait_name
+    return TraitLikelihoodXMLElement(nothing, mbd_el, treeModel_el,
+                extension_el, μ, pss, attrs,
+                bn.TRAIT_DATA_LIKELIHOOD)
+end
+
+function copy(x::TraitLikelihoodXMLElement)
+    return TraitLikelihoodXMLElement(
+        x.el,
+        x.mbd_el,
+        x.treeModel_el,
+        x.extension_el,
+        x.μ,
+        x.pss,
+        x.attrs,
+        x.xml_name
+    )
 end
 
 function make_xml(tl_el::TraitLikelihoodXMLElement)

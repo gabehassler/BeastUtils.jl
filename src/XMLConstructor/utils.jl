@@ -48,3 +48,12 @@ function use_dates!(bx::BEASTXMLElement)
     bx.data_el.use_times = true
     bx.newick_el.fix_tree = false
 end
+
+function add_trait!(bx::BEASTXMLElement, data::Matrix{Float64}, trait::String)
+    p = size(data, 2)
+    data_el = get_data(bx)
+    tm_el = get_treeModel(bx)
+
+    add_trait!(data_el, data, trait)
+    add_leaf_param!(tm_el, trait, p)
+end

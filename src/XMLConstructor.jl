@@ -21,6 +21,7 @@ include(joinpath(dir_name, "MatrixShrinkage.jl"))
 include(joinpath(dir_name, "IntegratedFactorsXMLElement.jl"))
 include(joinpath(dir_name, "TraitLikelihoodXMLElement.jl"))
 include(joinpath(dir_name, "LatentFactorModelXMLElement.jl"))
+include(joinpath(dir_name, "LogPredictiveDensity.jl"))
 include(joinpath(dir_name, "NormalGammaPrecisionOperatorXMLElement.jl"))
 include(joinpath(dir_name, "PrecisionGibbsOperatorXMLElement.jl"))
 include(joinpath(dir_name, "OperatorsXMLElement.jl"))
@@ -190,13 +191,14 @@ mutable struct BEASTXMLElement
     operators_el::Union{OperatorsXMLElement, Nothing}
     varProp_el::Union{VarPropXMLElement, Nothing}
     traitLog_el::Union{TraitLoggerXMLElement, Nothing}
+    misc_els::Vector{MyXMLElement}
     mcmc_el::Union{MCMCXMLElement, Nothing}
     timer_el::Union{TimerXMLElement, Nothing}
     loggables::Union{LoggablesXMLElement, Nothing}
 
     function BEASTXMLElement()
         return new(nothing, nothing, nothing, nothing, nothing, nothing, nothing,
-            nothing, nothing, nothing, nothing, nothing, nothing)
+            nothing, nothing, nothing, MyXMLElement[], nothing, nothing, nothing)
     end
 end
 
@@ -230,6 +232,21 @@ end
 
 function get_mcmc(bx::BEASTXMLElement)
     return bx.mcmc_el
+end
+
+function add_loggable(bx::BEASTXMLElement, el::MyXMLElement;
+                        already_made::Bool = false)
+
+    if isnothing(bx.mcmc_el)
+        error("MCMC element not created. Can't add loggables")
+    end
+
+    if isnothing(bx.loggables)
+        bx.loggables = LoggablesXMLElement()
+    end
+
+    add_loggable(bx.mcmc_el.loggables, el, already_made = already_made)
+    add_loggable(bx.loggables, el, already_made = already_made)
 end
 
 
@@ -302,12 +319,25 @@ function add_el(bx::BEASTXMLElement, xml::TraitLoggerXMLElement)
     add_child(bx.el, bx.traitLog_el.el)
 end
 
+function add_el(bx::BEASTXMLElement, el::FactorLogPredictiveDensity)
+    make_xml(el)
+    add_child(bx.el, el.fac_el)
+    add_child(bx.el, el.like_el)
+    add_child(bx.el, el.cl_el)
+end
+
+
+function add_el(bx::BEASTXMLElement, els::Array{MyXMLElement})
+    for el in els
+        add_el(bx, el)
+    end
+end
+
 function add_loggables(bx::BEASTXMLElement)
     if !isnothing(bx.loggables)
-        make_xml(bx.loggables)
         for i = 1:length(bx.loggables.els)
             if !bx.loggables.already_made[i]
-                add_child(bx.el, bx.loggables.els[i].el)
+                add_el(bx, bx.loggables.els[i])
             end
         end
     end
@@ -347,6 +377,7 @@ function make_xml(bx::BEASTXMLElement)
     add_el(bx, bx.varProp_el)
     add_el(bx, bx.traitLog_el)
     add_loggables(bx)
+    add_el(bx, bx.misc_els)
     add_el(bx, bx.mcmc_el)
     add_el(bx, bx.timer_el)
     return xdoc
@@ -364,6 +395,7 @@ function make_xml_oldPFA(bx::BEASTXMLElement)
     add_el(bx, bx.extension_el)
     add_el(bx, bx.operators_el)
     add_el(bx, bx.varProp_el)
+    add_el(bx, bx.misc_els)
     add_loggables(bx)
     add_el(bx, bx.mcmc_el)
     add_el(bx, bx.timer_el)
@@ -463,6 +495,9 @@ function make_PFA_XML(data::Matrix{Float64}, taxa::Vector{T},
     beastXML.traitLikelihood_el.attrs[bn.TRAIT_NAME] = bn.DEFAULT_FACTOR_NAME
 
     beastXML.traitLikelihood_el.attrs[bn.ALLOW_SINGULAR] = bn.TRUE
+    beastXML.traitLikelihood_el.attrs[bn.STANDARDIZE] = bn.FALSE
+
+
 
 
 

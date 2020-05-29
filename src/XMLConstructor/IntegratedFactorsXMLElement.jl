@@ -13,33 +13,51 @@ mutable struct IntegratedFactorsXMLElement <: ModelExtensionXMLElement
     treeModel::TreeModelXMLElement
     mbd::MBDXMLElement
     tree_trait_ind::Int
-    trait_name::String
-    tp_name::String
     standardize_traits::Bool
     msls::Union{MatrixShrinkageLikelihoods, Nothing}
+    id::String
 
 
-    function IntegratedFactorsXMLElement(treeModel_el::TreeModelXMLElement,
-                mbd_el::MBDXMLElement, k::Int)
+
+end
+
+function IntegratedFactorsXMLElement(treeModel_el::TreeModelXMLElement,
+            mbd_el::MBDXMLElement, k::Int; trait_ind::Int = 1)
 
 
-        p = treeModel_el.trait_dims[1]
+    p = treeModel_el.trait_dims[trait_ind]
 
-        L = default_loadings(k, p)
+    L = default_loadings(k, p)
 
-        trait_name = treeModel_el.node_traits[1]
-        tp_name = treeModel_el.param_names[1]
-        precision = ones(p)
-        precision_scale = 1.0
-        precision_shape = 1.0
-        tree_trait_ind = 1
-        return new(nothing, nothing, XMLElement[], nothing,
-                L,
-                precision, precision_scale,
-                precision_shape,
-                treeModel_el,
-                mbd_el, tree_trait_ind, trait_name, tp_name, true, nothing)
-    end
+    precision = ones(p)
+    precision_scale = 1.0
+    precision_shape = 1.0
+    return IntegratedFactorsXMLElement(nothing, nothing, XMLElement[], nothing,
+                                L,
+                                precision, precision_scale,
+                                precision_shape,
+                                treeModel_el,
+                                mbd_el, trait_ind, true, nothing,
+                                bn.DEFAULT_IF_NAME)
+end
+
+function copy(x::IntegratedFactorsXMLElement)
+    return IntegratedFactorsXMLElement(
+        x.el,
+        x.loadings_el,
+        x.loadings_prior_els,
+        x.precision_prior_el,
+        x.loadings,
+        x.precision,
+        x.precision_scale,
+        x.precision_shape,
+        x.treeModel,
+        x.mbd,
+        x.tree_trait_ind,
+        x.standardize_traits,
+        x.msls,
+        x.id
+    )
 end
 
 function default_loadings(k::Int, p::Int)
@@ -55,7 +73,8 @@ function default_loadings(k::Int, p::Int)
 end
 
 
-function make_xml(ifxml::IntegratedFactorsXMLElement)
+function make_xml(ifxml::IntegratedFactorsXMLElement;
+                    reference_precision::Bool = false)
     ifxml.loadings_el = make_loadings(ifxml.loadings)
     if !isnothing(ifxml.msls)
         ifxml.loadings_prior_els = make_xml(ifxml.msls, ifxml.loadings_el)
@@ -65,8 +84,8 @@ function make_xml(ifxml::IntegratedFactorsXMLElement)
 
 
     el = new_element(bn.INTEGRATED_FACTORS)
-    attrs = [(bn.ID, bn.DEFAULT_IF_NAME),
-            (bn.TRAIT_NAME, ifxml.trait_name)]
+    attrs = [(bn.ID, ifxml.id),
+            (bn.TRAIT_NAME, ifxml.treeModel.node_traits[ifxml.tree_trait_ind])]
     set_attributes(el, attrs)
 
     if ifxml.standardize_traits
@@ -77,21 +96,29 @@ function make_xml(ifxml::IntegratedFactorsXMLElement)
     add_ref_el(l_el, ifxml.loadings_el)
 
     p_el = new_child(el, bn.PRECISION)
-    add_parameter(p_el, id=bn.FACTOR_PRECISION, value = ifxml.precision,
+    if reference_precision
+        add_ref_el(p_el, bn.PARAMETER, bn.FACTOR_PRECISION)
+    else
+        add_parameter(p_el, id=bn.FACTOR_PRECISION, value = ifxml.precision,
                     lower="0")
+    end
     add_ref_el(el, ifxml.treeModel.el)
     tp_el = new_child(el, bn.TRAIT_PARAMETER)
-    add_ref_el(tp_el, bn.PARAMETER, ifxml.tp_name)
+    tp_id = ifxml.treeModel.param_names[ifxml.tree_trait_ind]
+    add_ref_el(tp_el, bn.PARAMETER, tp_id)
 
 
 
     ifxml.el = el
 
-    ifxml.precision_prior_el = make_precision_prior(ifxml)
+    if !reference_precision
+        ifxml.precision_prior_el = make_precision_prior(ifxml)
+    end
 
 
     return el
 end
+
 
 function make_precision_prior(ifxml::IntegratedFactorsXMLElement)
     el = new_element(bn.GAMMA_PRIOR)

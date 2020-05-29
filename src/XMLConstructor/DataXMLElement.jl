@@ -29,6 +29,9 @@ mutable struct DataXMLElement <: MyXMLElement
 
 end
 
+
+
+
 function make_xml(dl::DataXMLElement)
     dl.el = make_taxa_el(dl)
 end
@@ -97,4 +100,9 @@ function get_node_times(taxa::Vector{String}, newick::String)
         node_times[i] = root_dists[ind]
     end
     return node_times
+end
+
+function add_trait!(dxl::DataXMLElement, data::Matrix{Float64}, trait_name::String)
+    push!(dxl.data_mats, data)
+    push!(dxl.trait_names, trait_name)
 end

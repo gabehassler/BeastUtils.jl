@@ -23,6 +23,7 @@ mutable struct TreeModelXMLElement <: MyXMLElement
 
 end
 
+
 function make_xml(tl::TreeModelXMLElement)
     make_xml(tl.newick_el)
     tl.el =  make_treeModel(tl.newick_el.el,
@@ -90,4 +91,10 @@ function add_nodeHeights(pel::XMLElement, param_id::String;
     add_parameter_id(el, param_id)
     add_child(pel, el)
     return el
+end
+
+function add_leaf_param!(txl::TreeModelXMLElement, trait_name::String, trait_dim::Int)
+    push!(txl.node_traits, trait_name)
+    push!(txl.trait_dims, trait_dim)
+    push!(txl.param_names, "$(trait_name).leaf")
 end

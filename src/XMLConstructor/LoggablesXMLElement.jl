@@ -3,6 +3,10 @@ mutable struct LoggablesXMLElement <: MyXMLElement
     already_made::Vector{Bool}
 end
 
+function LoggablesXMLElement()
+    return LoggablesXMLElement(MyXMLElement[], Bool[])
+end
+
 function make_xml(lg_el::LoggablesXMLElement)
     for el in lg_el.els
         make_xml(el)
@@ -13,9 +17,10 @@ function join_loggables(lg1::LoggablesXMLElement, lg2::LoggablesXMLElement)
     return LoggablesXMLElement([lg1.els; lg2.els], [lg1.already_made; lg2.already_made])
 end
 
-function add_loggable(lg_el::LoggablesXMLElement, my_el::MyXMLElement)
+function add_loggable(lg_el::LoggablesXMLElement, my_el::MyXMLElement;
+                    already_made::Bool = false)
     push!(lg_el.els, my_el)
-    push!(lg_el.already_made, false)
+    push!(lg_el.already_made, already_made)
 end
 
 
