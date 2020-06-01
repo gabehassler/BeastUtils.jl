@@ -222,6 +222,15 @@ function get_extension(bx::BEASTXMLElement)
     return bx.extension_el
 end
 
+function get_integratedFactorModel(bx::BEASTXMLElement)
+    ext_el = bx.extension_el
+    if typeof(ext_el) == IntegratedFactorsXMLElement
+        return ext_el
+    else
+        error("BEASTXMLElement does not have an integrated factors model.")
+    end
+end
+
 function get_traitLikelihood(bx::BEASTXMLElement)
     return bx.traitLikelihood_el
 end

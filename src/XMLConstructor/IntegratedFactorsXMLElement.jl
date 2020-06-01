@@ -197,3 +197,19 @@ end
 function get_precision_prior(xml::IntegratedFactorsXMLElement)
     return xml.precision_prior_el
 end
+
+function set_shrinkage_mults!(ifxml::IntegratedFactorsXMLElement;
+                        shapes::Vector{Float64} = Float64[],
+                        scales::Vector{Float64} = Float64[])
+    msls = ifxml.msls
+    if isnothing(msls)
+        error("No shrinkage prior on the integrated factors model.")
+    else
+        if length(shapes) > 0
+            msls.shapes[2:end] .= shapes
+        end
+        if length(scales) > 0
+            msls.scales[2:end] .= scales
+        end
+    end
+end
