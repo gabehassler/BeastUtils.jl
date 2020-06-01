@@ -15,9 +15,29 @@ export get_log,
     find_cols,
     get_cols,
     combine_logs,
-    condense_logs
+    condense_logs,
+    make_log
 
 const DELIM_CHAR = '\t'
+
+function make_log(path::String, data::Matrix{Float64},
+            col_labels::Vector{String}; includes_states::Bool = false)
+    n, p = size(data)
+    open(path, "w") do f
+        if !includes_states
+            write(f, "state$DELIM_CHAR")
+        end
+        write(f, join(col_labels, DELIM_CHAR))
+        write(f, '\n')
+        for i = 1:n
+            if !includes_states
+                write(f, "$(i - 1)$DELIM_CHAR")
+            end
+            write(f, join(data[i, :], DELIM_CHAR))
+            write(f, '\n')
+        end
+    end
+end
 
 function get_log(inpath::String; burnin::Float64 = 0.1)
     col_labels, labels_ind = get_cols_and_ind(inpath)
@@ -303,15 +323,21 @@ function condense_logs(in_path::String, out_path::String; every = 20)
         end
     end
     for i = m:-1:1
-        if typeof(parse(firsts[i])) == Int
+        try parse(Int, firsts[i])
             last_ind = i
             break
+        catch
+            continue
         end
+        # if typeof(parse(firsts[i])) == Int
+        #     last_ind = i
+        #     break
+        # end
     end
     n = last_ind - first_ind
     n_new = div(n, every)
     m_new = first_ind + n_new + m - last_ind
-    new_lines = Vector{String}(m_new)
+    new_lines = Vector{String}(undef, m_new)
     new_lines[1:(first_ind - 1)] .= lines[1:(first_ind - 1)]
     new_lines[first_ind:(first_ind + n_new)] .= lines[first_ind:every:last_ind]
     new_lines[(first_ind + n_new + 1):m_new] .= lines[(last_ind + 1):m]
