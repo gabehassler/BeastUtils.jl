@@ -66,17 +66,25 @@ function get_log(inpath::String, cols::Array{Int}; burnin::Float64 = 0.1)
     return col_labels[cols], data[:, cols]
 end
 
-function get_log(inpath::String, header::String; burnin::Float64 = 0.1)
+function get_log(inpath::String, header::Union{Regex, String};
+                    burnin::Float64 = 0.1)
+    depwarn("get_log(path::String, header::$(type(header))) is deprecated. " *
+                "Use get_log_match(path, header) instead.")
     all_cols = get_cols(inpath)
     f, l = find_cols(all_cols, header)
     cols, data = get_log(inpath, collect(f:l), burnin = burnin)
 end
 
-function get_log(inpath::String, header::Regex; burnin::Float64 = 0.1)
+
+
+function get_log_match(inpath::String, header::Union{Regex, String};
+                        burnin::Float64 = 0.1)
     all_cols = get_cols(inpath)
-    f, l = find_cols(all_cols, header)
-    cols, data = get_log(inpath, collect(f:l), burnin = burnin)
+    inds = match_cols(all_cols, header)
+    cols, data = get_log(inpath, inds, burnin = burnin)
 end
+
+@deprecate get_log()
 
 function get_cols(inpath::String)
     cols, ind = get_cols_and_ind(inpath)
