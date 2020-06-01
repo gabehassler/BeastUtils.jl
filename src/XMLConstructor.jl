@@ -335,6 +335,11 @@ function add_el(bx::BEASTXMLElement, el::FactorLogPredictiveDensity)
     add_child(bx.el, el.cl_el)
 end
 
+function add_el(bx::BEASTXMLElement, el::CrossValidationXMLElement)
+    make_xml(el)
+    add_child(bx.el, el.el)
+end
+
 
 function add_el(bx::BEASTXMLElement, els::Array{MyXMLElement})
     for el in els

@@ -19,13 +19,31 @@ mutable struct TraitValidationXMLElement <: MyXMLElement
     end
 end
 
+mutable struct FactorValidationXMLElement <: MyXMLElement
+    el::XMLOrNothing
+    ifl::IntegratedFactorsXMLElement
+    tdl::TraitLikelihoodXMLElement
+    id::String
+end
+
+function FactorValidationXMLElement(ifl::IntegratedFactorsXMLElement,
+                                    tdl::TraitLikelihoodXMLElement
+                                    )
+    return FactorValidationXMLElement(nothing, ifl, tdl, "factorValidation")
+end
+
 mutable struct CrossValidationXMLElement <: MyXMLElement
     el::XMLOrNothing
-    validationProvider_el::TraitValidationXMLElement
+    validationProvider_el::MyXMLElement
     log_sum::Bool
+    validation_type::String
 
-    CrossValidationXMLElement(tv_el::TraitValidationXMLElement) =
-            new(nothing, tv_el, false)
+    CrossValidationXMLElement(xml::MyXMLElement) =
+            new(nothing, xml, false, bn.SQUARED_ERROR)
+end
+
+function set_validation_type!(cv::CrossValidationXMLElement, t::String)
+    cv.validation_type = t
 end
 
 
@@ -33,7 +51,8 @@ function make_xml(cv_el::CrossValidationXMLElement)
 
     el = new_element(bn.CROSS_VALIDATION)
     set_attributes(el, [(bn.ID, cv_el.validationProvider_el.id),
-                        (bn.LOG_SUM, string(cv_el.log_sum))])
+                        (bn.LOG_SUM, string(cv_el.log_sum)),
+                        (bn.TYPE, cv_el.validation_type)])
 
     make_xml(cv_el.validationProvider_el)
     add_child(el, cv_el.validationProvider_el.el)
@@ -65,7 +84,19 @@ function make_xml(tv_el::TraitValidationXMLElement)
     return el
 end
 
-function get_loggable(cv_el::CrossValidationXMLElement)
+function make_xml(fac_val::FactorValidationXMLElement)
+    el = new_element(bn.FACTOR_VALIDATION)
+    make_xml(fac_val.ifl)
+    make_xml(fac_val.tdl)
+    add_ref_el(el, fac_val.ifl.el)
+    add_ref_el(el, fac_val.tdl.el)
+    trait_name = attribute(fac_val.tdl.el, bn.TRAIT_NAME)
+    set_attribute(el, bn.TRAIT_NAME, trait_name)
+    fac_val.el = el
+end
+
+
+function get_loggables(cv_el::CrossValidationXMLElement)
     make_xml(cv_el)
-    return cv_el.el
+    return [cv_el.el]
 end

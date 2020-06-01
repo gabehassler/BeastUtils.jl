@@ -235,4 +235,9 @@ const SCALE_FACTOR = "scaleFactor"
 
 const BAYESIAN_BRIDGE_GIBBS_OP = "bayesianBridgeGibbsOperator"
 
+const FACTOR_VALIDATION = "factorValidation"
+const BIAS = "bias"
+const SQUARED_ERROR = "squaredError"
+
+
 end
