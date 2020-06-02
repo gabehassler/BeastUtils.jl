@@ -70,7 +70,7 @@ end
 
 function df_to_data(df::DataFrame)
     nms = names(df)
-    @assert nms[1] == :taxon
+    @assert string(nms[1]) == "taxon"
     n, p = size(df)
 
     p = p - 1
