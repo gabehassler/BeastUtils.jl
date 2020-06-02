@@ -80,11 +80,9 @@ end
 function get_log_match(inpath::String, header::Union{Regex, String};
                         burnin::Float64 = 0.1)
     all_cols = get_cols(inpath)
-    inds = match_cols(all_cols, header)
+    inds = findall(x -> matches(x, header), all_cols)
     cols, data = get_log(inpath, inds, burnin = burnin)
 end
-
-@deprecate get_log()
 
 function get_cols(inpath::String)
     cols, ind = get_cols_and_ind(inpath)
