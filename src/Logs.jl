@@ -1,6 +1,6 @@
 module Logs
 
-using Statistics, DelimitedFiles, BeastUtils.MatrixUtils
+using Statistics, DelimitedFiles, BeastUtils.MatrixUtils, JLD
 
 export get_log,
     list_cols,
@@ -16,9 +16,23 @@ export get_log,
     get_cols,
     combine_logs,
     condense_logs,
-    make_log
+    make_log,
+    compress_log,
+    compress_log!
 
 const DELIM_CHAR = '\t'
+
+
+function compress_log(log_path::String, compressed_path::String)
+    cols, data = get_log(log_path, burnin = 0.0)
+    save(compressed_path, "cols", cols, "data", data)
+end
+
+function compress_log!(log_path::String, compressed_path::String)
+    compress_log(log_path, compressed_path)
+    rm(log_path)
+end
+
 
 function make_log(path::String, data::Matrix{Float64},
             col_labels::Vector{String}; includes_states::Bool = false)
@@ -40,15 +54,26 @@ function make_log(path::String, data::Matrix{Float64},
 end
 
 function get_log(inpath::String; burnin::Float64 = 0.1)
-    col_labels, labels_ind = get_cols_and_ind(inpath)
-    p = length(col_labels)
-    f = open(inpath)
-    m = countlines(f) - labels_ind
-    close(f)
-    n_burn = Int(round(burnin * m))
-    n = m - n_burn
-    data = readdlm(inpath, skipstart = labels_ind + n_burn, dims = (n, p))
-    return string.(col_labels), data
+    if endswith(inpath, ".jld")
+        d = load(inpath)
+        cols = d["cols"]
+        data = d["data"]
+        n = size(data, 1)
+        n_burn = Int(round(burnin * n))
+
+        return cols, data[(n_burn + 1):end, :]
+    else
+
+        col_labels, labels_ind = get_cols_and_ind(inpath)
+        p = length(col_labels)
+        f = open(inpath)
+        m = countlines(f) - labels_ind
+        close(f)
+        n_burn = Int(round(burnin * m))
+        n = m - n_burn
+        data = readdlm(inpath, skipstart = labels_ind + n_burn, dims = (n, p))
+        return string.(col_labels), data
+    end
 end
 
 function read_last_line(inpath::String)
@@ -68,8 +93,8 @@ end
 
 function get_log(inpath::String, header::Union{Regex, String};
                     burnin::Float64 = 0.1)
-    depwarn("get_log(path::String, header::$(type(header))) is deprecated. " *
-                "Use get_log_match(path, header) instead.")
+    Base.depwarn("get_log(path::String, header::$(typeof(header))) is deprecated. " *
+                "Use get_log_match(path, header) instead.", :get_log)
     all_cols = get_cols(inpath)
     f, l = find_cols(all_cols, header)
     cols, data = get_log(inpath, collect(f:l), burnin = burnin)
