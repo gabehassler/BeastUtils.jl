@@ -37,6 +37,9 @@ end
 function make_log(path::String, data::Matrix{Float64},
             col_labels::Vector{String}; includes_states::Bool = false)
     n, p = size(data)
+    if length(col_labels) != p
+        error("The number of column labels must be the same as the number of columns.")
+    end
     open(path, "w") do f
         if !includes_states
             write(f, "state$DELIM_CHAR")
