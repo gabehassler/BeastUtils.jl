@@ -236,7 +236,7 @@ function get_traitLikelihood(bx::BEASTXMLElement)
 end
 
 function get_operators(bx::BEASTXMLElement)
-    return bx.operators_el
+    return bx.operators_el.els
 end
 
 function get_mcmc(bx::BEASTXMLElement)
@@ -258,6 +258,10 @@ function add_loggable(bx::BEASTXMLElement, el::MyXMLElement;
     add_loggable(bx.loggables, el, already_made = already_made)
 end
 
+function set_full_eval(bx::BEASTXMLElement, n_eval::Int)
+    mcmc = get_mcmc(bx)
+    mcmc.attrs[bn.FULL_EVALUATION] = string(n_eval)
+end
 
 
 

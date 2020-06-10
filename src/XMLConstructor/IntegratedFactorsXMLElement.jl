@@ -72,6 +72,15 @@ function default_loadings(k::Int, p::Int)
     return L
 end
 
+function set_loadings!(ifxml::IntegratedFactorsXMLElement, L::S) where S <: AbstractArray{Float64, 2}
+    k, p = size(L)
+    if size(ifxml.loadings) != size(L)
+        error("New loadings matrix must be the same size as original.")
+    end
+    ifxml.loadings = L
+end
+
+
 
 function make_xml(ifxml::IntegratedFactorsXMLElement;
                     reference_precision::Bool = false)
