@@ -94,5 +94,10 @@ function csv_to_data(path::String)
     return df_to_data(df)
 end
 
+function data_to_csv(path::String, taxa::Vector{String}, data::Matrix{Float64}, col_names::Vector{String})
+    df = data_to_df(taxa, data, col_names)
+    CSV.write(path, df)
+end
+
 
 end
