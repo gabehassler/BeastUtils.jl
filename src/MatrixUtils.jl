@@ -32,7 +32,7 @@ end
 
 
 
-function make_symmetric!(X::Matrix{Float64}; use_upper::Bool = true)
+function make_symmetric!(X::Matrix{T}; use_upper::Bool = true) where T <: Any
     n, m = size(X)
     @assert n == m
     for i = 1:(n - 1)
@@ -188,7 +188,71 @@ function issquare(x::AbstractArray{T, 2}) where T <: Any
     return n == m
 end
 
+function missing_cov(X::Matrix{Float64})
+    n, p = size(X)
+    counts = zeros(Int, p, p)
+    Σ = zeros(p, p)
+    μ = zeros(p, p)
+    V = zeros(p, p)
+    # Σ_row = zeros(p, p)
+    # Σ_col = zeros(p, p)
+    # μ = zeros(p)
+    # μ_row = zeros(p, p)
+    # μ_col = zeros(p, p)
+    for i = 1:n
+        for j = 1:p
+            xj = X[i, j]
+            if !isnan(xj)
+                Σ[j, j] += xj * xj
+                μ[j, j] += xj
+                counts[j, j] += 1
 
+                for k = (j + 1):p
+                    xk = X[i, k]
+                    if !isnan(xk)
+                        Σ[j, k] += xj * xk
+                        V[j, k] += xj * xj
+                        V[k, j] += xk * xk
+                        μ[j, k] += xj
+                        μ[k, j] += xk
+                        counts[j, k] += 1
+                    end
+                end
+            end
+        end
+    end
+
+    make_symmetric!(counts)
+    μ ./= counts
+    Σ ./= counts
+    V ./= counts
+
+    for i = 1:p
+        Σ[i, i] -= μ[i, i] * μ[i, i]
+        for j = (i + 1):p
+            Σ[i, j] -= μ[i, j] * μ[j, i]
+            Σ[j, i] = Σ[i, j]
+            V[i, j] -= μ[i, j] * μ[i, j]
+            V[j, i] -= μ[j, i] * μ[j, i]
+        end
+    end
+
+
+    return Σ, V
+end
+
+function missing_cor(X::Matrix{Float64})
+    Σ, V = missing_cov(X)
+    p = size(Σ, 1)
+    for i = 1:p
+        Σ[i, i] = 1.0
+        for j = (i + 1):p
+            Σ[i, j] /= sqrt(V[i, j] * V[j, i])
+            Σ[j, i] = Σ[i, j]
+        end
+    end
+    return Σ
+end
 
 
 end
