@@ -33,6 +33,31 @@ function compress_log!(log_path::String, compressed_path::String)
     rm(log_path)
 end
 
+function uncompress_log(compressed_path::String, log_path::String)
+    d = load(compressed_path)
+    cols = d["cols"]
+    data = d["data"]
+    make_log(log_path, data, cols, includes_states = true)
+end
+
+function uncompress_log!(compressed_path::String, log_path::String)
+    uncompress_log(compressed_path, log_path)
+    rm(compressed_path)
+end
+
+function uncompress_log!(path::String)
+    split_path = split(path, '.')
+    ext = last(split_path)
+    if ext != "jld"
+        error("Compressed file must have `.jld` file extension.")
+    end
+
+    split_path[end] = "log"
+    uncompress_log!(path, join(split_path, '.'))
+end
+
+
+
 
 function make_log(path::String, data::Matrix{Float64},
             col_labels::Vector{String}; includes_states::Bool = false)
@@ -113,8 +138,13 @@ function get_log_match(inpath::String, header::Union{Regex, String};
 end
 
 function get_cols(inpath::String)
-    cols, ind = get_cols_and_ind(inpath)
-    return cols
+    if endswith(inpath, ".jld")
+        cols = load(inpath, "cols")
+        return cols
+    else
+        cols, ind = get_cols_and_ind(inpath)
+        return cols
+    end
 end
 
 function get_cols_and_ind(inpath::String)
