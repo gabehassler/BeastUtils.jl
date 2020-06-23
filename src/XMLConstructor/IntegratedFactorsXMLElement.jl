@@ -215,10 +215,23 @@ function set_shrinkage_mults!(ifxml::IntegratedFactorsXMLElement;
         error("No shrinkage prior on the integrated factors model.")
     else
         if length(shapes) > 0
-            msls.shapes[2:end] .= shapes
+            fill_shrinkage_array!(msls.shapes, shapes)
         end
         if length(scales) > 0
-            msls.scales[2:end] .= scales
+            fill_shrinkage_array!(msls.scales, scales)
         end
+    end
+end
+
+function fill_shrinkage_array!(to_fill::Vector{Float64},
+                               fill_from::Vector{Float64})
+    n = length(to_fill)
+    m = length(fill_from)
+    if n == m
+        to_fill .= fill_from
+    elseif (n - 1) == m
+        to_fil[2:end] .= fill_from
+    else
+        error("Not implemented for these array dimensions.")
     end
 end

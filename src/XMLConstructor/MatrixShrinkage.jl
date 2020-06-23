@@ -64,7 +64,7 @@ function make_xml(msl::MatrixShrinkageLikelihoods,
     end
 
     msl.gp_els[1] = make_parameter(id="globalPrecision1",
-                                    value=[1],
+                                    value=[msl.shapes[1] * msl.scales[1]],
                                     lower="0")
 
     for i = 2:k
