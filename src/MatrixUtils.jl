@@ -15,6 +15,8 @@ export cov2corr,
     replace_nans!,
     permutation_matrix,
     standardize_data!,
+    standardize!,
+    log!,
     issquare
 
 function cov2corr(Σ::Matrix{Float64})
@@ -181,6 +183,40 @@ function standardize_data!(data::Matrix{Float64})
         data[:, j] .-= means[j]
         data[:, j] ./= sds[j]
     end
+end
+
+function standardize!(x::Vector{Float64})
+    μ = 0.0
+    σ2 = 0.0
+    n_obs = 0
+    for i = 1:length(x)
+        if !isnan(x[i])
+            μ += x[i]
+            σ2 += x[i] * x[i]
+            n_obs += 1
+        end
+    end
+    if n_obs < 2
+        error("Unable to standardize. The number of non-missing elements is $n_obs.")
+    end
+    μ /= n_obs
+    σ2 /= n_obs
+    sd = sqrt(σ2 - μ * μ)
+    for i = 1:length(x)
+        x[i] = (x[i] - μ) / sd
+    end
+    return x
+end
+
+function log!(x::T) where T <: AbstractArray{Float64}
+    for i = 1:length(x)
+        x[i] = log(x[i])
+    end
+    return x
+end
+
+function log_standardize!(x::T) where T <: AbstractArray{Float64}
+    return standardize!(log!(x))
 end
 
 function issquare(x::AbstractArray{T, 2}) where T <: Any
