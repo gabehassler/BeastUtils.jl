@@ -13,8 +13,9 @@ mutable struct MatrixShrinkageLikelihoods
     global_prior_els::Vector{XMLOrNothing}
     shapes::Vector{Float64}
     scales::Vector{Float64}
+    local_scales::Matrix{Float64}
 
-    function MatrixShrinkageLikelihoods(k::Int)
+    function MatrixShrinkageLikelihoods(k::Int, p::Int)
 
         shapes = fill(DEFAULT_SHRINKAGE_SHAPE, k)
         shapes[1] = DEFAULT_STARTING_SHAPE
@@ -28,7 +29,8 @@ mutable struct MatrixShrinkageLikelihoods
                     nothing,
                     xml_vec(k),
                     shapes,
-                    scales
+                    scales,
+                    ones(k, p)
                     )
     end
 end
@@ -59,7 +61,7 @@ function make_xml(msl::MatrixShrinkageLikelihoods,
 
     for i = 1:k
         msl.local_scale_els[i] = make_parameter(id="localScale$i",
-                                    value=ones(p),
+                                    value=vec(msl.local_scales[i, :]),
                                     lower="0")
     end
 

@@ -15,7 +15,7 @@ mutable struct TraitValidationXMLElement <: MyXMLElement
         mis_ind = 1
         obs_ind = 2
 
-        return new(nothing, tm_el, tl_el, mis_ind, obs_ind, false, bn.CROSS_VALIDATION)
+        return new(nothing, tm_el, tl_el, mis_ind, obs_ind, false, bn.TRAIT_VALIDATION)
     end
 end
 
@@ -23,13 +23,22 @@ mutable struct FactorValidationXMLElement <: MyXMLElement
     el::XMLOrNothing
     ifl::IntegratedFactorsXMLElement
     tdl::TraitLikelihoodXMLElement
+    tml::TreeModelXMLElement
+    trait_name::String
+    trait_param_name::String
     id::String
 end
 
 function FactorValidationXMLElement(ifl::IntegratedFactorsXMLElement,
-                                    tdl::TraitLikelihoodXMLElement
+                                    tdl::TraitLikelihoodXMLElement,
+                                    tml::TreeModelXMLElement
                                     )
-    return FactorValidationXMLElement(nothing, ifl, tdl, "factorValidation")
+
+    @assert length(tml.param_names) == 2
+
+    return FactorValidationXMLElement(nothing, ifl, tdl, tml,
+                                      tml.node_traits[2], tml.param_names[2],
+                                      "factorValidation")
 end
 
 mutable struct CrossValidationXMLElement <: MyXMLElement
@@ -37,9 +46,10 @@ mutable struct CrossValidationXMLElement <: MyXMLElement
     validationProvider_el::MyXMLElement
     log_sum::Bool
     validation_type::String
+    id::String
 
     CrossValidationXMLElement(xml::MyXMLElement) =
-            new(nothing, xml, false, bn.SQUARED_ERROR)
+            new(nothing, xml, false, bn.SQUARED_ERROR, bn.CROSS_VALIDATION)
 end
 
 function set_validation_type!(cv::CrossValidationXMLElement, t::String)
@@ -50,7 +60,7 @@ end
 function make_xml(cv_el::CrossValidationXMLElement)
 
     el = new_element(bn.CROSS_VALIDATION)
-    set_attributes(el, [(bn.ID, cv_el.validationProvider_el.id),
+    set_attributes(el, [(bn.ID, cv_el.id),
                         (bn.LOG_SUM, string(cv_el.log_sum)),
                         (bn.TYPE, cv_el.validation_type)])
 
@@ -86,12 +96,23 @@ end
 
 function make_xml(fac_val::FactorValidationXMLElement)
     el = new_element(bn.FACTOR_VALIDATION)
+
     make_xml(fac_val.ifl)
     make_xml(fac_val.tdl)
+    make_xml(fac_val.tml)
+
     add_ref_el(el, fac_val.ifl.el)
     add_ref_el(el, fac_val.tdl.el)
     trait_name = attribute(fac_val.tdl.el, bn.TRAIT_NAME)
+    set_attribute(el, bn.ID, fac_val.id)
     set_attribute(el, bn.TRAIT_NAME, trait_name)
+
+    trait_provider = new_child(el, bn.TRAIT_DATA_PROVIDER)
+    add_ref_el(trait_provider, fac_val.tml.el)
+    set_attribute(trait_provider, bn.TRAIT_NAME, fac_val.trait_name)
+    tp_el = new_child(trait_provider, bn.TRAIT_PARAMETER)
+    add_ref_el(tp_el, bn.PARAMETER, fac_val.trait_param_name)
+
     fac_val.el = el
 end
 

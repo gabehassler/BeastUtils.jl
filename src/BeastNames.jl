@@ -239,5 +239,7 @@ const FACTOR_VALIDATION = "factorValidation"
 const BIAS = "bias"
 const SQUARED_ERROR = "squaredError"
 
+const TRAIT_DATA_PROVIDER = "traitDataProvider"
+
 
 end

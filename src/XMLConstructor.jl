@@ -504,7 +504,7 @@ function make_PFA_XML(data::Matrix{Float64}, taxa::Vector{T},
                                                     beastXML.MBD_el, k)
 
     if shrink_loadings
-        beastXML.extension_el.msls = MatrixShrinkageLikelihoods(k)
+        beastXML.extension_el.msls = MatrixShrinkageLikelihoods(k, size(data, 2))
     end
 
     beastXML.traitLikelihood_el = TraitLikelihoodXMLElement(beastXML.MBD_el,
