@@ -241,5 +241,8 @@ const SQUARED_ERROR = "squaredError"
 
 const TRAIT_DATA_PROVIDER = "traitDataProvider"
 
+const MULTIPLICATIVE_GAMMA_GIBBS = "multiplicativeGammaGibbsProvider"
+const ROW_MULTIPLIERS = "rowMultipliers"
+const ROW = "row"
 
 end

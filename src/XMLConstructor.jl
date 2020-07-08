@@ -12,6 +12,7 @@ abstract type OperatorXMLElement <: MyXMLElement end
 
 dir_name = "XMLConstructor"
 
+include(joinpath(dir_name, "MatrixParameter.jl"))
 include(joinpath(dir_name, "DataXMLElement.jl"))
 include(joinpath(dir_name, "NewickXMLElement.jl"))
 include(joinpath(dir_name, "TreeModelXMLElement.jl"))
@@ -52,39 +53,9 @@ function add_parameter_id(pel::XMLElement, id::String)
     return el
 end
 
-function make_parameter(;id::String = "",
-        value::AbstractArray{T} = Vector{Int8}(undef, 0),
-        lower::String = "", upper::String = "", dim::Int = 0) where T <: Real
 
-    el = new_element(bn.PARAMETER)
-    if id != ""
-        set_attribute(el, bn.ID, id)
-    end
-    if length(value) != 0
-        set_attribute(el, bn.VALUE, join(value, ' '))
-    end
-    if lower != ""
-        set_attribute(el, bn.LOWER, lower)
-    end
-    if upper != ""
-        set_attribute(el, bn.UPPER, upper)
-    end
-    if dim > 0
-        set_attribute(el, bn.DIMENSION, dim)
-    end
 
-    return el
-end
 
-function add_parameter(pel::XMLElement; id::String = "",
-        value::AbstractArray{T} = Vector{Int8}(undef, 0),
-        lower::String = "", upper::String = "", dim::Int = 0) where T <: Real
-
-    el = make_parameter(id = id, value = value, lower = lower, upper = upper,
-                        dim = dim)
-    add_child(pel, el)
-    return el
-end
 
 function get_id(el::XMLElement)
     return attribute(el, bn.ID)
@@ -504,7 +475,8 @@ function make_PFA_XML(data::Matrix{Float64}, taxa::Vector{T},
                                                     beastXML.MBD_el, k)
 
     if shrink_loadings
-        beastXML.extension_el.msls = MatrixShrinkageLikelihoods(k, size(data, 2))
+        beastXML.extension_el.msls = MatrixShrinkageLikelihoods(
+                    get_loadings_param(get_integratedFactorModel(beastXML)))
     end
 
     beastXML.traitLikelihood_el = TraitLikelihoodXMLElement(beastXML.MBD_el,

@@ -3,7 +3,7 @@ const DEFAULT_SHRINKAGE_SCALE = 1.0
 const DEFAULT_STARTING_SHAPE = 2.0
 
 
-mutable struct MatrixShrinkageLikelihoods
+mutable struct MatrixShrinkageLikelihoods <: MyXMLElement
     mult_els::Vector{XMLOrNothing}
     gp_els::Vector{XMLOrNothing}
     local_scale_els::Vector{XMLOrNothing}
@@ -11,12 +11,14 @@ mutable struct MatrixShrinkageLikelihoods
     bb_els::Vector{XMLOrNothing}
     ms_el::XMLOrNothing
     global_prior_els::Vector{XMLOrNothing}
+    loadings::MatrixParameter
     shapes::Vector{Float64}
     scales::Vector{Float64}
     local_scales::Matrix{Float64}
 
-    function MatrixShrinkageLikelihoods(k::Int, p::Int)
+    function MatrixShrinkageLikelihoods(loadings::MatrixParameter)
 
+        k, p = size(loadings.mat)
         shapes = fill(DEFAULT_SHRINKAGE_SHAPE, k)
         shapes[1] = DEFAULT_STARTING_SHAPE
         scales = fill(DEFAULT_SHRINKAGE_SCALE, k)
@@ -28,6 +30,7 @@ mutable struct MatrixShrinkageLikelihoods
                     xml_vec(k),
                     nothing,
                     xml_vec(k),
+                    loadings,
                     shapes,
                     scales,
                     ones(k, p)
@@ -40,9 +43,9 @@ function get_fac_dim(msl::MatrixShrinkageLikelihoods)
 end
 
 
-function make_xml(msl::MatrixShrinkageLikelihoods,
-                    loadings::XMLElement)
+function make_xml(msl::MatrixShrinkageLikelihoods)
 
+    loadings = make_xml(msl.loadings)
     load_rows = loadings[bn.PARAMETER]
     k = length(load_rows)
     p = length(split(attribute(load_rows[1], bn.VALUE)))
@@ -56,18 +59,18 @@ function make_xml(msl::MatrixShrinkageLikelihoods,
         msl.mult_els[i - 1] =
                 make_parameter(id="rowMult$i",
                                 value=[msl.shapes[i] * msl.scales[i]],
-                                lower="0")
+                                lower=0.0)
     end
 
     for i = 1:k
         msl.local_scale_els[i] = make_parameter(id="localScale$i",
                                     value=vec(msl.local_scales[i, :]),
-                                    lower="0")
+                                    lower=0.0)
     end
 
     msl.gp_els[1] = make_parameter(id="globalPrecision1",
                                     value=[msl.shapes[1] * msl.scales[1]],
-                                    lower="0")
+                                    lower=0.0)
 
     for i = 2:k
         prod_param = new_element(bn.PRODUCT_PARAMETER)
@@ -146,4 +149,11 @@ end
 
 function get_loggables(xml::MatrixShrinkageLikelihoods)
     return [xml.global_scale_els; xml.mult_els; xml.local_scale_els]
+end
+
+function get_precision_prior(xml::MatrixShrinkageLikelihoods, ind::Int; make_xml::Bool = true)
+    if make_xml
+        make_xml(xml)
+    end
+    return xml.global_prior_els[ind]
 end

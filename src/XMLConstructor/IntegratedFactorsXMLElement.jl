@@ -6,7 +6,7 @@ mutable struct IntegratedFactorsXMLElement <: ModelExtensionXMLElement
     loadings_el::XMLOrNothing
     loadings_prior_els::AbstractArray{XMLElement}
     precision_prior_el::XMLOrNothing
-    loadings::S where S <: AbstractArray{Float64, 2}
+    loadings::MatrixParameter
     precision::S where S <: AbstractArray{Float64, 1}
     precision_scale::Float64
     precision_shape::Float64
@@ -28,12 +28,13 @@ function IntegratedFactorsXMLElement(treeModel_el::TreeModelXMLElement,
     p = treeModel_el.trait_dims[trait_ind]
 
     L = default_loadings(k, p)
+    load_param = MatrixParameter(L, "L", ["L$i" for i = 1:size(L, 1)])
 
     precision = ones(p)
     precision_scale = 1.0
     precision_shape = 1.0
     return IntegratedFactorsXMLElement(nothing, nothing, XMLElement[], nothing,
-                                L,
+                                load_param,
                                 precision, precision_scale,
                                 precision_shape,
                                 treeModel_el,
@@ -73,20 +74,21 @@ function default_loadings(k::Int, p::Int)
 end
 
 function set_loadings!(ifxml::IntegratedFactorsXMLElement, L::S) where S <: AbstractArray{Float64, 2}
-    k, p = size(L)
-    if size(ifxml.loadings) != size(L)
-        error("New loadings matrix must be the same size as original.")
-    end
-    ifxml.loadings = L
+    set_mat!(ifxml.loadings, L)
 end
 
-
+function get_loadings_param(ifxml::IntegratedFactorsXMLElement)
+    return ifxml.loadings
+end
 
 function make_xml(ifxml::IntegratedFactorsXMLElement;
                     reference_precision::Bool = false)
-    ifxml.loadings_el = make_loadings(ifxml.loadings)
+
+    make_xml(ifxml.loadings)
+    ifxml.loadings_el = ifxml.loadings.el
+    # ifxml.loadings_el = make_loadings(ifxml.loadings)
     if !isnothing(ifxml.msls)
-        ifxml.loadings_prior_els = make_xml(ifxml.msls, ifxml.loadings_el)
+        ifxml.loadings_prior_els = make_xml(ifxml.msls)
     else
         ifxml.loadings_prior_els = [make_loadings_normal_prior(ifxml)]
     end
@@ -109,7 +111,7 @@ function make_xml(ifxml::IntegratedFactorsXMLElement;
         add_ref_el(p_el, bn.PARAMETER, bn.FACTOR_PRECISION)
     else
         add_parameter(p_el, id=bn.FACTOR_PRECISION, value = ifxml.precision,
-                    lower="0")
+                    lower=0.0)
     end
     add_ref_el(el, ifxml.treeModel.el)
     tp_el = new_child(el, bn.TRAIT_PARAMETER)
@@ -176,7 +178,7 @@ function make_loadings_normal_prior(ifxml::IntegratedFactorsXMLElement)
     m_el = new_child(ndm_el, bn.MEAN)
     add_parameter(m_el, value = [0.0])
     std_el = new_child(ndm_el, bn.STDEV)
-    add_parameter(std_el, value =[1.0], lower="0")
+    add_parameter(std_el, value =[1.0], lower=0.0)
 
     return el
 end
@@ -196,7 +198,7 @@ function get_loggables(xml::IntegratedFactorsXMLElement)
     loggables = [xml.loadings_el, xml.el[bn.PRECISION][1][bn.PARAMETER][1]]
 
     if !isnothing(xml.msls)
-        make_xml(xml.msls, xml.loadings_el)
+        make_xml(xml.msls)
         loggables = [loggables; get_loggables(xml.msls)]
     end
 
@@ -230,7 +232,7 @@ function fill_shrinkage_array!(to_fill::Vector{Float64},
     if n == m
         to_fill .= fill_from
     elseif (n - 1) == m
-        to_fil[2:end] .= fill_from
+        to_fill[2:end] .= fill_from
     else
         error("Not implemented for these array dimensions.")
     end

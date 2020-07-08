@@ -63,8 +63,7 @@ mutable struct ShrinkageScaleOperators <: CompoundOperatorXMLElement
     els::Vector{XMLOrNothing}
     msl::MatrixShrinkageLikelihoods
     ifxml::IntegratedFactorsXMLElement
-    scale_factors::Vector{Float64}
-    scale_weights::Vector{Float64}
+    global_weights::Vector{Float64}
     bb_weights::Vector{Float64}
     fix_first::Bool
     fix_globals::Bool
@@ -75,7 +74,6 @@ mutable struct ShrinkageScaleOperators <: CompoundOperatorXMLElement
         return new(xml_vec(2 * k),
                     msl,
                     ifxml,
-                    fill(0.5, k),
                     ones(k),
                     ones(k),
                     false,
@@ -103,7 +101,7 @@ end
 function make_xml(xml::ShrinkageScaleOperators)
     msl = xml.msl
     make_xml(xml.ifxml)
-    make_xml(msl, xml.ifxml.loadings_el)
+    make_xml(msl)
     k = get_fac_dim(msl)
     if xml.fix_globals
         xml.els[1:k] .= nothing
@@ -111,14 +109,23 @@ function make_xml(xml::ShrinkageScaleOperators)
         if xml.fix_first
             xml.els[1] = nothing
         else
-            xml.els[1] = make_scale_operator(msl.gp_els[1], xml.scale_factors[1],
-                                            xml.scale_weights[1])
+            op = NormalGammaPrecisionOperatorXMLElement(xml.msl, 1)
+            make_xml(op)
+            xml.els[1] = op.el
+            # xml.els[1] = make_scale_operator(msl.gp_els[1], xml.scale_factors[1],
+            #                                 xml.scale_weights[1])
         end
 
         for i = 2:k
-            xml.els[i] = make_scale_operator(msl.mult_els[i - 1],
-                                            xml.scale_factors[i],
-                                            xml.scale_weights[i])
+            gibbs_provider = MultipilcativeGammaGibbsProvider(xml.msl, i)
+            prior_provider = gibbs_provider
+            op = NormalGammaPrecisionOperatorXMLElement(gibbs_provider,
+                                                        prior_provider)
+            make_xml(op)
+            xml.els[i] = op.el
+            # xml.els[i] = make_scale_operator(msl.mult_els[i - 1],
+            #                                 xml.scale_factors[i],
+            #                                 xml.scale_weights[i])
         end
     end
 
