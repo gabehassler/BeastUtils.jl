@@ -59,7 +59,7 @@ end
 
 
 
-function make_log(path::String, data::Matrix{Float64},
+function make_log(path::String, data::AbstractMatrix{Float64},
             col_labels::Vector{String}; includes_states::Bool = false)
     n, p = size(data)
     if length(col_labels) != p
