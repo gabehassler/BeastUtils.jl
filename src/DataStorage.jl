@@ -70,7 +70,10 @@ end
 
 function df_to_data(df::DataFrame)
     nms = names(df)
-    @assert string(nms[1]) == "taxon"
+    if lowercase(string(nms[1])) != "taxon"
+        error("The first column name must be 'taxon'.")
+    end
+    # @assert string(nms[1]) == "taxon"
     n, p = size(df)
 
     p = p - 1
