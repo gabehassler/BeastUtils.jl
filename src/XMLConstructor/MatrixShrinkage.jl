@@ -74,7 +74,7 @@ function make_xml(msl::MatrixShrinkageLikelihoods)
 
     for i = 2:k
         prod_param = new_element(bn.PRODUCT_PARAMETER)
-        set_id(prod_param, "globalPrecision$i")
+        set_id!(prod_param, "globalPrecision$i")
         add_ref_el(prod_param, msl.gp_els[i - 1])
         add_ref_el(prod_param, msl.mult_els[i - 1])
         msl.gp_els[i] = prod_param
@@ -82,7 +82,7 @@ function make_xml(msl::MatrixShrinkageLikelihoods)
 
     for i = 1:k
         trans_param = new_element(bn.TRANSFORMED_PARAMETER)
-        set_id(trans_param, "globalScale$i")
+        set_id!(trans_param, "globalScale$i")
         set_attribute(trans_param, bn.TYPE, bn.POWER)
         add_ref_el(trans_param, msl.gp_els[i])
         pt_el = new_child(trans_param, bn.POWER_TRANSFORM)
@@ -94,7 +94,7 @@ function make_xml(msl::MatrixShrinkageLikelihoods)
 
     for i = 1:k
         bb_el = new_element(bn.BAYESIAN_BRIDGE)
-        set_id(bb_el, "bb$i")
+        set_id!(bb_el, "bb$i")
         add_ref_el(bb_el, load_rows[i])
         gs_el = new_child(bb_el, bn.GLOBAL_SCALE)
         add_ref_el(gs_el, msl.global_scale_els[i])
@@ -106,7 +106,7 @@ function make_xml(msl::MatrixShrinkageLikelihoods)
     end
 
     ms_el = new_element(bn.MATRIX_SHRINKAGE_LIKELIHOOD)
-    set_id(ms_el, "$(get_id(loadings)).prior")
+    set_id!(ms_el, "$(get_id(loadings)).prior")
     add_ref_el(ms_el, loadings)
     rows_el = new_child(ms_el, bn.ROW_PRIORS)
     for i = 1:k
@@ -118,9 +118,9 @@ function make_xml(msl::MatrixShrinkageLikelihoods)
 
         gp_prior = new_element(bn.GAMMA_PRIOR)
         if i == 1
-            set_id(gp_prior, "globalPrecisionPrior1")
+            set_id!(gp_prior, "globalPrecisionPrior1")
         else
-            set_id(gp_prior, "rowMultPrior$i")
+            set_id!(gp_prior, "rowMultPrior$i")
         end
         set_attribute(gp_prior, bn.SHAPE, msl.shapes[i])
         set_attribute(gp_prior, bn.SCALE, msl.scales[i])
