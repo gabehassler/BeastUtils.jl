@@ -61,7 +61,7 @@ function get_id(el::XMLElement)
     return attribute(el, bn.ID)
 end
 
-function set_id(el::XMLElement, id::String)
+function set_id!(el::XMLElement, id::String)
     set_attribute(el, bn.ID, id)
 end
 

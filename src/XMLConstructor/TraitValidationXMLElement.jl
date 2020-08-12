@@ -56,6 +56,10 @@ function set_validation_type!(cv::CrossValidationXMLElement, t::String)
     cv.validation_type = t
 end
 
+function set_log_sum!(cv::CrossValidationXMLElement, b::Bool)
+    cv.log_sum = b
+end
+
 
 function make_xml(cv_el::CrossValidationXMLElement)
 
