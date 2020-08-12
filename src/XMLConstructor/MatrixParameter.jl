@@ -73,6 +73,11 @@ function MatrixParameter(mat::Matrix{Float64}, id::String, ids::Vector{String})
     return MatrixParameter(nothing, mat, id, ids)
 end
 
+function MatrixParameter(mat::Matrix{Float64}, id::String)
+    m = size(mat, 1)
+    return MatrixParameter(mat, id, ["" for i = 1:m])
+end
+
 function make_xml(mp::MatrixParameter)
     el = new_element(bn.MATRIX_PARAMETER)
     set_attribute(el, bn.ID, mp.id)
