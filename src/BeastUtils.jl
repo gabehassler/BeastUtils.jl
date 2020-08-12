@@ -10,5 +10,6 @@ include("DataStorage.jl")
 include("XMLTools.jl")
 include("ESS.jl")
 include("RunBeast.jl")
+include("SlowLikelihoods.jl")
 
 end
