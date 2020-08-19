@@ -3,7 +3,8 @@ module SlowLikelihoods
 export TreeData,
        PFAParameters,
        loglikelihood,
-       conditional_meanvar
+       conditional_meanvar,
+       tree_var
 
 using PhyloNetworks, LinearAlgebra, Distributions, UnPack
 using BeastUtils.MatrixUtils
@@ -11,7 +12,7 @@ using BeastUtils.MatrixUtils
 struct TreeData
     taxa::Vector{String}
     data::Matrix{Float64}
-    
+
     function TreeData(taxa::Vector{String}, data::Matrix{Float64})
         if length(taxa) != size(data, 1)
             error("Incompatible dimensions.")
@@ -38,14 +39,19 @@ function PFAParameters(L::Matrix{Float64}, γ::Vector{Float64})
                           )
 end
 
-function var(params::ModelParameters, tree::HybridNetwork, data::TreeData)
-    @unpack L, Σ, Γ = params
+function tree_var(tree::HybridNetwork, taxa::Vector{String})
     Ψ_df = vcv(tree)
     tree_taxa = names(Ψ_df)
-    perm = indexin(data.taxa, tree_taxa)
-    @assert data.taxa == tree_taxa[perm]
+    perm = indexin(taxa, tree_taxa)
+    @assert taxa == tree_taxa[perm]
 
     Ψ = Matrix(Ψ_df)[perm, perm]
+    return Ψ
+end
+
+function var(params::ModelParameters, tree::HybridNetwork, data::TreeData)
+    @unpack L, Σ, Γ = params
+    Ψ = tree_var(tree, data.taxa)
     Ψ .+= 1.0 / params.pss
 
     n = size(Ψ, 1)
@@ -55,7 +61,7 @@ function var(params::ModelParameters, tree::HybridNetwork, data::TreeData)
     return V
 end
 
-function conditional_meanvar(params::ModelParameters, tree::HybridNetwork, 
+function conditional_meanvar(params::ModelParameters, tree::HybridNetwork,
                              data::TreeData, inds::Vector{Int})
     V = var(params, tree, data)
     μ = mean(params, data)
@@ -92,12 +98,12 @@ function mean(params::ModelParameters, data::TreeData)
     return μ
 end
 
-function loglikelihood(params::ModelParameters, tree::HybridNetwork, 
+function loglikelihood(params::ModelParameters, tree::HybridNetwork,
                        data::TreeData)
 
     V = var(params, tree, data)
     make_symmetric!(V)
-    μ = mean(params, data)   
+    μ = mean(params, data)
 
     v_data = vec(data.data)
     obs_inds = findall(!isnan, v_data)
@@ -117,7 +123,7 @@ end
 
 #     obs_inds = findall()
 # end
-    
+
 
 
 
