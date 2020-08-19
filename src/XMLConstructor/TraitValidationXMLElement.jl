@@ -84,7 +84,7 @@ function make_xml(tv_el::TraitValidationXMLElement)
     el = new_element(bn.TRAIT_VALIDATION_PROVIDER)
     attrs = [(bn.ID, bn.TRAIT_VALIDATION),
             (bn.TRAIT_NAME, tv_el.treeModel_el.node_traits[obs_ind]),
-            (bn.INFERRED_TRAIT, tv_el.treeModel_el.node_traits[mis_ind]),
+            (bn.INFERRED_TRAIT, tv_el.traitLikelihood_el.attrs[bn.TRAIT_NAME]),
             (bn.STANDARDIZE, string(tv_el.standardize))]
     set_attributes(el, attrs)
 
