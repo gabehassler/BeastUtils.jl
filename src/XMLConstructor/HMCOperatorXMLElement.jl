@@ -67,7 +67,7 @@ function make_xml(gxml::LoadingsGradientXMLElement)
 
 
     else
-        make_xml(ifxml.msls, ifxml.loadings_el)
+        make_xml(ifxml.msls)
         el = reference_element(ifxml.msls.ms_el)
     end
 

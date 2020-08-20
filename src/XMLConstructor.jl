@@ -234,12 +234,7 @@ function get_repeatedMeasures(bx::BEASTXMLElement)
 end
 
 function get_integratedFactorModel(bx::BEASTXMLElement)
-    ext_el = bx.extension_el
-    if typeof(ext_el) == IntegratedFactorsXMLElement
-        return ext_el
-    else
-        error("BEASTXMLElement does not have an integrated factors model.")
-    end
+    return find_element(bx, IntegratedFactorsXMLElement)
 end
 
 function get_traitLikelihood(bx::BEASTXMLElement)
@@ -536,89 +531,88 @@ function make_PFA_XML(data::Matrix{Float64}, taxa::Vector{T},
             sle::Int = 100) where T <: AbstractString
 
     beastXML = BEASTXMLElement()
-    beastXML.data_el = DataXMLElement(data, taxa, newick)
-    beastXML.newick_el = NewickXMLElement(newick)
-    beastXML.treeModel_el = TreeModelXMLElement(beastXML.newick_el,
-                                                    size(data, 2))
-    beastXML.MBD_el = MBDXMLElement(k)
-    beastXML.MBD_el.is_random = false
-    beastXML.MBD_el.diagonal_prec = true
+    data_el = DataXMLElement(data, taxa, newick)
+    add_child(beastXML, data_el)
 
-    beastXML.extension_el = IntegratedFactorsXMLElement(beastXML.treeModel_el,
-                                                    beastXML.MBD_el, k)
+    newick_el = NewickXMLElement(newick)
+    add_child(beastXML, newick_el)
+
+    treeModel_el = TreeModelXMLElement(newick_el, size(data, 2))
+    add_child(beastXML, treeModel_el)
+
+    mbd_el = MBDXMLElement(k)
+    mbd_el.is_random = false
+    mbd_el.diagonal_prec = true
+    add_child(beastXML, mbd_el)
+
+    if_el = IntegratedFactorsXMLElement(treeModel_el, mbd_el, k)
+    add_child(beastXML, if_el)
 
     if shrink_loadings
-        beastXML.extension_el.msls = MatrixShrinkageLikelihoods(
-                    get_loadings_param(get_integratedFactorModel(beastXML)))
+        if_el.msls = MatrixShrinkageLikelihoods(
+                        get_loadings_param(
+                            get_integratedFactorModel(beastXML)
+                        )
+                     )
     end
 
-    beastXML.traitLikelihood_el = TraitLikelihoodXMLElement(beastXML.MBD_el,
-                            beastXML.treeModel_el, beastXML.extension_el)
+    traitLikelihood_el = TraitLikelihoodXMLElement(mbd_el, treeModel_el, if_el)
+    add_child(beastXML, traitLikelihood_el)
 
-    beastXML.traitLikelihood_el.attrs[bn.TRAIT_NAME] = bn.DEFAULT_FACTOR_NAME
+    traitLikelihood_el.attrs[bn.TRAIT_NAME] = bn.DEFAULT_FACTOR_NAME
+    traitLikelihood_el.attrs[bn.ALLOW_SINGULAR] = bn.TRUE
+    traitLikelihood_el.attrs[bn.STANDARDIZE] = bn.FALSE
 
-    beastXML.traitLikelihood_el.attrs[bn.ALLOW_SINGULAR] = bn.TRUE
-    beastXML.traitLikelihood_el.attrs[bn.STANDARDIZE] = bn.FALSE
-
-
-
-
-
-    loadings_op = LoadingsGibbsOperatorXMLElement(beastXML.extension_el,
-                                                beastXML.traitLikelihood_el)
+    loadings_op = LoadingsGibbsOperatorXMLElement(if_el,
+                                                  traitLikelihood_el)
     if useHMC
-        prior_grad = LoadingsGradientXMLElement(beastXML.extension_el)
-        like_grad = FactorLoadingsGradientXMLElement(beastXML.extension_el,
-                            beastXML.traitLikelihood_el)
+        prior_grad = LoadingsGradientXMLElement(if_el)
+        like_grad = FactorLoadingsGradientXMLElement(if_el,
+                                                     traitLikelihood_el)
 
-        loadings_op = HMCOperatorXMLElement(beastXML.extension_el,
-                            [prior_grad, like_grad])
+        loadings_op = HMCOperatorXMLElement(if_el, [prior_grad, like_grad])
     end
 
-    normal_gamma_op = NormalGammaPrecisionOperatorXMLElement(
-                            beastXML.extension_el,
-                            beastXML.traitLikelihood_el)
+    normal_gamma_op = NormalGammaPrecisionOperatorXMLElement(if_el,
+                                                             traitLikelihood_el)
 
     ops_vec = [loadings_op, normal_gamma_op]
     if shrink_loadings
-        push!(ops_vec, ShrinkageScaleOperators(beastXML.extension_el.msls,
-                                            beastXML.extension_el))
+        push!(ops_vec, ShrinkageScaleOperators(if_el.msls, if_el))
     end
 
-
-
-    beastXML.operators_el = OperatorsXMLElement(ops_vec)
+    operators_el = OperatorsXMLElement(ops_vec)
+    add_child(beastXML, operators_el)
 
     if log_factors
-        beastXML.traitLog_el = TraitLoggerXMLElement(beastXML.treeModel_el,
-                                                    beastXML.traitLikelihood_el)
+        traitLog_el = TraitLoggerXMLElement(treeModel_el, traitLikelihood_el)
+        add_child(beastXML, traitLog_el)
     end
 
+    mcmc_el = MCMCXMLElement(traitLikelihood_el,
+                             mbd_el,
+                             if_el,
+                             operators_el,
+                             chain_length = chain_length)
+    add_child(beastXML, mcmc_el)
 
-
-    beastXML.mcmc_el = MCMCXMLElement(beastXML.traitLikelihood_el,
-                    beastXML.MBD_el,
-                    beastXML.extension_el,
-                    beastXML.operators_el,
-                    chain_length = chain_length)
-    beastXML.mcmc_el.file_logEvery = fle
-    beastXML.mcmc_el.screen_logEvery = sle
+    mcmc_el.file_logEvery = fle
+    mcmc_el.screen_logEvery = sle
 
     if log_factors
-        add_loggable(beastXML.mcmc_el.loggables, beastXML.traitLog_el)
+        add_loggable(mcmc_el.loggables, traitLog_el)
     end
 
     if timing
 
-        beastXML.mcmc_el.attrs[bn.FULL_EVALUATION] = "0"
-        filename = beastXML.mcmc_el.filename
-        beastXML.timer_el = TimerXMLElement(beastXML.mcmc_el)
-        beastXML.timer_el.filename = "$(filename)_timer.txt"
+        mcmc_el.attrs[bn.FULL_EVALUATION] = "0"
+        filename = mcmc_el.filename
+        timer_el = TimerXMLElement(mcmc_el)
+        add_child(beastXML, timer_el)
+        timer_el.filename = "$(filename)_timer.txt"
     end
 
     return beastXML
-
-
 end
 
 function make_MBD_XML(data::Matrix{Float64}, taxa::Vector{T},
