@@ -68,11 +68,11 @@ function run_beast(xml_path::String;
         push!(cmds, "-overwrite")
     end
 
+    push!(cmds, "-fail_threads")
+
     push!(cmds, xml_path)
 
     out = run(Cmd(cmds))
-    # out = execute(Cmd(cmds))
-    # @show out
 
     cd(old_directory)
 
