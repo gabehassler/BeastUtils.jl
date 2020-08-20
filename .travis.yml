@@ -15,13 +15,13 @@ addons:
   apt:
     packages:
       - ant
-before_script:
-  - git clone --depth 1 -b repeated_measures https://github.com/beast-dev/beast-mcmc.git
-  - cd beast-mcmc
-  - ant dist
-  - BEAST_HOME=$(pwd)
-  - java -version
-  - java -jar $BEAST_HOME/build/dist/beast.jar -version
+# before_script:
+#   - git clone --depth 1 -b repeated_measures https://github.com/beast-dev/beast-mcmc.git
+#   - cd beast-mcmc
+#   - ant dist
+#   - BEAST_HOME=$(pwd)
+#   - java -version
+#   - java -jar $BEAST_HOME/build/dist/beast.jar -version
 
 
 # after_success:
