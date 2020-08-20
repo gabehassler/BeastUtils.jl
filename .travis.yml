@@ -23,7 +23,3 @@ before_script:
   - cd ..
   - java -version
   - java -jar $BEAST_HOME/build/dist/beast.jar -version
-
-
-# after_success:
-# - julia -e 'cd(Pkg.dir("BeastUtils")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
