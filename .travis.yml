@@ -11,5 +11,18 @@ matrix:
 notifications:
   email: false
 codecov: true
+addons:
+  apt:
+    packages:
+      - ant
+before_script:
+  - git clone --depth 1 -b repeated_measures https://github.com/beast-dev/beast-mcmc.git
+  - cd beast-mcmc
+  - ant dist
+  - BEAST_HOME=$(pwd)
+  - java -version
+  - java -jar $BEAST_HOME/build/dist/beast.jar -version
+
+
 # after_success:
 # - julia -e 'cd(Pkg.dir("BeastUtils")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
