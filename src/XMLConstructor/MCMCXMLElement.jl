@@ -1,4 +1,4 @@
-mutable struct MCMCXMLElement
+mutable struct MCMCXMLElement <: MyXMLElement
     el::XMLOrNothing
     likelihoods::Vector{MyXMLElement}
     priors::Vector{MyXMLElement}
@@ -128,15 +128,14 @@ function add_screenLog_cols(pel::XMLElement, cols::Array{XMLElement};
     end
 end
 
-function add_mcmc(pel::XMLElement, priors::Array{XMLElement},
-        likelihoods::Array{XMLElement}, ops_el::XMLElement,
-        screen_logs::Array{XMLElement}, file_logs::Array{XMLElement},
-        chain_length::Int, level::Int;
-        screen_logEvery::Int = SCREEN_LOGEVERY,
-        file_logEvery::Int = FILE_LOGEVERY,
-        filename::String = DEFAULT_FILENAME)
+function set_screen_logEvery(mcmc::MCMCXMLElement, sle::Int)
+    mcmc.screen_logEvery = sle
+end
 
+function set_file_logEvery(mcmc::MCMCXMLElement, fle::Int)
+    mcmc.file_logEvery = fle
+end
 
-
-
+function set_filename(mcmc::MCMCXMLElement, filename::String)
+    mcmc.filename = filename
 end

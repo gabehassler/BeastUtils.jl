@@ -17,8 +17,10 @@ function df_to_matrix(df::DataFrame) #Converts a data frame with missing values 
 end
 
 function add_MBD_loggables!(bx::BEASTXMLElement)
-    mbd_el = bx.MBD_el
-    rm_el = bx.extension_el
+    mbd_el = get_mbd(bx)
+    rm_el = get_repeatedMeasures(bx)
+    like_el = get_traitLikelihood(bx)
+    treeModel_el = get_treeModel(bx)
 
     diffVar_el = MatrixInverseXMLElement(mbd_el)
     rmVar_el = MatrixInverseXMLElement(rm_el)
@@ -26,27 +28,21 @@ function add_MBD_loggables!(bx::BEASTXMLElement)
     diffCor_el = CorrelationMatrixXMLElement(mbd_el, true)
     rmCor_el = CorrelationMatrixXMLElement(rm_el, true)
 
-    vp_el = VarianceProportionXMLElement(bx.traitLikelihood_el, bx.treeModel_el,
-                        bx.extension_el, bx.MBD_el)
+    vp_el = VarianceProportionXMLElement(like_el, treeModel_el, rm_el, mbd_el)
 
     loggables = LoggablesXMLElement([diffVar_el, rmVar_el, diffCor_el, rmCor_el, vp_el],
                                 [false, false, false, false, false])
 
-    if isnothing(bx.loggables)
-        bx.loggables = loggables
-    else
-        bx.loggables = join_loggables(bx.loggables, loggables)
-    end
-    if !isnothing(bx.mcmc_el)
-        bx.mcmc_el.loggables = bx.loggables
-    end
+    add_loggables(bx, loggables)
 
     return loggables
 end
 
 function use_dates!(bx::BEASTXMLElement)
-    bx.data_el.use_times = true
-    bx.newick_el.fix_tree = false
+    data = get_data(bx)
+    newick = get_newick(bx)
+    data.use_times = true
+    newick.fix_tree = false
 end
 
 function add_trait!(bx::BEASTXMLElement, data::Matrix{Float64}, trait::String)

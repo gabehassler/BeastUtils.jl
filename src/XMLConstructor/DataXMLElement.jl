@@ -106,3 +106,11 @@ function add_trait!(dxl::DataXMLElement, data::Matrix{Float64}, trait_name::Stri
     push!(dxl.data_mats, data)
     push!(dxl.trait_names, trait_name)
 end
+
+function set_dates(xml::DataXMLElement, dates::AbstractVector{Float64})
+    if length(dates) != length(xml.node_times)
+        DimensionMismatch("The number of dates must match the number of taxa.")
+    end
+
+    xml.node_times .= dates
+end

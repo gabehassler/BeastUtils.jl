@@ -1,4 +1,4 @@
-mutable struct TimerXMLElement
+mutable struct TimerXMLElement <: MyXMLElement
     el::XMLOrNothing
     mcmc_el::MCMCXMLElement
     filename::String

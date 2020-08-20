@@ -1,4 +1,4 @@
-mutable struct OperatorsXMLElement
+mutable struct OperatorsXMLElement <: MyXMLElement
     el::XMLOrNothing
     els::Vector{OperatorXMLElement}
 

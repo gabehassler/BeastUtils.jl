@@ -24,7 +24,7 @@ function add_loggable(lg_el::LoggablesXMLElement, my_el::MyXMLElement;
 end
 
 
-mutable struct MatrixInverseXMLElement <: MyXMLElement
+mutable struct MatrixInverseXMLElement <: SimpleXMLElement
     el::XMLOrNothing
     matrixParam_provider::MyXMLElement
 
@@ -50,7 +50,7 @@ function get_loggables(mi_el::MatrixInverseXMLElement)
 end
 
 
-mutable struct CorrelationMatrixXMLElement <: MyXMLElement
+mutable struct CorrelationMatrixXMLElement <: SimpleXMLElement
     el::XMLOrNothing
     matrixParam_provider::MyXMLElement
     invert::Bool
@@ -82,7 +82,7 @@ function get_loggables(cm_el::CorrelationMatrixXMLElement)
     return [cm_el.el]
 end
 
-mutable struct VarianceProportionXMLElement <: MyXMLElement
+mutable struct VarianceProportionXMLElement <: SimpleXMLElement
     el::XMLOrNothing
     td_el::TraitLikelihoodXMLElement
     tm_el::TreeModelXMLElement

@@ -1,6 +1,8 @@
 using BeastUtils.XMLConstructor
 using BeastUtils.TreeUtils, PhyloNetworks
 
+xc = XMLConstructor
+
 using DataFrames, CSV, Test
 ### Making sure https://github.com/suchard-group/incomplete_measurements/blob/master/scripts/xml_setup.jl works
 
@@ -24,11 +26,11 @@ function make_mbd(data_path::String, newick_path::String, xml_path::String,
     bx = XMLConstructor.make_MBD_XML(data, taxa, newick, chain_length = 100_000)
     if use_dates
         XMLConstructor.use_dates!(bx)
-        bx.data_el.node_times = dates_df[!, :date]
+        xc.set_data_dates(bx, dates_df[!, :date])
     end
-    bx.mcmc_el.screen_logEvery = 100
-    bx.mcmc_el.file_logEvery = 10
-    bx.mcmc_el.filename = filename
+    xc.set_screen_logEvery(bx, 100)
+    xc.set_file_logEvery(bx, 10)
+    xc.set_filename(bx, filename)
     XMLConstructor.add_MBD_loggables!(bx)
 
 
@@ -74,27 +76,27 @@ make_mbd(data_path, newick_path, dates_xml_path, filename, dates_path = dates_pa
 
 
 
-### Testing Factor xml
-k = 4
+# ### Testing Factor xml
+# k = 4
 
-# HMC, no shrinkage
-bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = false)
-XMLConstructor.save_xml("facHMC.xml", bx)
-@test isfile("facHMC.xml")
+# # HMC, no shrinkage
+# bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = false)
+# XMLConstructor.save_xml("facHMC.xml", bx)
+# @test isfile("facHMC.xml")
 
-# Gibbs, no shrinkage
-bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = true)
-XMLConstructor.save_xml("facGibbs.xml", bx)
-@test isfile("facGibbs.xml")
+# # Gibbs, no shrinkage
+# bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = true)
+# XMLConstructor.save_xml("facGibbs.xml", bx)
+# @test isfile("facGibbs.xml")
 
-# HMC, shrinkage
-bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = true,
-            shrink_loadings = true)
-XMLConstructor.save_xml("facHMCShrink.xml", bx)
-@test isfile("facHMCShrink.xml")
+# # HMC, shrinkage
+# bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = true,
+#             shrink_loadings = true)
+# XMLConstructor.save_xml("facHMCShrink.xml", bx)
+# @test isfile("facHMCShrink.xml")
 
-# Gibbs, shrinkage
-bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = false,
-            shrink_loadings = true)
-XMLConstructor.save_xml("facGibbsShrink.xml", bx)
-@test isfile("facGibbsShrink.xml")
+# # Gibbs, shrinkage
+# bx = XMLConstructor.make_PFA_XML(data, taxa, newick, k, useHMC = false,
+#             shrink_loadings = true)
+# XMLConstructor.save_xml("facGibbsShrink.xml", bx)
+# @test isfile("facGibbsShrink.xml")
