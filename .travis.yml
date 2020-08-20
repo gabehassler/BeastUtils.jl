@@ -10,5 +10,6 @@ matrix:
     - julia: nightly
 notifications:
   email: false
-after_success:
-- julia -e 'cd(Pkg.dir("BeastUtils")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+codecov: true
+# after_success:
+# - julia -e 'cd(Pkg.dir("BeastUtils")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
