@@ -16,27 +16,7 @@ function df_to_matrix(df::DataFrame) #Converts a data frame with missing values 
     return taxa, data
 end
 
-function add_MBD_loggables!(bx::BEASTXMLElement)
-    mbd_el = get_mbd(bx)
-    rm_el = get_repeatedMeasures(bx)
-    like_el = get_traitLikelihood(bx)
-    treeModel_el = get_treeModel(bx)
 
-    diffVar_el = MatrixInverseXMLElement(mbd_el)
-    rmVar_el = MatrixInverseXMLElement(rm_el)
-
-    diffCor_el = CorrelationMatrixXMLElement(mbd_el, true)
-    rmCor_el = CorrelationMatrixXMLElement(rm_el, true)
-
-    vp_el = VarianceProportionXMLElement(like_el, treeModel_el, rm_el, mbd_el)
-
-    loggables = LoggablesXMLElement([diffVar_el, rmVar_el, diffCor_el, rmCor_el, vp_el],
-                                [false, false, false, false, false])
-
-    add_loggables(bx, loggables)
-
-    return loggables
-end
 
 function use_dates!(bx::BEASTXMLElement)
     data = get_data(bx)
@@ -52,4 +32,89 @@ function add_trait!(bx::BEASTXMLElement, data::Matrix{Float64}, trait::String)
 
     add_trait!(data_el, data, trait)
     add_leaf_param!(tm_el, trait, p)
+end
+
+function get_id(el::XMLElement)
+    return attribute(el, bn.ID)
+end
+
+function set_id!(el::XMLElement, id::String)
+    set_attribute(el, bn.ID, id)
+end
+
+function make_Wishart_prior(scale::AbstractArray{Float64, 2},
+            mp_el::XMLElement,
+            id::String)
+
+    el = new_element(bn.MULTIVARIATE_WISHART_PRIOR)
+    set_attributes(el, [(bn.ID, id), (bn.DF, string(size(scale, 1)))])
+    scale_el = new_child(el, bn.SCALE_MATRIX)
+    add_matrix_parameter(scale_el, scale)
+    data_el = new_child(el, bn.DATA)
+    add_ref_el(data_el, mp_el)
+    return el
+end
+
+function add_matrix_parameter(pel::XMLElement, M::AbstractArray{T, 2};
+        id::String = "") where T <: Number
+    mat_el = new_element(bn.MATRIX_PARAMETER)
+    if id != ""
+        set_attribute(mat_el, bn.ID, id)
+    end
+    n, p = size(M)
+    for i = 1:n
+        param_el = new_element(bn.PARAMETER)
+        set_attribute(param_el, bn.VALUE, join(M[i, :], ' '))
+        add_child(mat_el, param_el)
+    end
+    add_child(pel, mat_el)
+    return mat_el
+end
+
+function add_diagonal_matrix(pel::XMLElement, M::Vector{T};
+        id::String = "", lower::String = "") where T <: Number
+
+    mat_el = new_child(pel, bn.DIAGONAL_MATRIX)
+    p_el = add_parameter(mat_el, value = M, id=id)
+    if lower != ""
+        set_attribute(p_el, bn.LOWER, lower)
+    end
+    return mat_el
+end
+
+
+function add_ref_el(pel::XMLElement, el::XMLElement;
+            new_name::String = name(el))
+    ref_el = reference_element(el, new_name)
+    add_child(pel, ref_el)
+    return ref_el
+end
+
+function add_ref_el(pel::XMLElement, name::String, id::String)
+    ref_el = new_child(pel, name)
+    set_attribute(ref_el, bn.IDREF, id)
+end
+
+function add_ref_els(pel::XMLElement, els::Array{XMLElement})
+    for el in els
+        add_ref_el(pel, el)
+    end
+end
+
+function reference_element(el::XMLElement)
+    nm = name(el)
+    return reference_element(el, nm)
+end
+
+function reference_element(el::XMLElement, nm::String)
+    id = attribute(el, bn.ID, required = true)
+    ref_el = new_element(nm)
+    set_attribute(ref_el, bn.IDREF, id)
+    return ref_el
+end
+
+function xml_vec(n::Int)
+    v = Vector{XMLOrNothing}(undef, n)
+    fill!(v, nothing)
+    return v
 end

@@ -54,6 +54,42 @@ include(joinpath(element_dir, "TraitLoggerXMLElement.jl"))
 
 include(joinpath(dir, "utils.jl"))
 include(joinpath(dir, "constructors.jl"))
+include(joinpath(dir, "getters.jl"))
+include(joinpath(dir, "setters.jl"))
+
+
+
+
+function make_xml(bx::BEASTXMLElement)
+    xdoc = XMLDocument()
+    bx.el = new_element(bn.BEAST)
+    set_root(xdoc, bx.el)
+
+    for el in bx.components
+    add_el(bx, el)
+    end
+
+    return xdoc
+end
+
+
+function save_xml(path::String, bx::BEASTXMLElement;
+                  change_filename::Bool = true)
+    nm = basename(path)
+    s = split(nm, '.')
+    @assert length(s) == 2
+    @assert s[2] == "xml"
+
+    if change_filename
+    filename = s[1]
+    set_filename(bx, filename)
+    end
+
+    xdoc = make_xml(bx)
+    save_file(xdoc, path)
+    free(xdoc)
+end
+
 
 
 
@@ -99,179 +135,26 @@ end
 
 
 
-
-function get_id(el::XMLElement)
-    return attribute(el, bn.ID)
-end
-
-function set_id!(el::XMLElement, id::String)
-    set_attribute(el, bn.ID, id)
-end
-
-function make_Wishart_prior(scale::AbstractArray{Float64, 2},
-            mp_el::XMLElement,
-            id::String)
-
-    el = new_element(bn.MULTIVARIATE_WISHART_PRIOR)
-    set_attributes(el, [(bn.ID, id), (bn.DF, string(size(scale, 1)))])
-    scale_el = new_child(el, bn.SCALE_MATRIX)
-    add_matrix_parameter(scale_el, scale)
-    data_el = new_child(el, bn.DATA)
-    add_ref_el(data_el, mp_el)
-    return el
-end
-
-function add_matrix_parameter(pel::XMLElement, M::AbstractArray{T, 2};
-        id::String = "") where T <: Number
-    mat_el = new_element(bn.MATRIX_PARAMETER)
-    if id != ""
-        set_attribute(mat_el, bn.ID, id)
-    end
-    n, p = size(M)
-    for i = 1:n
-        param_el = new_element(bn.PARAMETER)
-        set_attribute(param_el, bn.VALUE, join(M[i, :], ' '))
-        add_child(mat_el, param_el)
-    end
-    add_child(pel, mat_el)
-    return mat_el
-end
-
-function add_diagonal_matrix(pel::XMLElement, M::Vector{T};
-        id::String = "", lower::String = "") where T <: Number
-
-    mat_el = new_child(pel, bn.DIAGONAL_MATRIX)
-    p_el = add_parameter(mat_el, value = M, id=id)
-    if lower != ""
-        set_attribute(p_el, bn.LOWER, lower)
-    end
-    return mat_el
-end
-
-
-function add_ref_el(pel::XMLElement, el::XMLElement;
-            new_name::String = name(el))
-    ref_el = reference_element(el, new_name)
-    add_child(pel, ref_el)
-    return ref_el
-end
-
-function add_ref_el(pel::XMLElement, name::String, id::String)
-    ref_el = new_child(pel, name)
-    set_attribute(ref_el, bn.IDREF, id)
-end
-
-function add_ref_els(pel::XMLElement, els::Array{XMLElement})
-    for el in els
-        add_ref_el(pel, el)
-    end
-end
-
-function reference_element(el::XMLElement)
-    nm = name(el)
-    return reference_element(el, nm)
-end
-
-function reference_element(el::XMLElement, nm::String)
-    id = attribute(el, bn.ID, required = true)
-    ref_el = new_element(nm)
-    set_attribute(ref_el, bn.IDREF, id)
-    return ref_el
-end
-
-function xml_vec(n::Int)
-    v = Vector{XMLOrNothing}(undef, n)
-    fill!(v, nothing)
-    return v
-end
-
-
-struct VarPropXMLElement
-    el::XMLOrNothing
-    #TODO: more
-end
-
-
-## TODO: move elsewhere
-
-function set_screen_logEvery(bx::BEASTXMLElement, sle::Int)
-    mcmc_el = get_mcmc(bx)
-    set_screen_logEvery(mcmc_el, sle)
-end
-
-function set_file_logEvery(bx::BEASTXMLElement, fle::Int)
-    mcmc_el = get_mcmc(bx)
-    set_file_logEvery(mcmc_el, fle)
-end
-
-function set_filename(bx::BEASTXMLElement, filename::AbstractString)
-    mcmc_el = get_mcmc(bx)
-    set_filename(mcmc_el, string(filename))
-end
-
-function set_data_dates(bx::BEASTXMLElement, dates::AbstractVector{Float64})
-    data_el = get_data(bx)
-    set_dates(data_el, dates)
-end
-
-function get_data(bx::BEASTXMLElement)
-    return find_element(bx, DataXMLElement)
-end
-
-function get_newick(bx::BEASTXMLElement)
-    return find_element(bx, NewickXMLElement)
-end
-
-function get_treeModel(bx::BEASTXMLElement)
-    return find_element(bx, TreeModelXMLElement)
-end
-
-function get_mbd(bx::BEASTXMLElement)
-    return find_element(bx, MBDXMLElement)
-end
-
-function get_extension(bx::BEASTXMLElement)
-    return find_element(bx, ModelExtensionXMLElement)
-end
-
-function get_repeatedMeasures(bx::BEASTXMLElement)
-    return find_element(bx, RepeatedMeasuresXMLElement)
-end
-
-function get_integratedFactorModel(bx::BEASTXMLElement)
-    return find_element(bx, IntegratedFactorsXMLElement)
-end
-
-function get_traitLikelihood(bx::BEASTXMLElement)
-    return find_element(bx, TraitLikelihoodXMLElement)
-end
-
-function get_operators(bx::BEASTXMLElement)
-    return bx.operators_el.els
-end
-
-function get_mcmc(bx::BEASTXMLElement)
-    return find_element(bx, MCMCXMLElement)
-end
-
 function add_loggable(bx::BEASTXMLElement, el::MyXMLElement;
                         already_made::Bool = false)
 
-    if isnothing(bx.mcmc_el)
-        error("MCMC element not created. Can't add loggables")
-    end
-
-    if isnothing(bx.loggables)
-        bx.loggables = LoggablesXMLElement()
-    end
-
-    add_loggable(bx.mcmc_el.loggables, el, already_made = already_made)
-    add_loggable(bx.loggables, el, already_made = already_made)
+    loggables = LoggablesXMLElement([el], [already_made])
+    add_loggables(bx, loggables)
 end
 
-function set_full_eval(bx::BEASTXMLElement, n_eval::Int)
-    mcmc = get_mcmc(bx)
-    mcmc.attrs[bn.FULL_EVALUATION] = string(n_eval)
+
+function add_loggables(bx::BEASTXMLElement, loggables::LoggablesXMLElement)
+    @warn "Check that this ends up in the MCMCXMLElement"
+    old_loggables = find_elements(bx, LoggablesXMLElement)
+    if length(old_loggables) == 0
+        mcmc = get_mcmc(bx)
+        ind = findfirst(x -> x === mcmc, bx.components)
+        insert!(bx.components, ind, loggables)
+    elseif length(old_loggables) == 1
+        join_loggables(old_loggables[1], loggables)
+    else
+        error("Cannot join with more than one LoggablesXMLElement")
+    end
 end
 
 
@@ -400,51 +283,6 @@ function add_el(bx::BEASTXMLElement, corr::CorrelationMatrixXMLElement)
     add_child(bx.el, corr.el)
 end
 
-
-function add_loggables(bx::BEASTXMLElement, loggables::LoggablesXMLElement)
-    old_loggables = find_elements(bx, LoggablesXMLElement)
-    if length(old_loggables) == 0
-        mcmc = get_mcmc(bx)
-        ind = findfirst(x -> x === mcmc, bx.components)
-        insert!(bx.components, ind, loggables)
-    elseif length(old_loggables) == 1
-        join_loggables(old_loggables[1], loggables)
-    else
-        error("Cannot join with more than one LoggablesXMLElement")
-    end
-end
-
-
-function save_xml(path::String, bx::BEASTXMLElement;
-                    change_filename::Bool = true)
-    nm = basename(path)
-    s = split(nm, '.')
-    @assert length(s) == 2
-    @assert s[2] == "xml"
-
-    if change_filename
-        filename = s[1]
-        set_filename(bx, filename)
-    end
-
-    xdoc = make_xml(bx)
-    save_file(xdoc, path)
-    free(xdoc)
-end
-
-function make_xml(bx::BEASTXMLElement)
-    xdoc = XMLDocument()
-    bx.el = new_element(bn.BEAST)
-    set_root(xdoc, bx.el)
-
-    for el in bx.components
-        add_el(bx, el)
-    end
-
-    return xdoc
-end
-
-#
 
 
 

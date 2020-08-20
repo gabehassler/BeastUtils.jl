@@ -141,6 +141,28 @@ function make_MBD_XML(data::Matrix{Float64}, taxa::Vector{T},
     return beastXML
 end
 
+function add_MBD_loggables!(bx::BEASTXMLElement)
+    mbd_el = get_mbd(bx)
+    rm_el = get_repeatedMeasures(bx)
+    like_el = get_traitLikelihood(bx)
+    treeModel_el = get_treeModel(bx)
+
+    diffVar_el = MatrixInverseXMLElement(mbd_el)
+    rmVar_el = MatrixInverseXMLElement(rm_el)
+
+    diffCor_el = CorrelationMatrixXMLElement(mbd_el, true)
+    rmCor_el = CorrelationMatrixXMLElement(rm_el, true)
+
+    vp_el = VarianceProportionXMLElement(like_el, treeModel_el, rm_el, mbd_el)
+
+    loggables = LoggablesXMLElement([diffVar_el, rmVar_el, diffCor_el, rmCor_el, vp_el],
+                                [false, false, false, false, false])
+
+    add_loggables(bx, loggables)
+
+    return loggables
+end
+
 
 
 
