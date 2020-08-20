@@ -21,34 +21,35 @@ end
 abstract type ModelExtensionXMLElement <: MyXMLElement end
 abstract type OperatorXMLElement <: MyXMLElement end
 
-dir_name = "XMLConstructor"
+const element_dir = joinpath(@__DIR__, "XMLConstructor", "XMLElements")
+const dir = joinpath(@__DIR__, "XMLConstructor")
 
-include(joinpath(dir_name, "MatrixParameter.jl"))
-include(joinpath(dir_name, "DataXMLElement.jl"))
-include(joinpath(dir_name, "NewickXMLElement.jl"))
-include(joinpath(dir_name, "TreeModelXMLElement.jl"))
-include(joinpath(dir_name, "MBDXMLElement.jl"))
-include(joinpath(dir_name, "RepeatedMeasuresXMLElement.jl"))
-include(joinpath(dir_name, "MatrixShrinkage.jl"))
-include(joinpath(dir_name, "IntegratedFactorsXMLElement.jl"))
-include(joinpath(dir_name, "TraitLikelihoodXMLElement.jl"))
-include(joinpath(dir_name, "LatentFactorModelXMLElement.jl"))
-include(joinpath(dir_name, "LogPredictiveDensity.jl"))
-include(joinpath(dir_name, "NormalGammaPrecisionOperatorXMLElement.jl"))
-include(joinpath(dir_name, "PrecisionGibbsOperatorXMLElement.jl"))
-include(joinpath(dir_name, "OperatorsXMLElement.jl"))
-include(joinpath(dir_name, "LoggablesXMLElement.jl"))
-include(joinpath(dir_name, "MCMCXMLElement.jl"))
-include(joinpath(dir_name, "TimerXMLElement.jl"))
-include(joinpath(dir_name, "TraitValidationXMLElement.jl"))
-include(joinpath(dir_name, "HMCOperatorXMLElement.jl"))
-include(joinpath(dir_name, "LoadingsGibbsOperatorXMLElement.jl"))
-include(joinpath(dir_name, "OldLoadingsGibbsOperatorXMLElement.jl"))
-include(joinpath(dir_name, "LatentFactorPrecisionOperatorXMLElement.jl"))
-include(joinpath(dir_name, "FactorTreeGibbsOperatorXMLElement.jl"))
-include(joinpath(dir_name, "TraitLoggerXMLElement.jl"))
+include(joinpath(element_dir, "MatrixParameter.jl"))
+include(joinpath(element_dir, "DataXMLElement.jl"))
+include(joinpath(element_dir, "NewickXMLElement.jl"))
+include(joinpath(element_dir, "TreeModelXMLElement.jl"))
+include(joinpath(element_dir, "MBDXMLElement.jl"))
+include(joinpath(element_dir, "RepeatedMeasuresXMLElement.jl"))
+include(joinpath(element_dir, "MatrixShrinkage.jl"))
+include(joinpath(element_dir, "IntegratedFactorsXMLElement.jl"))
+include(joinpath(element_dir, "TraitLikelihoodXMLElement.jl"))
+include(joinpath(element_dir, "LatentFactorModelXMLElement.jl"))
+include(joinpath(element_dir, "LogPredictiveDensity.jl"))
+include(joinpath(element_dir, "NormalGammaPrecisionOperatorXMLElement.jl"))
+include(joinpath(element_dir, "PrecisionGibbsOperatorXMLElement.jl"))
+include(joinpath(element_dir, "OperatorsXMLElement.jl"))
+include(joinpath(element_dir, "LoggablesXMLElement.jl"))
+include(joinpath(element_dir, "MCMCXMLElement.jl"))
+include(joinpath(element_dir, "TimerXMLElement.jl"))
+include(joinpath(element_dir, "TraitValidationXMLElement.jl"))
+include(joinpath(element_dir, "HMCOperatorXMLElement.jl"))
+include(joinpath(element_dir, "LoadingsGibbsOperatorXMLElement.jl"))
+include(joinpath(element_dir, "OldLoadingsGibbsOperatorXMLElement.jl"))
+include(joinpath(element_dir, "LatentFactorPrecisionOperatorXMLElement.jl"))
+include(joinpath(element_dir, "FactorTreeGibbsOperatorXMLElement.jl"))
+include(joinpath(element_dir, "TraitLoggerXMLElement.jl"))
 
-
+include(joinpath(dir, "utils.jl"))
 
 
 
@@ -272,7 +273,6 @@ end
 
 
 
-include(joinpath(dir_name, "utils.jl"))
 
 
 function make_xml(n::Nothing)
