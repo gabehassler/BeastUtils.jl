@@ -144,7 +144,6 @@ end
 
 
 function add_loggables(bx::BEASTXMLElement, loggables::LoggablesXMLElement)
-    @warn "Check that this ends up in the MCMCXMLElement"
     old_loggables = find_elements(bx, LoggablesXMLElement)
     if length(old_loggables) == 0
         mcmc = get_mcmc(bx)
