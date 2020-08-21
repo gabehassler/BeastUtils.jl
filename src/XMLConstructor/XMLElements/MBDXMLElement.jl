@@ -6,12 +6,30 @@ mutable struct MBDXMLElement <: MyXMLElement
     is_random::Bool
     diagonal_prec::Bool
 
+    function MBDXMLElement(precision::AbstractArray{Float64, 2},
+                           prior_scale::AbstractArray{Float64, 2},
+                           is_random::Bool,
+                           diagonal_prec::Bool)
+        return new(nothing, nothing, precision, prior_scale, is_random,
+                   diagonal_prec)
+    end
 
-    MBDXMLElement(p::Int) = new(nothing, nothing, Diagonal(ones(p)),
-                            Diagonal(ones(p)),
-                            true,
-                            false)
+
 end
+
+
+function MBDXMLElement(p::Int)
+    return MBDXMLElement(Diagonal(ones(p)),
+                         Diagonal(ones(p)),
+                         true,
+                         false)
+end
+
+function MBDXMLElement(dm::DiffusionModel)
+    P = inv(dm.Σ)
+    return MBDXMLElement(P, Diagonal(ones(size(P, 1))), true, false)
+end
+
 
 function make_xml(ml::MBDXMLElement)
     ml.el = make_MBD(ml.precision, ml.diagonal_prec)

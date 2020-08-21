@@ -3,9 +3,15 @@ module XMLConstructor
 export save_xml,
        make_residual_xml,
        make_pfa_xml,
+       make_joint_xml,
        set_mbd_precision,
        set_residual_precision,
-       set_loadings
+       set_loadings,
+       DiffusionModel,
+       ResidualVarianceModel,
+       IntegratedFactorModel,
+       JointProcessModel,
+       DataModel
 
 
 using LightXML, LinearAlgebra, DataFrames, PhyloNetworks
@@ -31,6 +37,8 @@ abstract type OperatorXMLElement <: MyXMLElement end
 
 const element_dir = joinpath(@__DIR__, "XMLConstructor", "XMLElements")
 const dir = joinpath(@__DIR__, "XMLConstructor")
+
+include(joinpath(dir, "constructor_helpers.jl"))
 
 include(joinpath(element_dir, "MatrixParameter.jl"))
 include(joinpath(element_dir, "DataXMLElement.jl"))

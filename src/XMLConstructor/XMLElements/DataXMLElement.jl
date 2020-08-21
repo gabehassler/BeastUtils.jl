@@ -1,12 +1,12 @@
 mutable struct DataXMLElement <: MyXMLElement
     el::XMLOrNothing
-    data_mats::Vector{Matrix{Float64}}
+    data_mats::Vector{<:AbstractMatrix{Float64}}
     trait_names::Vector{S} where S <: AbstractString
-    taxa::Vector{AbstractString}
+    taxa::Vector{<:AbstractString}
     node_times::Vector{Float64}
     use_times::Bool
 
-    function DataXMLElement(mat::Matrix{Float64},
+    function DataXMLElement(mat::AbstractMatrix{Float64},
                 taxa::Vector{S},
                 newick::String;
                 trait_name::AbstractString = bn.DEFAULT_TRAIT_NAME
@@ -16,7 +16,7 @@ mutable struct DataXMLElement <: MyXMLElement
         return new(nothing, [mat], [trait_name], taxa, node_times, false)
     end
 
-    function DataXMLElement(mats::Vector{Matrix{Float64}},
+    function DataXMLElement(mats::Vector{<:AbstractMatrix{Float64}},
                 trait_names::Vector{T} where T <: AbstractString,
                 taxa::Vector{S},
                 newick::String
@@ -27,6 +27,13 @@ mutable struct DataXMLElement <: MyXMLElement
         return new(nothing, mats, trait_names, taxa, node_times, false)
     end
 
+end
+
+function DataXMLElement(dm::DataModel, newick::String)
+    n_partitions = length(dm.partitions)
+    n = size(dm.data, 1)
+    data = [@view dm.data[1:n, dm.partitions[i]] for i = 1:n_partitions]
+    return DataXMLElement(data, dm.trait_names, dm.taxa, newick)
 end
 
 
@@ -75,7 +82,7 @@ function add_taxon(dxl::DataXMLElement, pel::XMLElement, ind::Int)
     return el
 end
 
-function format_data_line(data::Matrix{Float64}, ind::Int)
+function format_data_line(data::AbstractMatrix{Float64}, ind::Int)
     p = size(data, 2)
     s_data = Vector{String}(undef, p)
     for j = 1:p

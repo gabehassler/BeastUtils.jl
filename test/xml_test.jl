@@ -33,8 +33,6 @@ function make_mbd(data_path::String, newick_path::String, xml_path::String,
     xc.set_filename(bx, filename)
     XMLConstructor.add_MBD_loggables!(bx)
 
-
-
     XMLConstructor.save_xml(xml_path, bx)
 end
 
@@ -100,3 +98,32 @@ bx = XMLConstructor.make_pfa_xml(data, taxa, newick, k, useHMC = false,
             shrink_loadings = true)
 XMLConstructor.save_xml("facGibbsShrink.xml", bx)
 @test isfile("facGibbsShrink.xml")
+
+################################################################################
+## Joint models
+################################################################################
+
+n = 10
+k = 2
+p_res = 3
+p_fac = 5
+p_diff = k + p_res
+
+taxa = ["taxon_$i" for i = 1:n]
+
+tree = rtree(n, labels=taxa)
+newick = writeTopology(tree)
+
+rm = ResidualVarianceModel(p_res)
+fm = IntegratedFactorModel(k, p_fac)
+
+jm = JointProcessModel([rm, fm])
+
+dm = DataModel(taxa,
+               [randn(n, p_res), randn(n, p_fac)],
+               ["trait.res", "trait.fac"])
+
+bx = make_joint_xml(newick, dm, jm)
+xml = XMLConstructor.make_xml(bx)
+print(xml)
+

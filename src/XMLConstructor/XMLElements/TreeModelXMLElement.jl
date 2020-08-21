@@ -21,6 +21,13 @@ mutable struct TreeModelXMLElement <: MyXMLElement
         return new(nothing, node_traits, trait_dims, param_names, newick_el, true)
     end
 
+    function TreeModelXMLElement(newick_el::NewickXMLElement,
+                                 node_traits::Vector{String},
+                                 trait_dims::Vector{Int}
+                                )
+        param_names = ["$trait.leafTrait" for trait in node_traits]
+        return TreeModelXMLElement(newick_el, node_traits, trait_dims, param_names)
+    end
 end
 
 

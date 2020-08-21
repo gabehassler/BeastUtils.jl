@@ -11,18 +11,14 @@ mutable struct IntegratedFactorsXMLElement <: ModelExtensionXMLElement
     precision_scale::Float64
     precision_shape::Float64
     treeModel::TreeModelXMLElement
-    mbd::MBDXMLElement
     tree_trait_ind::Int
     standardize_traits::Bool
     msls::Union{MatrixShrinkageLikelihoods, Nothing}
     id::String
-
-
-
 end
 
 function IntegratedFactorsXMLElement(treeModel_el::TreeModelXMLElement,
-            mbd_el::MBDXMLElement, k::Int; trait_ind::Int = 1)
+                                     k::Int; trait_ind::Int = 1)
 
 
     p = treeModel_el.trait_dims[trait_ind]
@@ -38,8 +34,16 @@ function IntegratedFactorsXMLElement(treeModel_el::TreeModelXMLElement,
                                 precision, precision_scale,
                                 precision_shape,
                                 treeModel_el,
-                                mbd_el, trait_ind, true, nothing,
+                                trait_ind, true, nothing,
                                 bn.DEFAULT_IF_NAME)
+end
+
+function make_xmlelement(model::IntegratedFactorModel, tm::TreeModelXMLElement;
+                         ind::Int = 1)
+    ifx = IntegratedFactorsXMLElement(tm, tip_dimension(model), trait_ind = ind)
+    set_loadings(ifx, model.L)
+    set_precision(ifx, 1 ./ model.λ)
+    return ifx
 end
 
 function copy(x::IntegratedFactorsXMLElement)
@@ -53,7 +57,6 @@ function copy(x::IntegratedFactorsXMLElement)
         x.precision_scale,
         x.precision_shape,
         x.treeModel,
-        x.mbd,
         x.tree_trait_ind,
         x.standardize_traits,
         x.msls,
@@ -242,4 +245,27 @@ function set_loadings(pfa::IntegratedFactorsXMLElement,
                       L::AbstractArray{Float64, 2})
     mat_param = pfa.loadings
     set_mat!(mat_param, L)
+end
+
+
+function set_precision(ifa::IntegratedFactorsXMLElement,
+                       mat::AbstractArray{Float64, 2})
+    if !isdiag(mat)
+        error("Factor model must have diagonal precision")
+    end
+    set_precision(ifa, diag(mat))
+end
+
+function set_precision(ifa::IntegratedFactorsXMLElement,
+                                precs::AbstractArray{Float64, 1})
+    p = length(precs)
+    if length(ifa.precision) != p
+        error("Cannot set precision. Incompatible dimensions.")
+    end
+    for i = 1:p
+        if precs[i] <= 0
+            error("Precisions must be positive.")
+        end
+    end
+    ifa.precision = precs
 end
