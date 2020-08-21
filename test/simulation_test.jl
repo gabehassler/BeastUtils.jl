@@ -1,15 +1,18 @@
-using BeastUtils.Simulation, BeastUtils.TreeUtils
+using BeastUtils.Simulation, BeastUtils.TreeUtils, BeastUtils.SlowLikelihoods,
+      BeastUtils.MatrixUtils
 using LinearAlgebra, Test, PhyloNetworks
 
 import Random
-seed = 666
+seed =666
 Random.seed!(seed)
+
+const var_diff_tol = 1e-10
 
 
 function check_simulation(tsm::Simulation.TraitSimulationModel,
                             μ_true::Vector{Float64},
                             V_true::Matrix{Float64};
-                            reps::Int = 200_000,
+                            reps::Int = 100_000,
                             μ_tol::Float64 = 1e-1,
                             v_tol::Float64 = 1e-1)
 
@@ -34,10 +37,10 @@ function check_simulation(tsm::Simulation.TraitSimulationModel,
     v_max = maximum(V_diff)
     μ_max = maximum(μ_diff)
 
+    @show v_max
+    @show μ_max
 
-
-    @test v_max < v_tol
-    @test μ_max < μ_tol
+    return v_max < v_tol && μ_max < μ_tol
 end
 
 n = 5
@@ -51,8 +54,7 @@ taxa = ["taxon$i" for i = 1:n]
 # Known tree
 newick = "((A:1.0,(B:0.5,C:0.8):0.1):2.0,(D:0.5,E:2.0):1.5);"
 tree = readTopology(newick)
-Σ = randn(p, p)
-Σ = Σ * Σ' # needs to be positive definite
+Σ = randpd(p, rescale=true)
 Ψ1 = [3.0 2.0 2.0 0.0 0.0;
       2.0 2.6 2.1 0.0 0.0;
       2.0 2.1 2.9 0.0 0.0;
@@ -64,7 +66,14 @@ taxa1 = ["A", "B", "C", "D", "E"]
 V_true = kron(Σ, Ψ1)
 tdm = Simulation.TreeDiffusionModel(tree, Σ)
 tsm = Simulation.TraitSimulationModel(taxa1, tdm)
-check_simulation(tsm, μ_true, V_true)
+
+model_params = SlowLikelihoods.sim_to_params(tsm, pss=Inf)
+V_true2 = var(model_params, tree, taxa1)
+
+@test maximum(abs.(V_true - V_true2)) < var_diff_tol
+
+
+@test check_simulation(tsm, μ_true, V_true)
 
 perm = [3, 2, 5, 4, 1] # scramble order
 taxa2 = taxa1[perm]
@@ -74,12 +83,17 @@ taxa2 = taxa1[perm]
 V_true = kron(Σ, Ψ2)
 tdm = Simulation.TreeDiffusionModel(tree, Σ)
 tsm = Simulation.TraitSimulationModel(taxa2, tdm)
-check_simulation(tsm, μ_true, V_true)
+
+model_params = SlowLikelihoods.sim_to_params(tsm, pss=Inf)
+V_true2 = var(model_params, tree, taxa2)
+@test maximum(abs.(V_true - V_true2)) < var_diff_tol
+
+@test check_simulation(tsm, μ_true, V_true)
 
 # Random Tree
-tree = TreeUtils.rtree(n, labels = taxa, keep_order = false, ultrametric = false)
-Σ = randn(p, p)
-Σ = Σ * Σ' # needs to be positive definite
+tree = TreeUtils.rtree(n, labels = taxa, keep_order = false, ultrametric = true)
+standardize_height!(tree)
+Σ = randpd(p, rescale=true)
 tdm = Simulation.TreeDiffusionModel(tree, Σ)
 tsm = Simulation.TraitSimulationModel(taxa, tdm)
 
@@ -87,8 +101,11 @@ tsm = Simulation.TraitSimulationModel(taxa, tdm)
 Ψ = TreeUtils.vcv(tree, taxa)
 V_true = kron(Σ, Ψ)
 
-check_simulation(tsm, μ_true, V_true)
+model_params = SlowLikelihoods.sim_to_params(tsm, pss=Inf)
+V_true2 = var(model_params, tree, taxa)
+@test maximum(abs.(V_true - V_true2)) < var_diff_tol
 
+@test check_simulation(tsm, μ_true, V_true)
 
 ## Residual variance
 
@@ -112,7 +129,11 @@ tsm = Simulation.TraitSimulationModel(taxa, tdm, rvm)
 Ψ = TreeUtils.vcv(tdm.tree, taxa)
 V_true = kron(Σ, Ψ) + kron(Γ, Diagonal(ones(n)))
 
-check_simulation(tsm, μ_true, V_true)
+model_params = SlowLikelihoods.sim_to_params(tsm, pss=Inf)
+V_true2 = var(model_params, tree, taxa)
+@test maximum(abs.(V_true - V_true2)) < var_diff_tol
+
+@test check_simulation(tsm, μ_true, V_true)
 
 
 ## Latent factor model
@@ -139,4 +160,4 @@ tsm = Simulation.TraitSimulationModel(taxa, tdm, lfm)
 Ψ = TreeUtils.vcv(tdm.tree, taxa)
 V_true = kron(L' * L, Ψ) + kron(Λ, Diagonal(ones(n)))
 
-check_simulation(tsm, μ_true, V_true)
+@test check_simulation(tsm, μ_true, V_true)

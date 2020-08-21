@@ -1,6 +1,7 @@
 module TreeUtils
 
-export rtree
+export rtree,
+       standardize_height!
 
 # Internal library for working with trees. functions rely heavily on PhyloNetworks.jl
 

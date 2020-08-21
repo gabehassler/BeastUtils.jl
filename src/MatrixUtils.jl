@@ -1,6 +1,6 @@
 module MatrixUtils
 
-using LinearAlgebra
+using LinearAlgebra, Statistics
 
 export cov2corr,
     make_symmetric!,
@@ -291,9 +291,15 @@ function missing_cor(X::Matrix{Float64})
     return Σ
 end
 
-function randpd(n::Int)
+function randpd(n::Int; rescale::Bool = true)
     X = randn(n, n)
     M = X' * X
+    if rescale
+        diags = diag(M)
+        v = var(diags, corrected=false)
+        sd = sqrt(v)
+        M ./= sd
+    end
     return Symmetric(M)
 end
 
