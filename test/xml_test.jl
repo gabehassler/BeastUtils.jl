@@ -23,7 +23,7 @@ function make_mbd(data_path::String, newick_path::String, xml_path::String,
     taxa, data = XMLConstructor.df_to_matrix(df)
 
 
-    bx = XMLConstructor.make_MBD_XML(data, taxa, newick, chain_length = 100_000)
+    bx = XMLConstructor.make_residual_xml(data, taxa, newick, chain_length = 100_000)
     if use_dates
         XMLConstructor.use_dates!(bx)
         xc.set_data_dates(bx, dates_df[!, :date])
