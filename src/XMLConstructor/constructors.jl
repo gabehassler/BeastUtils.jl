@@ -1,6 +1,6 @@
 # contstructors for specific, commonly run analyses
 
-function make_PFA_XML(data::Matrix{Float64}, taxa::Vector{T},
+function make_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
             newick::String, k::Int;
             chain_length::Int = 100,
             useHMC::Bool = true,

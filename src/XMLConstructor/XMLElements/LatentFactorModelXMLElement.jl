@@ -146,6 +146,15 @@ function get_loggables(xml::LatentFactorModelXMLElement)
     return [xml.loadings_el,
             xml.el[bn.COL_PRECISION][1][bn.DIAGONAL_MATRIX][1][bn.PARAMETER][1]]
 end
+
+function set_precision(ifa::IntegratedFactorsXMLElement,
+                       mat::AbstractArray{Float64, 2})
+    if !isdiag(mat)
+        error("Factor model must have diagonal precision")
+    end
+    check_posdef(mat)
+    ifa.precision = diag(mat)
+end
 #
 # function get_precision_prior(xml::IntegratedFactorsXMLElement)
 #     return xml.precision_prior_el

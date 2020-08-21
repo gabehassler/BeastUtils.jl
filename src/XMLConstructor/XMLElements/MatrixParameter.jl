@@ -59,7 +59,7 @@ end
 
 mutable struct MatrixParameter <: MyXMLElement
     el::XMLOrNothing
-    mat::Matrix{Float64}
+    mat::AbstractMatrix{Float64}
     id::String
     ids::Vector{String}
 end

@@ -32,7 +32,12 @@ function set_mbd_precision(bx::BEASTXMLElement, mat::AbstractArray{Float64, 2})
 end
 
 function set_residual_precision(bx::BEASTXMLElement, mat::AbstractArray{Float64, 2})
-    rm = get_repeatedMeasures(bx)
-    set_precision(rm, mat)
+    ext = get_extension(bx)
+    set_precision(ext, mat)
+end
+
+function set_loadings(bx::BEASTXMLElement, L::AbstractArray{Float64, 2})
+    ifa = get_integratedFactorModel(bx)
+    set_loadings(ifa, L)
 end
 

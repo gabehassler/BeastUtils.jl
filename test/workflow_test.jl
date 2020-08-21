@@ -3,7 +3,7 @@ using BeastUtils
 using BeastUtils.TreeUtils, BeastUtils.Simulation, BeastUtils.MatrixUtils,
       BeastUtils.SlowLikelihoods, BeastUtils.XMLConstructor, BeastUtils.Logs,
       BeastUtils.RunBeast
-using PhyloNetworks
+using PhyloNetworks, LinearAlgebra
 import Random
 Random.seed!(666)
 
@@ -49,6 +49,37 @@ set_residual_precision(bx, inv(Γ))
 
 
 filename = "test_residual"
+xml_path = "$filename.xml"
+save_xml(xml_path, bx)
+run_beast(xml_path)
+log_path = "$filename.log"
+col, likelihoods = get_log_match(log_path, "likelihood", burnin=0.0)
+
+standardize_data!(data)
+ll_slow = loglikelihood(tsm, data, rescale_tree = true)
+ll_beast = likelihoods[1]
+
+@test ll_slow ≈ ll_beast atol=tol
+
+## Testing Factor Models
+Σ = Diagonal(ones(K))
+Λ = Diagonal(rand(P))
+L = randn(K, P)
+
+
+tdm = TreeDiffusionModel(tree, Σ)
+lfm = LatentFactorModel(L, Λ)
+tsm = TraitSimulationModel(taxa, tdm, lfm)
+
+data = simulate(tsm)
+
+
+bx = make_pfa_xml(data, taxa, newick, K, useHMC = false)
+set_residual_precision(bx, inv(Λ))
+set_loadings(bx, L)
+
+
+filename = "test_factors"
 xml_path = "$filename.xml"
 save_xml(xml_path, bx)
 run_beast(xml_path)

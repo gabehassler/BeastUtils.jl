@@ -91,7 +91,7 @@ end
 
 function simulate_on_tree(model::TreeDiffusionModel,
                         taxa::AbstractArray{T, 1}) where T <: AbstractString
-    params = PhyloNetworks.ParamsMultiBM(model.μ, model.Σ)
+    params = PhyloNetworks.ParamsMultiBM(model.μ, Matrix(model.Σ))
     trait_sim = PhyloNetworks.simulate(model.tree, params)
     sim_taxa = trait_sim.M.tipNames
     perm = indexin(taxa, sim_taxa)

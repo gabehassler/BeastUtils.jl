@@ -237,3 +237,9 @@ function fill_shrinkage_array!(to_fill::Vector{Float64},
         error("Not implemented for these array dimensions.")
     end
 end
+
+function set_loadings(pfa::IntegratedFactorsXMLElement,
+                      L::AbstractArray{Float64, 2})
+    mat_param = pfa.loadings
+    set_mat!(mat_param, L)
+end

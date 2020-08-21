@@ -1,9 +1,11 @@
 module XMLConstructor
 
-export make_residual_xml,
-       save_xml,
+export save_xml,
+       make_residual_xml,
+       make_pfa_xml,
        set_mbd_precision,
-       set_residual_precision
+       set_residual_precision,
+       set_loadings
 
 
 using LightXML, LinearAlgebra, DataFrames, PhyloNetworks
