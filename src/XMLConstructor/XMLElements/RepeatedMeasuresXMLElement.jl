@@ -70,3 +70,10 @@ end
 function get_precision_prior(xml::RepeatedMeasuresXMLElement)
     return xml.prior_el
 end
+
+function set_precision(rm::RepeatedMeasuresXMLElement,
+                       mat::AbstractArray{Float64, 2})
+    check_posdef(mat)
+    rm.precision = mat
+end
+

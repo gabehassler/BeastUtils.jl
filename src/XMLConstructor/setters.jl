@@ -24,3 +24,15 @@ function set_full_eval(bx::BEASTXMLElement, n_eval::Int)
     mcmc = get_mcmc(bx)
     mcmc.attrs[bn.FULL_EVALUATION] = string(n_eval)
 end
+
+## Model Parameters
+function set_mbd_precision(bx::BEASTXMLElement, mat::AbstractArray{Float64, 2})
+    mbd = get_mbd(bx)
+    set_precision(mbd, mat)
+end
+
+function set_residual_precision(bx::BEASTXMLElement, mat::AbstractArray{Float64, 2})
+    rm = get_repeatedMeasures(bx)
+    set_precision(rm, mat)
+end
+

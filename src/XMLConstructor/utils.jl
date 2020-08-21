@@ -118,3 +118,9 @@ function xml_vec(n::Int)
     fill!(v, nothing)
     return v
 end
+
+function check_posdef(x::AbstractArray{Float64, 2})
+    if !isposdef(x)
+        error("Matrix must be positive definite.")
+    end
+end

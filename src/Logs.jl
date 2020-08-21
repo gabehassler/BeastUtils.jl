@@ -3,6 +3,7 @@ module Logs
 using Statistics, DelimitedFiles, BeastUtils.MatrixUtils, JLD
 
 export get_log,
+       get_log_match,
     list_cols,
     make_meanmatrix,
     make_meanvector,

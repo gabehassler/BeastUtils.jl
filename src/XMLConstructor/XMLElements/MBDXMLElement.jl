@@ -63,3 +63,8 @@ function get_priors(xml::MBDXMLElement)
     make_xml(xml)
     return [xml.prior_el]
 end
+
+function set_precision(mbd::MBDXMLElement, prec::AbstractArray{Float64, 2})
+    check_posdef(prec)
+    mbd.precision = prec
+end

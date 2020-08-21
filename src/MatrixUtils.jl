@@ -17,7 +17,8 @@ export cov2corr,
     standardize_data!,
     standardize!,
     log!,
-    issquare
+    issquare,
+    randpd
 
 function cov2corr(Σ::Matrix{Float64})
     n, p = size(Σ)
@@ -290,5 +291,10 @@ function missing_cor(X::Matrix{Float64})
     return Σ
 end
 
+function randpd(n::Int)
+    X = randn(n, n)
+    M = X' * X
+    return Symmetric(M)
+end
 
 end

@@ -1,6 +1,9 @@
 module XMLConstructor
 
-export make_MBD_XML
+export make_residual_xml,
+       save_xml,
+       set_mbd_precision,
+       set_residual_precision
 
 
 using LightXML, LinearAlgebra, DataFrames, PhyloNetworks
@@ -88,6 +91,7 @@ function save_xml(path::String, bx::BEASTXMLElement;
     xdoc = make_xml(bx)
     save_file(xdoc, path)
     free(xdoc)
+    return nothing
 end
 
 

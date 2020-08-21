@@ -1,25 +1,9 @@
 module RunBeast #module for running BEAST
 
+export run_beast,
+       check_beast
+
 const BEAST_JAR = "beast.jar"
-
-function execute(cmd::Cmd) #code copied from
-  out = Pipe()
-  err = Pipe()
-
-  process = run(pipeline(ignorestatus(cmd), stdout=out, stderr=err))
-  close(out.in)
-  close(err.in)
-
-  stdout = @async String(read(out))
-  stderr = @async String(read(err))
-
-  (
-    stdout = wait(stdout),
-    stderr = wait(stderr),
-    code = process.exitcode
-  )
-end
-
 
 function find_beast(beast_home::String)
     path = joinpath(beast_home, BEAST_JAR)
@@ -73,10 +57,11 @@ function run_beast(xml_path::String;
     push!(cmds, xml_path)
 
     out = run(Cmd(cmds))
+    if out.exitcode != 0
+        error("BEAST run threw an error. See console for error message.")
+    end
 
     cd(old_directory)
-
-    return out
 end
 
 

@@ -95,7 +95,7 @@ function make_PFA_XML(data::Matrix{Float64}, taxa::Vector{T},
     return beastXML
 end
 
-function make_MBD_XML(data::Matrix{Float64}, taxa::Vector{T},
+function make_residual_xml(data::Matrix{Float64}, taxa::Vector{T},
             newick::String; chain_length = 100) where T <: AbstractString
 
     beastXML = BEASTXMLElement()

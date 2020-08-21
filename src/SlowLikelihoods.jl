@@ -7,7 +7,9 @@ export TreeData,
        tree_var
 
 using PhyloNetworks, LinearAlgebra, Distributions, UnPack
-using BeastUtils.MatrixUtils
+using BeastUtils.MatrixUtils, BeastUtils.Simulation
+
+const DEFAULT_PSS = 0.001
 
 struct TreeData
     taxa::Vector{String}
@@ -49,9 +51,14 @@ function tree_var(tree::HybridNetwork, taxa::Vector{String})
     return Ψ
 end
 
-function var(params::ModelParameters, tree::HybridNetwork, data::TreeData)
+function var(params::ModelParameters, tree::HybridNetwork, data::TreeData;
+             rescale_tree::Bool = false)
     @unpack L, Σ, Γ = params
     Ψ = tree_var(tree, data.taxa)
+    if rescale_tree
+        scale_factor = maximum(diag(Ψ))
+        Ψ ./= scale_factor
+    end
     Ψ .+= 1.0 / params.pss
 
     n = size(Ψ, 1)
@@ -99,9 +106,10 @@ function mean(params::ModelParameters, data::TreeData)
 end
 
 function loglikelihood(params::ModelParameters, tree::HybridNetwork,
-                       data::TreeData)
+                       data::TreeData;
+                       rescale_tree::Bool = false)
 
-    V = var(params, tree, data)
+    V = var(params, tree, data, rescale_tree = rescale_tree)
     make_symmetric!(V)
     μ = mean(params, data)
 
@@ -115,14 +123,32 @@ function loglikelihood(params::ModelParameters, tree::HybridNetwork,
     return logpdf(dist, data_obs)
 end
 
-# function conditional_loglikelihood(params::ModelParameters, tree::HybridNetwork,
-#                                    data::TreeData, inds::Vector{Int})
+function loglikelihood(tsm::TraitSimulationModel, data::Matrix{Float64};
+                       rescale_tree::Bool = true)
+    params = sim_to_params(tsm)
+    tree = tsm.treeModel.tree
+    return loglikelihood(params, tree, TreeData(tsm.taxa, data),
+                         rescale_tree = rescale_tree)
+end
 
-#     Σ_full = var(params, tree, data)
-#     μ_full = mean(params, data)
-
-#     obs_inds = findall()
-# end
+function sim_to_params(tsm::TraitSimulationModel)
+    @unpack tree, Σ, μ = tsm.treeModel
+    ext = tsm.extensionModel
+    if isnothing(ext)
+        p = size(Σ, 1)
+        return ModelParameters(Σ, Diagonal(zeros(p)), Diagonal(ones(p)),
+                               DEFAULT_PSS, μ)
+    elseif typeof(ext) == LatentFactorModel
+        @unpack L, Λ = ext
+        return ModelParameters(Σ, Λ, L, DEFAULT_PSS, μ)
+    elseif typeof(ext) == ResidualVarianceModel
+        p = size(Σ, 1)
+        @unpack Γ = ext
+        return ModelParameters(Σ, Γ, Diagonal(ones(p)), DEFAULT_PSS, μ)
+    else
+        error("Unkown extension type: $(typeof(ext))")
+    end
+end
 
 
 

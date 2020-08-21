@@ -1,5 +1,7 @@
 module TreeUtils
 
+export rtree
+
 # Internal library for working with trees. functions rely heavily on PhyloNetworks.jl
 
 

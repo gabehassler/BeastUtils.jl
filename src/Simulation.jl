@@ -1,5 +1,11 @@
 module Simulation
 
+export TreeDiffusionModel,
+       ResidualVarianceModel,
+       LatentFactorModel,
+       TraitSimulationModel,
+       simulate
+
 using PhyloNetworks, LinearAlgebra, LinearAlgebra.BLAS, DataFrames, Distributions
 using BeastUtils.MatrixUtils
 
@@ -66,13 +72,13 @@ mutable struct TraitSimulationModel
     extensionModel::Union{Nothing, ModelExtension}
 
     function TraitSimulationModel(taxa::AbstractArray{T, 1} where T <: AbstractString,
-                                    treeModel::TreeDiffusionModel,
-                                    extensionModel::ModelExtension)
+                                  treeModel::TreeDiffusionModel,
+                                  extensionModel::ModelExtension)
         return new(taxa, treeModel, extensionModel)
     end
 
     function TraitSimulationModel(taxa::AbstractArray{T, 1} where T <: AbstractString,
-                                treeModel::TreeDiffusionModel)
+                                  treeModel::TreeDiffusionModel)
         return new(taxa, treeModel, nothing)
     end
 end
@@ -127,7 +133,7 @@ function add_extension(data::Matrix{Float64}, lfm::LatentFactorModel)
     return Y
 end
 
-
+import PhyloNetworks: simulate
 function simulate(tsm::TraitSimulationModel)
 
     data = simulate_on_tree(tsm.treeModel, tsm.taxa)
