@@ -40,10 +40,12 @@ const dir = joinpath(@__DIR__, "XMLConstructor")
 
 include(joinpath(dir, "constructor_helpers.jl"))
 
+include(joinpath(element_dir, "NothingXMLElement.jl"))
 include(joinpath(element_dir, "MatrixParameter.jl"))
 include(joinpath(element_dir, "DataXMLElement.jl"))
 include(joinpath(element_dir, "NewickXMLElement.jl"))
 include(joinpath(element_dir, "TreeModelXMLElement.jl"))
+include(joinpath(element_dir, "WishartPriorXMLElement.jl"))
 include(joinpath(element_dir, "MBDXMLElement.jl"))
 include(joinpath(element_dir, "RepeatedMeasuresXMLElement.jl"))
 include(joinpath(element_dir, "MatrixShrinkage.jl"))
@@ -206,13 +208,13 @@ end
 function add_el(bx::BEASTXMLElement, mbd_el::MBDXMLElement)
     make_xml(mbd_el)
     add_child(bx.el, mbd_el.el)
-    add_child(bx.el, mbd_el.prior_el)
+    add_child(bx.el, mbd_el.precision_prior.el)
 end
 
 function add_el(bx::BEASTXMLElement, rm_el::RepeatedMeasuresXMLElement)
     make_xml(rm_el)
     add_child(bx.el, rm_el.el)
-    add_child(bx.el, rm_el.prior_el)
+    add_child(bx.el, rm_el.precision_prior.el)
 end
 
 function add_el(bx::BEASTXMLElement, if_el::IntegratedFactorsXMLElement)

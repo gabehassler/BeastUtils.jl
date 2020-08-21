@@ -20,9 +20,8 @@ function make_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
     treeModel_el = TreeModelXMLElement(newick_el, size(data, 2))
     add_child(beastXML, treeModel_el)
 
-    mbd_el = MBDXMLElement(k)
+    mbd_el = MBDXMLElement(k, diagonal_prec = true)
     mbd_el.is_random = false
-    mbd_el.diagonal_prec = true
     add_child(beastXML, mbd_el)
 
     if_el = IntegratedFactorsXMLElement(treeModel_el, k)

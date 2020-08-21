@@ -118,10 +118,10 @@ function make_xml(pgo_el::PrecisionGibbsOperatorXMLElement)
     add_child(el, ws_el.el)
     if isnothing(ws_el.rm_el) && !isnothing(ws_el.mbd_el)
         make_xml(ws_el.mbd_el)
-        add_ref_el(el, ws_el.mbd_el.prior_el)
+        add_ref_el(el, ws_el.mbd_el.precision_prior.el)
     elseif !isnothing(ws_el.rm_el) && isnothing(ws_el.mbd_el)
         make_xml(ws_el.rm_el)
-        add_ref_el(el, ws_el.rm_el.prior_el)
+        add_ref_el(el, ws_el.rm_el.precision_prior.el)
     else
         error("Not implemented")
     end

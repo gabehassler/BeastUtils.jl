@@ -42,18 +42,7 @@ function set_id!(el::XMLElement, id::String)
     set_attribute(el, bn.ID, id)
 end
 
-function make_Wishart_prior(scale::AbstractArray{Float64, 2},
-            mp_el::XMLElement,
-            id::String)
 
-    el = new_element(bn.MULTIVARIATE_WISHART_PRIOR)
-    set_attributes(el, [(bn.ID, id), (bn.DF, string(size(scale, 1)))])
-    scale_el = new_child(el, bn.SCALE_MATRIX)
-    add_matrix_parameter(scale_el, scale)
-    data_el = new_child(el, bn.DATA)
-    add_ref_el(data_el, mp_el)
-    return el
-end
 
 function add_matrix_parameter(pel::XMLElement, M::AbstractArray{T, 2};
         id::String = "") where T <: Number

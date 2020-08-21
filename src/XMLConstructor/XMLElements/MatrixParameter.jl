@@ -1,3 +1,8 @@
+################################################################################
+## Parameter
+################################################################################
+import Base: size
+
 mutable struct Parameter <: MyXMLElement
     el::XMLOrNothing
     val::T where T <: AbstractVector{Float64}
@@ -56,6 +61,10 @@ function make_xml(param::Parameter)
     return el
 end
 
+################################################################################
+## MatrixParameter
+################################################################################
+
 
 mutable struct MatrixParameter <: MyXMLElement
     el::XMLOrNothing
@@ -64,7 +73,7 @@ mutable struct MatrixParameter <: MyXMLElement
     ids::Vector{String}
 end
 
-function MatrixParameter(mat::Matrix{Float64}, id::String, ids::Vector{String})
+function MatrixParameter(mat::AbstractMatrix{Float64}, id::String, ids::Vector{String})
     m, n = size(mat)
     if length(ids) != m
         error("The matrix has $m rows, but $(length(ids)) row ids were provided.")
@@ -73,7 +82,7 @@ function MatrixParameter(mat::Matrix{Float64}, id::String, ids::Vector{String})
     return MatrixParameter(nothing, mat, id, ids)
 end
 
-function MatrixParameter(mat::Matrix{Float64}, id::String)
+function MatrixParameter(mat::AbstractMatrix{Float64}, id::String)
     m = size(mat, 1)
     return MatrixParameter(mat, id, ["" for i = 1:m])
 end
@@ -96,4 +105,53 @@ function set_mat!(mp::MatrixParameter, mat::S) where S <: AbstractMatrix{Float64
     end
 
     mp.mat = mat
+end
+
+function size(p::MatrixParameter)
+    return size(p.mat)
+end
+
+function size(p::MatrixParameter, dim::Int)
+    return size(p.mat, dim)
+end
+
+################################################################################
+## DiagonalParameter
+################################################################################
+
+mutable struct DiagonalMatrixParameter <: MyXMLElement
+    el::XMLOrNothing
+    vals::AbstractArray{Float64}
+    lower::Float64
+    upper::Float64
+    id::String
+end
+
+function DiagonalMatrixParameter(vals::AbstractVector{Float64}, id::String)
+    return DiagonalMatrixParameter(nothing, vals, NaN, NaN, id)
+end
+
+function DiagonalMatrixParameter(vals::AbstractVector{Float64})
+    return DiagonalMatrixParameter(nothing, vals, NaN, NaN, "")
+end
+
+function make_xml(dmp::DiagonalMatrixParameter)
+    el = new_element(bn.DIAGONAL_MATRIX)
+    if dmp.id != ""
+        set_id!(el, dmp.id)
+    end
+    p_el = make_parameter(value = dmp.vals, lower=dmp.lower, upper=dmp.upper)
+    add_child(el, p_el)
+    dmp.el = el
+    return el
+end
+
+function size(d::DiagonalMatrixParameter)
+    p = length(d.vals)
+    return (p, p)
+end
+
+function size(d::DiagonalMatrixParameter, dim::Int)
+    p = length(d.vals)
+    return p
 end

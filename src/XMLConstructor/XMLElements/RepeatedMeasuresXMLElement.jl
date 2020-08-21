@@ -1,8 +1,7 @@
 mutable struct RepeatedMeasuresXMLElement <: ModelExtensionXMLElement
     el::XMLOrNothing
-    prior_el::XMLOrNothing
-    precision::S where S <: AbstractArray{Float64, 2}
-    prior_scale::T where T <: AbstractArray{Float64, 2}
+    precision::MatrixParameter
+    precision_prior::WishartPriorXMLElement
     treeModel_el::TreeModelXMLElement
     tree_trait_ind::Int
     trait_name::String
@@ -16,9 +15,9 @@ mutable struct RepeatedMeasuresXMLElement <: ModelExtensionXMLElement
         p = treeModel_el.trait_dims[1]
         trait_name = treeModel_el.node_traits[1]
         tp_name = treeModel_el.param_names[1]
-        precision = Diagonal(ones(p))
-        prior_scale = Diagonal(ones(p))
-        return new(nothing, nothing, precision, prior_scale,
+        precision = MatrixParameter(Diagonal(ones(p)), bn.DEFAULT_RM_PREC_NAME)
+        wishart_prior = WishartPriorXMLElement(precision)
+        return new(nothing, precision, wishart_prior,
                    treeModel_el,
                    trait_ind, trait_name, tp_name, true)
     end
@@ -45,7 +44,8 @@ function make_xml(rm_el::RepeatedMeasuresXMLElement)
     tp_el = new_child(el, bn.TRAIT_PARAMETER)
     add_ref_el(tp_el, bn.PARAMETER, rm_el.tp_name)
     sp_el = new_child(el, bn.SAMPLING_PRECISION)
-    mp_el = add_matrix_parameter(sp_el, rm_el.precision, id = bn.DEFAULT_RM_PREC_NAME)
+    mp_el = make_xml(rm_el.precision)
+    add_child(sp_el, mp_el)
 
     # make_xml(rm_el.mbd_el)
 
@@ -54,7 +54,7 @@ function make_xml(rm_el::RepeatedMeasuresXMLElement)
 
     # prior xml element
 
-    rm_el.prior_el = make_Wishart_prior(rm_el.prior_scale, mp_el, bn.DEFAULT_RM_PREC_PRIOR_NAME)
+    make_xml(rm_el.precision_prior)
 
     return el
 end
@@ -70,16 +70,16 @@ end
 
 function get_priors(xml::RepeatedMeasuresXMLElement)
     make_xml(xml)
-    return [xml.prior_el]
+    return [xml.precision_prior.el]
 end
 
 function get_precision_prior(xml::RepeatedMeasuresXMLElement)
-    return xml.prior_el
+    return xml.precision_prior.el
 end
 
 function set_precision(rm::RepeatedMeasuresXMLElement,
                        mat::AbstractArray{Float64, 2})
     check_posdef(mat)
-    rm.precision = mat
+    set_mat!(rm.precision, mat)
 end
 

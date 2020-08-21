@@ -1,28 +1,34 @@
 mutable struct MBDXMLElement <: MyXMLElement
     el::XMLOrNothing
-    prior_el::XMLOrNothing
-    precision::AbstractArray{Float64, 2}
-    prior_scale::AbstractArray{Float64, 2}
+    precision::MyXMLElement
+    precision_prior::MyXMLElement
     is_random::Bool
-    diagonal_prec::Bool
+end
 
-    function MBDXMLElement(precision::AbstractArray{Float64, 2},
-                           prior_scale::AbstractArray{Float64, 2},
-                           is_random::Bool,
-                           diagonal_prec::Bool)
-        return new(nothing, nothing, precision, prior_scale, is_random,
-                   diagonal_prec)
+function MBDXMLElement(precision::AbstractArray{Float64, 2},
+                       prior_scale::AbstractArray{Float64, 2},
+                       is_random::Bool,
+                       diagonal_prec::Bool)
+    if diagonal_prec
+        if !isdiag(prior_scale)
+            error("Matrix must be diagonal.")
+        else
+            precision_param = DiagonalMatrixParameter(diag(prior_scale))
+            prior = NothingXMLElement()
+        end
+    else
+        precision_param = MatrixParameter(precision, bn.DIFF_PREC_ID)
+        prior = WishartPriorXMLElement(prior_scale, precision_param)
     end
-
-
+    return MBDXMLElement(nothing, precision_param, prior, is_random)
 end
 
 
-function MBDXMLElement(p::Int)
+function MBDXMLElement(p::Int; diagonal_prec::Bool = false)
     return MBDXMLElement(Diagonal(ones(p)),
                          Diagonal(ones(p)),
                          true,
-                         false)
+                         diagonal_prec)
 end
 
 function MBDXMLElement(dm::DiffusionModel)
@@ -32,34 +38,22 @@ end
 
 
 function make_xml(ml::MBDXMLElement)
-    ml.el = make_MBD(ml.precision, ml.diagonal_prec)
-
-    pm_el = ml.el[bn.PRECISION_MATRIX][1]
-
-    if ml.is_random
-        mp_el = pm_el[bn.MATRIX_PARAMETER][1]
-
-        ml.prior_el = make_Wishart_prior(ml.prior_scale, mp_el,
-                                        bn.DEFAULT_MBD_PRIOR)
-    end
-end
-
-function make_MBD(prec::AbstractArray{Float64, 2},
-        diagonal_prec::Bool)
-
-    dim = size(prec, 1)
     el = new_element(bn.MULTIVARIATE_DIFFUSION_MODEL)
     set_attribute(el, bn.ID, bn.DIFFUSION_ID)
     prec_el = new_element(bn.PRECISION_MATRIX)
-    if diagonal_prec
-        @assert isdiag(prec)
-        add_diagonal_matrix(prec_el, diag(prec), id = bn.DIFF_PREC_ID, lower="0")
-    else
-        add_matrix_parameter(prec_el, prec, id = bn.DIFF_PREC_ID)
-    end
+
+    mat_el = make_xml(ml.precision)
+    add_child(prec_el, mat_el)
+
     add_child(el, prec_el)
-    return el
+    ml.el = el
+
+    if ml.is_random
+        make_xml(ml.precision_prior)
+    end
 end
+
+
 
 function get_loggables(el::MBDXMLElement)
     if !el.is_random
@@ -79,10 +73,16 @@ function get_priors(xml::MBDXMLElement)
         return Vector{XMLElement}(undef, 0)
     end
     make_xml(xml)
-    return [xml.prior_el]
+    return [xml.precision_prior.el]
 end
 
 function set_precision(mbd::MBDXMLElement, prec::AbstractArray{Float64, 2})
     check_posdef(prec)
     mbd.precision = prec
 end
+
+
+################################################################################
+## Priors
+################################################################################
+
