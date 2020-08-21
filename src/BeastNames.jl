@@ -79,6 +79,7 @@ const DIAGONAL_MATRIX = "DiagonalMatrix"
 const DIFF_PREC_ID = "diffusion.precision"
 const DIMENSION = "dimension"
 const LOWER = "lower"
+const UPPER = "upper"
 
 const DEFAULT_RM_NAME = "repeatedMeasures"
 const DEFAULT_RM_PREC_NAME = "residualPrecision"
@@ -244,5 +245,13 @@ const TRAIT_DATA_PROVIDER = "traitDataProvider"
 const MULTIPLICATIVE_GAMMA_GIBBS = "multiplicativeGammaGibbsProvider"
 const ROW_MULTIPLIERS = "rowMultipliers"
 const ROW = "row"
+
+const CACHED_MATRIX_INVERSE = "cachedMatrixInverse"
+const COMPOUND_SYMMETRIC_MATRIX = "compoundSymmetricMatrix"
+const AS_CORRELATION = "asCorrelation"
+const IS_CHOLESKY = "isCholesky"
+const DIAGONAL = "diagonal"
+const OFF_DIAGONAL = "offDiagonal"
+
 
 end

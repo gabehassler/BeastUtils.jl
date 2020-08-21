@@ -33,6 +33,10 @@ function cov2corr(Σ::Matrix{Float64})
     return P
 end
 
+function cov2corr(Σ::Diagonal{Float64})
+    p = size(Σ, 1)
+    return Diagonal(ones(p))
+end
 
 
 function make_symmetric!(X::Matrix{T}; use_upper::Bool = true) where T <: Any

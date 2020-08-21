@@ -61,6 +61,13 @@ function make_xml(param::Parameter)
     return el
 end
 
+function set_value(p::Parameter, val::AbstractVector{Float64})
+    if length(val) != length(p.val)
+        error("Incompatible dimensions.")
+    end
+    p.val = val
+end
+
 ################################################################################
 ## MatrixParameter
 ################################################################################

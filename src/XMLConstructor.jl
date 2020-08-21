@@ -16,6 +16,7 @@ export save_xml,
 
 using LightXML, LinearAlgebra, DataFrames, PhyloNetworks
 import BeastUtils.BeastNames, BeastUtils.TreeUtils
+using BeastUtils.MatrixUtils
 bn = BeastNames
 
 XMLOrNothing = Union{XMLElement, Nothing}
@@ -66,6 +67,7 @@ include(joinpath(element_dir, "OldLoadingsGibbsOperatorXMLElement.jl"))
 include(joinpath(element_dir, "LatentFactorPrecisionOperatorXMLElement.jl"))
 include(joinpath(element_dir, "FactorTreeGibbsOperatorXMLElement.jl"))
 include(joinpath(element_dir, "TraitLoggerXMLElement.jl"))
+include(joinpath(element_dir, "LKJPrecisionXMLElement.jl"))
 
 include(joinpath(dir, "utils.jl"))
 include(joinpath(dir, "constructors.jl"))

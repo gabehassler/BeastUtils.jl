@@ -140,6 +140,38 @@ function make_residual_xml(data::Matrix{Float64}, taxa::Vector{T},
     return beastXML
 end
 
+
+function make_joint_xml(newick::String, dm::DataModel, jpm::JointProcessModel)
+    beastXML = BEASTXMLElement()
+    data_el = DataXMLElement(dm, newick)
+    add_child(beastXML, data_el)
+
+    newick_el = NewickXMLElement(newick)
+    add_child(beastXML, newick_el)
+
+    treeModel_el = TreeModelXMLElement(newick_el, dm.trait_names,
+                                       trait_dimensions(dm))
+    add_child(beastXML, treeModel_el)
+
+    mbd_el = MBDXMLElement(jpm.diffusion_model)
+    mbd_el.precision = LKJPrecisionXMLElement(tip_dimension(jpm))
+    add_child(beastXML, mbd_el)
+
+    for i = 1:length(jpm.extensions)
+        ext_el = make_xmlelement(jpm.extensions[i], treeModel_el, ind = i)
+        add_child(beastXML, ext_el)
+    end
+
+    # traitLikelihood_el = TraitLikelihoodXMLElement(MBD_el, treeModel_el,
+    #                                                 extension_el)
+
+    return beastXML
+end
+
+################################################################################
+## Lower level constructors
+################################################################################
+
 function add_MBD_loggables!(bx::BEASTXMLElement)
     mbd_el = get_mbd(bx)
     rm_el = get_repeatedMeasures(bx)
@@ -161,38 +193,6 @@ function add_MBD_loggables!(bx::BEASTXMLElement)
 
     return loggables
 end
-
-
-function make_joint_xml(newick::String, dm::DataModel, jpm::JointProcessModel)
-    beastXML = BEASTXMLElement()
-    data_el = DataXMLElement(dm, newick)
-    add_child(beastXML, data_el)
-
-    newick_el = NewickXMLElement(newick)
-    add_child(beastXML, newick_el)
-
-    treeModel_el = TreeModelXMLElement(newick_el, dm.trait_names,
-                                       trait_dimensions(dm))
-    add_child(beastXML, treeModel_el)
-
-    mbd_el = MBDXMLElement(jpm.diffusion_model)
-    add_child(beastXML, mbd_el)
-
-    for i = 1:length(jpm.extensions)
-        ext_el = make_xmlelement(jpm.extensions[i], treeModel_el, ind = i)
-        add_child(beastXML, ext_el)
-    end
-
-    # traitLikelihood_el = TraitLikelihoodXMLElement(MBD_el, treeModel_el,
-    #                                                 extension_el)
-
-    return beastXML
-end
-
-################################################################################
-## Lower level constructors
-################################################################################
-
 
 
 # ## TODO: need to update below

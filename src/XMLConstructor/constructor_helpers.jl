@@ -111,6 +111,10 @@ function JointProcessModel(extensions::AbstractArray{ParamsProvider})
     return JointProcessModel(DiffusionModel(p_ext), extensions)
 end
 
+function tip_dimension(jpm::JointProcessModel)
+    return tip_dimension(jpm.diffusion_model)
+end
+
 
 
 ################################################################################
