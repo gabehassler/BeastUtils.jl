@@ -20,6 +20,9 @@ function MBDXMLElement(precision::AbstractArray{Float64, 2},
         precision_param = MatrixParameter(precision, bn.DIFF_PREC_ID)
         prior = WishartPriorXMLElement(prior_scale, precision_param)
     end
+    if !is_random && diagonal_prec
+        error("Not implemented") # TODO: gamma prior?
+    end
     return MBDXMLElement(nothing, precision_param, prior, is_random)
 end
 
