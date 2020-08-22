@@ -68,6 +68,11 @@ function set_value(p::Parameter, val::AbstractVector{Float64})
     p.val = val
 end
 
+import Base: length
+function length(p::Parameter)
+    return p.dim
+end
+
 ################################################################################
 ## MatrixParameter
 ################################################################################

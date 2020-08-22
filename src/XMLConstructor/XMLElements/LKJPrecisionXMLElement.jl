@@ -65,3 +65,67 @@ function var_corrs(var::AbstractArray{Float64})
 end
 
 
+################################################################################
+## Priors
+################################################################################
+
+mutable struct LKJCorrelationPrior <: MyXMLElement
+    el::XMLOrNothing
+    corr_param::Parameter
+    shape::Float64
+
+    function LKJCorrelationPrior(corr_param::Parameter)
+        return new(nothing, corr_param, 1.0)
+    end
+end
+
+function make_xml(lkj::LKJCorrelationPrior)
+    make_xml(lkj.corr_param)
+    el = new_element(bn.LJK_CORRELATION_PRIOR)
+    set_id!(el, get_id(lkj.corr_param.el) * ".prior")
+    set_attribute(el, bn.SHAPE_PARAMETER, lkj.shape)
+    set_attribute(el, bn.DIMENSION, length(lkj.corr_param))
+    set_attribute(el, bn.CHOLESKY, bn.TRUE)
+    data_el = new_child(el, bn.DATA)
+    add_ref_el(data_el, lkj.corr_param.el)
+    lkj.el = el
+    return el
+end
+
+mutable struct LogNormalPriorXMLElement <: MyXMLElement
+    el::XMLOrNothing
+    param::Parameter
+    μ::Float64
+    σ::Float64
+    offset::Float64
+
+    function LogNormalPriorXMLElement(param::Parameter)
+        return new(nothing, param, 0.0, 1.0, 0.0)
+    end
+end
+
+function make_xml(lnp::LogNormalPriorXMLElement)
+    make_xml(lnp.param)
+    el = new_element(bn.LOG_NORMAL_PRIOR)
+    set_id!(el, get_id(lnp.param.el) * ".prior")
+    set_attributes(el, Dict(
+                            bn.MEAN => string(lnp.μ),
+                            bn.STDEV => string(lnp.σ),
+                            bn.OFFSET => string(lnp.offset),
+                            bn.MEAN_IN_REAL_SPACE => bn.FALSE
+                           )
+                  )
+    add_ref_el(el, lnp.param.el)
+    lnp.el = el
+    return el
+end
+
+
+function LKJPrecisionPriors(lkj::LKJPrecisionXMLElement)
+    corr_prior = LKJCorrelationPrior(lkj.off_diag_parm)
+    var_prior = LogNormalPriorXMLElement(lkj.diag_param)
+    return CompoundXMLElement([corr_prior, var_prior])
+end
+
+
+

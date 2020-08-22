@@ -42,6 +42,7 @@ const dir = joinpath(@__DIR__, "XMLConstructor")
 include(joinpath(dir, "constructor_helpers.jl"))
 
 include(joinpath(element_dir, "NothingXMLElement.jl"))
+include(joinpath(element_dir, "CompoundXMLElement.jl"))
 include(joinpath(element_dir, "MatrixParameter.jl"))
 include(joinpath(element_dir, "DataXMLElement.jl"))
 include(joinpath(element_dir, "NewickXMLElement.jl"))
@@ -187,7 +188,7 @@ function add_el(bx::BEASTXMLElement, no::Nothing)
     #do nothing
 end
 
-function add_el(bx::BEASTXMLElement, el::SimpleXMLElement)
+function add_el(bx::BEASTXMLElement, el::MyXMLElement)
     make_xml(el)
     add_child(bx.el, el.el)
 end
@@ -210,7 +211,22 @@ end
 function add_el(bx::BEASTXMLElement, mbd_el::MBDXMLElement)
     make_xml(mbd_el)
     add_child(bx.el, mbd_el.el)
-    add_child(bx.el, mbd_el.precision_prior.el)
+    add_el(bx, mbd_el.precision_prior)
+end
+
+function add_el(bx::BEASTXMLElement, wp_el::WishartPriorXMLElement)
+    make_xml(wp_el)
+    add_child(bx.el, wp_el.el)
+end
+
+function add_el(bx::BEASTXMLElement, n_el::NothingXMLElement)
+    # do nothing
+end
+
+function add_el(bx::BEASTXMLElement, cp_el::CompoundXMLElement)
+    for el in cp_el.els
+        add_el(bx, el)
+    end
 end
 
 function add_el(bx::BEASTXMLElement, rm_el::RepeatedMeasuresXMLElement)

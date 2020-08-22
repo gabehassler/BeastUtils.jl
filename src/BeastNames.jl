@@ -253,5 +253,11 @@ const IS_CHOLESKY = "isCholesky"
 const DIAGONAL = "diagonal"
 const OFF_DIAGONAL = "offDiagonal"
 
+const LJK_CORRELATION_PRIOR = "LKJCorrelationPrior"
+const SHAPE_PARAMETER = "shapeParameter"
+const CHOLESKY = "cholesky"
 
+const LOG_NORMAL_PRIOR = "logNormalPrior"
+const MEAN_IN_REAL_SPACE = "meanInRealSpace"
+const OFFSET = "offset"
 end

@@ -155,6 +155,7 @@ function make_joint_xml(newick::String, dm::DataModel, jpm::JointProcessModel)
 
     mbd_el = MBDXMLElement(jpm.diffusion_model)
     mbd_el.precision = LKJPrecisionXMLElement(tip_dimension(jpm))
+    mbd_el.precision_prior = LKJPrecisionPriors(mbd_el.precision)
     add_child(beastXML, mbd_el)
 
     for i = 1:length(jpm.extensions)
