@@ -193,20 +193,6 @@ function add_el(bx::BEASTXMLElement, el::MyXMLElement)
     add_child(bx.el, el.el)
 end
 
-function add_el(bx::BEASTXMLElement, data_el::DataXMLElement)
-    make_xml(data_el)
-    add_child(bx.el, data_el.el)
-end
-
-function add_el(bx::BEASTXMLElement, newick_el::NewickXMLElement)
-    make_xml(newick_el)
-    add_child(bx.el, newick_el.el)
-end
-
-function add_el(bx::BEASTXMLElement, treeModel::TreeModelXMLElement)
-    make_xml(treeModel)
-    add_child(bx.el, treeModel.el)
-end
 
 function add_el(bx::BEASTXMLElement, mbd_el::MBDXMLElement)
     make_xml(mbd_el)
@@ -214,10 +200,6 @@ function add_el(bx::BEASTXMLElement, mbd_el::MBDXMLElement)
     add_el(bx, mbd_el.precision_prior)
 end
 
-function add_el(bx::BEASTXMLElement, wp_el::WishartPriorXMLElement)
-    make_xml(wp_el)
-    add_child(bx.el, wp_el.el)
-end
 
 function add_el(bx::BEASTXMLElement, n_el::NothingXMLElement)
     # do nothing
@@ -253,43 +235,12 @@ function add_el(bx::BEASTXMLElement, lfm_el::LatentFactorModelXMLElement)
     add_child(bx.el, lfm_el.precision_prior_el)
 end
 
-function add_el(bx::BEASTXMLElement, tl_el::TraitLikelihoodXMLElement)
-    make_xml(tl_el)
-    add_child(bx.el, tl_el.el)
-end
-
-function add_el(bx::BEASTXMLElement, os_el::OperatorsXMLElement)
-    make_xml(os_el)
-    add_child(bx.el, os_el.el)
-end
-
-function add_el(bx::BEASTXMLElement, mc_el::MCMCXMLElement)
-    make_xml(mc_el)
-    add_child(bx.el, mc_el.el)
-end
-
-function add_el(bx::BEASTXMLElement, t_el::TimerXMLElement)
-    make_xml(t_el)
-    add_child(bx.el, t_el.el)
-end
-
-function add_el(bx::BEASTXMLElement, xml::TraitLoggerXMLElement)
-    make_xml(xml)
-    add_child(bx.el, xml.el)
-end
-
 function add_el(bx::BEASTXMLElement, el::FactorLogPredictiveDensity)
     make_xml(el)
     add_child(bx.el, el.fac_el)
     add_child(bx.el, el.like_el)
     add_child(bx.el, el.cl_el)
 end
-
-function add_el(bx::BEASTXMLElement, el::CrossValidationXMLElement)
-    make_xml(el)
-    add_child(bx.el, el.el)
-end
-
 
 function add_el(bx::BEASTXMLElement, els::Array{MyXMLElement})
     for el in els
@@ -305,19 +256,5 @@ function add_el(bx::BEASTXMLElement, loggables::LoggablesXMLElement)
         end
     end
 end
-
-function add_el(bx::BEASTXMLElement, mat_inv::MatrixInverseXMLElement)
-    make_xml(mat_inv)
-    add_child(bx.el, mat_inv.el)
-end
-
-function add_el(bx::BEASTXMLElement, corr::CorrelationMatrixXMLElement)
-    make_xml(corr)
-    add_child(bx.el, corr.el)
-end
-
-
-
-
 
 end
