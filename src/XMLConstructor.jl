@@ -99,8 +99,8 @@ function save_xml(path::String, bx::BEASTXMLElement;
     @assert s[2] == "xml"
 
     if change_filename
-    filename = s[1]
-    set_filename(bx, filename)
+        filename = s[1]
+        set_filename(bx, filename)
     end
 
     xdoc = make_xml(bx)
@@ -167,12 +167,15 @@ function add_loggables(bx::BEASTXMLElement, loggables::LoggablesXMLElement)
     if length(old_loggables) == 0
         mcmc = get_mcmc(bx)
         ind = findfirst(x -> x === mcmc, bx.components)
-        insert!(bx.components, ind, loggables)
+        mcmc_loggables = mcmc.loggables
+        push!(mcmc_loggables, loggables)
+        insert!(bx.components, ind, mcmc_loggables)
     elseif length(old_loggables) == 1
-        join_loggables(old_loggables[1], loggables)
+        push!(old_loggables[1], loggables)
     else
         error("Cannot join with more than one LoggablesXMLElement")
     end
+    return nothing
 end
 
 

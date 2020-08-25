@@ -17,6 +17,12 @@ function join_loggables(lg1::LoggablesXMLElement, lg2::LoggablesXMLElement)
     return LoggablesXMLElement([lg1.els; lg2.els], [lg1.already_made; lg2.already_made])
 end
 
+import Base: push!
+function push!(lg1, lg2)
+    lg1.els = [lg1.els; lg2.els]
+    lg1.already_made = [lg1.already_made; lg2.already_made]
+end
+
 function add_loggable(lg_el::LoggablesXMLElement, my_el::MyXMLElement;
                     already_made::Bool = false)
     push!(lg_el.els, my_el)

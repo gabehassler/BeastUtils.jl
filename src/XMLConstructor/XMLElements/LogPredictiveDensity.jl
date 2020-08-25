@@ -28,10 +28,10 @@ function make_xml(lpd::FactorLogPredictiveDensity)
 
     like.extension_el = intfac
     lpd.like_el = make_xml(like)
-    set_id(lpd.like_el, "$(trait_name).treeLikelihood")
+    set_id!(lpd.like_el, "$(trait_name).treeLikelihood")
 
     cl_el = new_element(bn.LIKELIHOOD)
-    set_id(cl_el, "$trait_name.likelihood")
+    set_id!(cl_el, "$trait_name.likelihood")
     add_ref_el(cl_el, lpd.fac_el)
     add_ref_el(cl_el, lpd.like_el)
     lpd.cl_el = cl_el

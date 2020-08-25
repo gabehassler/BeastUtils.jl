@@ -18,7 +18,7 @@ mutable struct MCMCXMLElement <: MyXMLElement
         fle = 10
         sle = 1000
         filename = "defaultFile"
-        lg_el = LoggablesXMLElement([mbd_el, rm_el], [false, false])
+        lg_el = LoggablesXMLElement([mbd_el, rm_el], [true, true])
         attrs = Dict(bn.AUTO_OPTIMIZE => bn.TRUE)
 
         return new(nothing, [tl_el], [mbd_el, rm_el], os_el, chain_length,
@@ -48,7 +48,7 @@ mutable struct MCMCXMLElement <: MyXMLElement
         fle = 10
         sle = 1000
         filename = "defaultFile"
-        lg_el = LoggablesXMLElement([mbd_el, if_el], [false, false])
+        lg_el = LoggablesXMLElement([mbd_el, if_el], [true, true])
         attrs = Dict(bn.AUTO_OPTIMIZE => bn.TRUE)
 
         return new(nothing, [tl_el, if_el], [mbd_el, if_el], os_el, chain_length,

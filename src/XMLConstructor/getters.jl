@@ -34,7 +34,8 @@ function get_traitLikelihood(bx::BEASTXMLElement)
 end
 
 function get_operators(bx::BEASTXMLElement)
-    return bx.operators_el.els
+    ops = find_element(bx, OperatorsXMLElement)
+    return ops.els
 end
 
 function get_mcmc(bx::BEASTXMLElement)
