@@ -12,9 +12,9 @@ mutable struct RepeatedMeasuresXMLElement <: ModelExtensionXMLElement
     function RepeatedMeasuresXMLElement(treeModel_el::TreeModelXMLElement;
                                         trait_ind::Int = 1)
 
-        p = treeModel_el.trait_dims[1]
-        trait_name = treeModel_el.node_traits[1]
-        tp_name = treeModel_el.param_names[1]
+        p = treeModel_el.trait_dims[trait_ind]
+        trait_name = treeModel_el.node_traits[trait_ind]
+        tp_name = treeModel_el.param_names[trait_ind]
         precision = MatrixParameter(Diagonal(ones(p)), bn.DEFAULT_RM_PREC_NAME)
         wishart_prior = WishartPriorXMLElement(precision)
         return new(nothing, precision, wishart_prior,
