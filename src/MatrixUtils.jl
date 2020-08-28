@@ -53,7 +53,7 @@ function make_symmetric!(X::Matrix{T}; use_upper::Bool = true) where T <: Any
     end
 end
 
-function maxind(X::Array)
+function maxind(X::AbstractArray{<:Real, 1})
     n = length(X)
     m = 1
     Xm = X[m]
@@ -64,6 +64,15 @@ function maxind(X::Array)
         end
     end
     return m
+end
+
+function maxind(X::AbstractArray{<:Real, 2})
+    ind = maxind(vec(X))
+    m, n = size(X)
+    col, r = divrem(ind - 1, m)
+    col += 1
+    row = mod1(r, m)
+    return (row, col)
 end
 
 function eye(n::Int)
