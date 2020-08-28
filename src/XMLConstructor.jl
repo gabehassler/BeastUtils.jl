@@ -11,7 +11,9 @@ export save_xml,
        ResidualVarianceModel,
        IntegratedFactorModel,
        JointProcessModel,
-       DataModel
+       DataModel,
+       tip_dimension,
+       data_dimension
 
 
 using LightXML, LinearAlgebra, DataFrames, PhyloNetworks

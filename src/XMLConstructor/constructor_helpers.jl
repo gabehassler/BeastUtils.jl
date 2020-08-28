@@ -5,10 +5,15 @@
 abstract type ParamsProvider end
 # interface:
 #   tip_dimension(provider::ParamsProvider)
+#   data_dimension(provider::ParamsProvider)
 #   make_xmlelement(provider::ParamsProvider, tm::TreeModelXMLElement; ind::Int = 1)
-#
 
-const DEFAULT_PSS = 0.1
+const DEFAULT_PSS = 0.001
+
+function data_dimension(provider::ParamsProvider)
+    return tip_dimension(provider)
+end
+
 
 mutable struct DiffusionModel <: ParamsProvider
     Σ::AbstractArray{Float64, 2} # diffusion variance
@@ -66,6 +71,10 @@ function tip_dimension(provider::IntegratedFactorModel)
     return size(provider.L, 1)
 end
 
+function data_dimension(provider::IntegratedFactorModel)
+    return size(provider.L, 2)
+end
+
 mutable struct ResidualVarianceModel <: ParamsProvider
     Γ::AbstractMatrix{Float64} # residual variance
 
@@ -86,10 +95,10 @@ end
 
 mutable struct JointProcessModel
     diffusion_model::DiffusionModel
-    extensions::AbstractArray{ParamsProvider}
+    extensions::AbstractArray{<:ParamsProvider}
 
     function JointProcessModel(diff::DiffusionModel,
-                               extensions::AbstractArray{ParamsProvider})
+                               extensions::AbstractArray{<:ParamsProvider})
         p_diff = tip_dimension(diff)
         p_ext = 0
         for ext in extensions
@@ -103,7 +112,7 @@ mutable struct JointProcessModel
     end
 end
 
-function JointProcessModel(extensions::AbstractArray{ParamsProvider})
+function JointProcessModel(extensions::AbstractArray{<:ParamsProvider})
     p_ext = 0
     for ext in extensions
         p_ext += tip_dimension(ext)
@@ -113,6 +122,14 @@ end
 
 function tip_dimension(jpm::JointProcessModel)
     return tip_dimension(jpm.diffusion_model)
+end
+
+function data_dimension(jpm::JointProcessModel)
+    dim = 0
+    for ext in jpm.extensions
+        dim += data_dimension(ext)
+    end
+    return dim
 end
 
 
