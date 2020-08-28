@@ -7,8 +7,8 @@ export TreeData,
        tree_var,
        var
 
-using PhyloNetworks, LinearAlgebra, Distributions, UnPack
-using BeastUtils.MatrixUtils, BeastUtils.Simulation
+using PhyloNetworks, LinearAlgebra, Distributions, UnPack, Statistics
+using BeastUtils.MatrixUtils, BeastUtils.Simulation, BeastUtils.XMLConstructor
 
 const DEFAULT_PSS = 0.001
 
@@ -51,6 +51,8 @@ function tree_var(tree::HybridNetwork, taxa::Vector{String})
     Ψ = Matrix(Ψ_df)[perm, perm]
     return Ψ
 end
+
+import Statistics: var
 
 function var(params::ModelParameters, tree::HybridNetwork, taxa::Vector{String};
              rescale_tree::Bool = false)
@@ -120,7 +122,7 @@ function loglikelihood(params::ModelParameters, tree::HybridNetwork,
     data_obs = @view v_data[obs_inds]
     μ_obs = @view μ[obs_inds]
 
-    dist = MvNormal(Vector(μ_obs), Matrix(V_obs)) # TODO: make memory efficient (but not actually)
+    dist = MvNormal(Vector(μ_obs), Symmetric(V_obs)) # TODO: make memory efficient (but not actually)
     return logpdf(dist, data_obs)
 end
 
@@ -130,6 +132,14 @@ function loglikelihood(tsm::TraitSimulationModel, data::Matrix{Float64};
     tree = tsm.treeModel.tree
     return loglikelihood(params, tree, TreeData(tsm.taxa, data),
                          rescale_tree = rescale_tree)
+end
+
+function loglikelihood(jpm::JointProcessModel, dm::DataModel, newick::String;
+                       rescale_tree::Bool = true)
+    params = xml_to_params(jpm)
+    tree = readTopology(newick)
+    td = TreeData(dm.taxa, dm.data)
+    return loglikelihood(params, tree, td, rescale_tree = rescale_tree)
 end
 
 function sim_to_params(tsm::TraitSimulationModel; pss::Float64 = DEFAULT_PSS)
@@ -150,7 +160,42 @@ function sim_to_params(tsm::TraitSimulationModel; pss::Float64 = DEFAULT_PSS)
     end
 end
 
+function xml_to_params(jpm::JointProcessModel)
+    @unpack μ, Σ, pss = jpm.diffusion_model
+    exts = jpm.extensions
+    k = tip_dimension(jpm)
+    p = data_dimension(jpm)
+    L = zeros(k, p)
+    Γ = zeros(p, p)
 
+    p_offset = 0
+    k_offset = 0
+    for ext in exts
+        p_ext = data_dimension(ext)
+        k_ext = tip_dimension(ext)
+        p_rng = (1 + p_offset):(p_ext + p_offset)
+        k_rng = (1 + k_offset):(k_ext + k_offset)
+        L_sub, Γ_sub = xmlext_to_params(ext)
+        L[k_rng, p_rng] .= L_sub
+        Γ[p_rng, p_rng].= Γ_sub
+
+        p_offset += p_ext
+        k_offset += k_ext
+    end
+
+    return ModelParameters(Σ, Γ, L, pss, μ)
+end
+
+
+
+function xmlext_to_params(ifm::IntegratedFactorModel)
+    return ifm.L, Diagonal(ifm.λ)
+end
+
+function xmlext_to_params(rvm::XMLConstructor.ResidualVarianceModel)
+    p = data_dimension(rvm)
+    return Diagonal(ones(p)), rvm.Γ
+end
 
 
 
