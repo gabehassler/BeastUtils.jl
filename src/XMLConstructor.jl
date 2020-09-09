@@ -1,6 +1,7 @@
 module XMLConstructor
 
-export save_xml,
+export BEASTXMLElement,
+       save_xml,
        make_residual_xml,
        make_pfa_xml,
        make_joint_xml,
@@ -25,14 +26,15 @@ XMLOrNothing = Union{XMLElement, Nothing}
 
 abstract type MyXMLElement end
 abstract type SimpleXMLElement <: MyXMLElement end
+abstract type AbstractDataXMLElement <: MyXMLElement end
 
 mutable struct BEASTXMLElement
     el::XMLOrNothing
     components::Vector{MyXMLElement}
+end
 
-    function BEASTXMLElement()
-        return new(nothing, MyXMLElement[])
-    end
+function BEASTXMLElement()
+    return BEASTXMLElement(nothing, MyXMLElement[])
 end
 
 abstract type ModelExtensionXMLElement <: MyXMLElement end
@@ -42,6 +44,7 @@ const element_dir = joinpath(@__DIR__, "XMLConstructor", "XMLElements")
 const dir = joinpath(@__DIR__, "XMLConstructor")
 
 include(joinpath(dir, "constructor_helpers.jl"))
+include(joinpath(dir, "integration.jl"))
 
 include(joinpath(element_dir, "NothingXMLElement.jl"))
 include(joinpath(element_dir, "CompoundXMLElement.jl"))
@@ -123,8 +126,17 @@ function add_child(bx::BEASTXMLElement, el::MyXMLElement)
     push!(bx.components, el)
 end
 
+function add_child(bx::BEASTXMLElement, el::MyXMLElement, ind::Int)
+    insert!(bx.components, ind, el)
+end
+
 import LightXML: find_element
+
 function find_element(bx::BEASTXMLElement, type::Type)
+    return bx.components[find_element_ind(bx, type)]
+end
+
+function find_element_ind(bx::BEASTXMLElement, type::Type)
     if !(type <: MyXMLElement)
         error("Can only find objects of type MyXMLElement.")
     end
@@ -138,8 +150,9 @@ function find_element(bx::BEASTXMLElement, type::Type)
               "Please use function 'find_elements'.")
     end
 
-    return bx.components[found[1]]
+    return found[1]
 end
+
 
 function find_elements(bx::BEASTXMLElement, type::Type)
     found = findall(x -> typeof(x) <: type, bx.components)
@@ -191,6 +204,10 @@ end
 
 function add_el(bx::BEASTXMLElement, no::Nothing)
     #do nothing
+end
+
+function add_el(bx::BEASTXMLElement, el::TextXMLElement)
+    add_child(bx.el, el.el)
 end
 
 function add_el(bx::BEASTXMLElement, el::MyXMLElement)

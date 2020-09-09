@@ -1,10 +1,22 @@
 mutable struct LoggablesXMLElement <: MyXMLElement
-    els::Vector{MyXMLElement}
+    els::Vector{<:MyXMLElement}
     already_made::Vector{Bool}
+    function LoggablesXMLElement(els::Vector{<:MyXMLElement},
+                                 already_made::Vector{Bool})
+        if length(els) != length(already_made)
+            error("Both arguments must be of the same length")
+        end
+        return new(els, already_made)
+    end
 end
 
 function LoggablesXMLElement()
     return LoggablesXMLElement(MyXMLElement[], Bool[])
+end
+
+function LoggablesXMLElement(els::Vector{<:MyXMLElement};
+                             already_made::Bool = true)
+    return LoggablesXMLElement(els, fill(already_made, length(els)))
 end
 
 function make_xml(lg_el::LoggablesXMLElement)

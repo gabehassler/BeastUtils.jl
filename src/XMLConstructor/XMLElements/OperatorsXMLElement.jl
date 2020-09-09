@@ -1,9 +1,9 @@
 mutable struct OperatorsXMLElement <: MyXMLElement
     el::XMLOrNothing
-    els::Vector{OperatorXMLElement}
+    els::Vector{<:MyXMLElement}
 
-    OperatorsXMLElement(el::OperatorXMLElement) = new(nothing, [el])
-    OperatorsXMLElement(els::Vector{OperatorXMLElement}) = new(nothing, els)
+    OperatorsXMLElement(el::MyXMLElement) = new(nothing, [el])
+    OperatorsXMLElement(els::Vector{<:MyXMLElement}) = new(nothing, els)
 
 end
 
@@ -25,6 +25,11 @@ function make_xml(os_el::OperatorsXMLElement)
     end
     os_el.el = el
     return el
+end
+
+function merge_operators!(ops1::OperatorsXMLElement, ops2::OperatorsXMLElement)
+    ops1.els = [ops1.els; ops2.els]
+    return ops1
 end
 
 mutable struct FireParameterOperatorXMLElement <: OperatorXMLElement

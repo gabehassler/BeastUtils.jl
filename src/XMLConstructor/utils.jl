@@ -96,10 +96,19 @@ function reference_element(el::XMLElement)
 end
 
 function reference_element(el::XMLElement, nm::String)
-    id = attribute(el, bn.ID, required = true)
-    ref_el = new_element(nm)
-    set_attribute(ref_el, bn.IDREF, id)
-    return ref_el
+    id = attribute(el, bn.ID)
+    if isnothing(id)
+        id = attribute(el, bn.IDREF)
+    end
+
+    if isnothing(id)
+        @warn "Element does not have id. Adding whole element."
+        return el
+    else
+        ref_el = new_element(nm)
+        set_attribute(ref_el, bn.IDREF, id)
+        return ref_el
+    end
 end
 
 function xml_vec(n::Int)

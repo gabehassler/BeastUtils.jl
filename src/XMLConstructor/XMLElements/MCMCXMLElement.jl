@@ -1,7 +1,7 @@
 mutable struct MCMCXMLElement <: MyXMLElement
     el::XMLOrNothing
-    likelihoods::Vector{MyXMLElement}
-    priors::Vector{MyXMLElement}
+    likelihoods::Vector{<:MyXMLElement}
+    priors::Vector{<:MyXMLElement}
     operators::OperatorsXMLElement
     chain_length::Int
     file_logEvery::Int
@@ -10,6 +10,7 @@ mutable struct MCMCXMLElement <: MyXMLElement
     filename::String
     log_files::Bool
     attrs::Dict{String, String}
+    extras::Vector{<:MyXMLElement}
 
     function MCMCXMLElement(tl_el::TraitLikelihoodXMLElement,
                     mbd_el::MBDXMLElement,
@@ -22,7 +23,8 @@ mutable struct MCMCXMLElement <: MyXMLElement
         attrs = Dict(bn.AUTO_OPTIMIZE => bn.TRUE)
 
         return new(nothing, [tl_el], [mbd_el, rm_el], os_el, chain_length,
-                    fle, sle, lg_el, filename, true, attrs)
+                    fle, sle, lg_el, filename, true, attrs,
+                    MyXMLElement[])
     end
 
     function MCMCXMLElement(tl_el::TraitLikelihoodXMLElement,
@@ -38,7 +40,8 @@ mutable struct MCMCXMLElement <: MyXMLElement
 
 
         return new(nothing, [tl_el], [mbd_el, rm_el], os_el, chain_length,
-                    fle, sle, loggables, filename, true, attrs)
+                    fle, sle, loggables, filename, true, attrs,
+                    MyXMLElement[])
     end
 
     function MCMCXMLElement(tl_el::TraitLikelihoodXMLElement,
@@ -52,7 +55,8 @@ mutable struct MCMCXMLElement <: MyXMLElement
         attrs = Dict(bn.AUTO_OPTIMIZE => bn.TRUE)
 
         return new(nothing, [tl_el, if_el], [mbd_el, if_el], os_el, chain_length,
-                    fle, sle, lg_el, filename, true, attrs)
+                    fle, sle, lg_el, filename, true, attrs,
+                    MyXMLElement[])
     end
 
 
@@ -112,6 +116,11 @@ function make_xml(mc_el::MCMCXMLElement)
 
     end
 
+    for ext_el in mc_el.extras
+        make_xml(ext_el)
+        add_child(el, ext_el.el)
+    end
+
     mc_el.el = el
     return el
 end
@@ -138,4 +147,10 @@ end
 
 function set_filename(mcmc::MCMCXMLElement, filename::String)
     mcmc.filename = filename
+end
+
+function merge_mcmc!(mcmc::MCMCXMLElement, pmcmc::ParsedMCMCXMLElement)
+    mcmc.likelihoods = [mcmc.likelihoods; pmcmc.likelihoods]
+    mcmc.priors = [mcmc.priors; pmcmc.priors]
+    push!(mcmc.extras, pmcmc.tree_log)
 end
