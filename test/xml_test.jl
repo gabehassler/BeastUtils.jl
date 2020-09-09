@@ -124,6 +124,32 @@ dm = DataModel(taxa,
                ["trait.res", "trait.fac"])
 
 bx = make_joint_xml(newick, dm, jm)
-xml = XMLConstructor.make_xml(bx)
-print(xml)
+joint_path = "joint.xml"
+# XMLConstructor.save_xml(joint_path, bx)
+# @test isfila(joint_path)
+# rm(joint_path)
 
+################################################################################
+## Integrate two xml
+################################################################################
+
+test_path = joinpath(@__DIR__, "data", "sequence.xml")
+
+bx_seq = BEASTXMLElement(test_path)
+
+taxa = XMLConstructor.find_element(bx_seq, XMLConstructor.EmptyDataXMLElement).taxa
+
+k = 2
+p = 10
+n = length(taxa)
+data = randn(n, p)
+newick = writeTopology(rtree(n, labels = taxa))
+
+bx = XMLConstructor.make_pfa_xml(data, taxa, newick, k, useHMC = false)
+XMLConstructor.save_xml("facGibbs.xml", bx)
+@test isfile("facGibbs.xml")
+
+XMLConstructor.merge_xml!(bx, bx_seq)
+# xml = XMLConstructor.make_xml(bx)
+XMLConstructor.save_xml("merge.xml", bx);
+# print(xml)
