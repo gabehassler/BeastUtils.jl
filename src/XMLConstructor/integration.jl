@@ -55,6 +55,8 @@ function parse_element(el::XMLElement)
         return parse_taxa(el)
     elseif nm == "coalescentSimulator"
         return nothing
+    elseif nm == bn.TREE_MODEL
+        return nothing
     elseif nm == bn.OPERATORS
         return parse_operators(el)
     elseif nm == bn.MCMC
@@ -117,6 +119,11 @@ function parse_mcmc(el::XMLElement)
 
 
     tree_log = TextXMLElement(find_element(el, "logTree"))
+    j_el = find_element(tree_log.el, "joint")
+    unlink(j_el)
+    free(j_el)
+    post_el = new_child(tree_log.el, bn.POSTERIOR)
+    set_attribute(post_el, bn.IDREF, bn.POSTERIOR)
 
     return ParsedMCMCXMLElement(priors, likes, file_loggables, tree_log)
 end
