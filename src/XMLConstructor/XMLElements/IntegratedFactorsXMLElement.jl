@@ -14,6 +14,8 @@ mutable struct IntegratedFactorsXMLElement <: ModelExtensionXMLElement
     tree_trait_ind::Int
     standardize_traits::Bool
     msls::Union{MatrixShrinkageLikelihoods, Nothing}
+    rotate_prior::Bool
+    rotation_el::XMLOrNothing
     id::String
 end
 
@@ -35,6 +37,7 @@ function IntegratedFactorsXMLElement(treeModel_el::TreeModelXMLElement,
                                 precision_shape,
                                 treeModel_el,
                                 trait_ind, true, nothing,
+                                false, nothing,
                                 bn.DEFAULT_IF_NAME)
 end
 
@@ -60,6 +63,8 @@ function copy(x::IntegratedFactorsXMLElement)
         x.tree_trait_ind,
         x.standardize_traits,
         x.msls,
+        x.rotate_prior,
+        x.rotation_el,
         x.id
     )
 end
@@ -90,12 +95,20 @@ function make_xml(ifxml::IntegratedFactorsXMLElement;
     make_xml(ifxml.loadings)
     ifxml.loadings_el = ifxml.loadings.el
     # ifxml.loadings_el = make_loadings(ifxml.loadings)
+    actual_prior = nothing
     if !isnothing(ifxml.msls)
         ifxml.loadings_prior_els = make_xml(ifxml.msls)
+        actual_prior = ifxml.msls.ms_el
+
     else
         ifxml.loadings_prior_els = [make_loadings_normal_prior(ifxml)]
+        actual_prior = ifxml.loadings_prior_els[1]
     end
 
+    if ifxml.rotate_prior
+        ifxml.rotation_el = make_rotation_xml(ifxml, actual_prior)
+        push!(ifxml.loadings_prior_els, ifxml.rotation_el)
+    end
 
     el = new_element(bn.INTEGRATED_FACTORS)
     attrs = [(bn.ID, ifxml.id),
@@ -161,6 +174,9 @@ function make_loadings(L::AbstractArray{Float64, 2})
 end
 
 function get_normal_prior(ifxml::IntegratedFactorsXMLElement)
+    if ifxml.rotate_prior
+        return ifxml.rotation_el
+    end
     if isnothing(ifxml.msls)
         return ifxml.loadings_prior_els[1]
     else
@@ -186,13 +202,34 @@ function make_loadings_normal_prior(ifxml::IntegratedFactorsXMLElement)
     return el
 end
 
+function make_rotation_xml(ifxml::IntegratedFactorsXMLElement,
+                           prior::XMLElement)
+    el = new_element(bn.NORMAL_ORTHOGONAL_SUBSPACE)
+    set_attribute(el, bn.ID, ifxml.id * ".orthogonalPrior")
+    add_ref_el(el, ifxml.loadings.el)
+    add_ref_el(el, prior)
+    return el
+end
+
 function get_priors(xml::IntegratedFactorsXMLElement)
     make_xml(xml)
+
     if isnothing(xml.msls)
-        return [xml.loadings_prior_els; xml.precision_prior_el]
+        priors = [xml.loadings_prior_els; xml.precision_prior_el]
     else
-        return [get_priors(xml.msls); xml.precision_prior_el]
+        priors = [get_priors(xml.msls); xml.precision_prior_el]
     end
+
+    if xml.rotate_prior
+        if isnothing(xml.msls)
+            replacement_ind = 1
+        else
+            replacement_ind = findfirst(x -> x === xml.msls.ms_el, priors)
+        end
+        priors[replacement_ind] = xml.rotation_el
+    end
+
+    return priors
 end
 
 function get_loggables(xml::IntegratedFactorsXMLElement)

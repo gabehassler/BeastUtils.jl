@@ -260,4 +260,6 @@ const CHOLESKY = "cholesky"
 const LOG_NORMAL_PRIOR = "logNormalPrior"
 const MEAN_IN_REAL_SPACE = "meanInRealSpace"
 const OFFSET = "offset"
+
+const NORMAL_ORTHOGONAL_SUBSPACE = "normalOrthogonalSubspaceDistribution"
 end

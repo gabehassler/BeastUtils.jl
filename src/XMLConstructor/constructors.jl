@@ -7,6 +7,7 @@ function make_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
             timing::Bool = false,
             log_factors::Bool = false,
             shrink_loadings::Bool = false,
+            rotate_prior::Bool = false,
             fle::Int = 10,
             sle::Int = 100) where T <: AbstractString
 
@@ -34,6 +35,8 @@ function make_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
                         )
                         )
     end
+
+    if_el.rotate_prior = rotate_prior
 
     traitLikelihood_el = TraitLikelihoodXMLElement(mbd_el, treeModel_el, if_el)
     add_child(beastXML, traitLikelihood_el)

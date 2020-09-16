@@ -99,6 +99,13 @@ bx = XMLConstructor.make_pfa_xml(data, taxa, newick, k, useHMC = false,
 XMLConstructor.save_xml("facGibbsShrink.xml", bx)
 @test isfile("facGibbsShrink.xml")
 
+# Rotate prior
+fn = "facGibbsRotate.xml"
+bx = XMLConstructor.make_pfa_xml(data, taxa, newick, k, useHMC = false,
+            shrink_loadings = true, rotate_prior = true)
+XMLConstructor.save_xml(fn, bx)
+@test isfile(fn)
+
 ################################################################################
 ## Joint models
 ################################################################################
