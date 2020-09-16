@@ -182,17 +182,8 @@ function merge_xml!(traitxml::BEASTXMLElement, seqxml::BEASTXMLElement)
     merge_mcmc!(traitmc, seqmc)
     add_loggables(traitxml, LoggablesXMLElement(seqmc.file_loggables))
 
-
-
-    # # insert alignment after taxa
-    # align_ind = 2
-    # align_xmls = seqxml.components[
-    #                 findall(x -> name(x) == "alignment", seqxml.components)]
-    # for xml in align_xmls
-    #     add_child(traitxml, xml, align_ind)
-    #     align_ind += 1
-    # end
-
+    newick_el = find_element(traitxml, NewickXMLElement)
+    newick_el.fix_tree = false
 
 
 end
