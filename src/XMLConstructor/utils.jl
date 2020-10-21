@@ -71,6 +71,22 @@ function add_diagonal_matrix(pel::XMLElement, M::Vector{T};
     return mat_el
 end
 
+function add_parameter(pel::XMLElement, val::Vector{<:Number};
+                       lower::Vector{<:Number} = Float64[])
+    el = new_element(bn.PARAMETER)
+    set_attribute(el, bn.VALUE, join(val, ' '))
+    if length(lower) > 0
+        if length(lower) == 1 || length(lower) == length(val)
+            set_attribute(el, bn.LOWER, join(lower, ' '))
+        else
+            error("incompatible dimension between the parameter values " *
+                "($(length(val))) and lower bounds ($(length(lower)))")
+        end
+    end
+
+    add_child(pel, el)
+end
+
 
 function add_ref_el(pel::XMLElement, el::XMLElement;
             new_name::String = name(el))

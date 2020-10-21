@@ -17,7 +17,7 @@ export BEASTXMLElement,
        data_dimension
 
 
-using LightXML, LinearAlgebra, DataFrames, PhyloNetworks
+using LightXML, LinearAlgebra, DataFrames, PhyloNetworks, UnPack
 import BeastUtils.BeastNames, BeastUtils.TreeUtils
 using BeastUtils.MatrixUtils
 bn = BeastNames
@@ -74,6 +74,13 @@ include(joinpath(element_dir, "LatentFactorPrecisionOperatorXMLElement.jl"))
 include(joinpath(element_dir, "FactorTreeGibbsOperatorXMLElement.jl"))
 include(joinpath(element_dir, "TraitLoggerXMLElement.jl"))
 include(joinpath(element_dir, "LKJPrecisionXMLElement.jl"))
+include(joinpath(element_dir, "NormalMatrixNormLikelihood.jl"))
+include(joinpath(element_dir, "ScaledOrthogonalMatrix.jl"))
+include(joinpath(element_dir, "MultivariateGammaLikelihood.jl"))
+include(joinpath(element_dir, "NormalMatrixNormLikelihood.jl"))
+
+
+
 
 include(joinpath(dir, "utils.jl"))
 include(joinpath(dir, "constructors.jl"))
@@ -241,7 +248,7 @@ end
 
 function add_el(bx::BEASTXMLElement, if_el::IntegratedFactorsXMLElement)
     make_xml(if_el)
-    add_child(bx.el, if_el.loadings_el)
+    add_el(bx, if_el.loadings)
     for prior_el = if_el.loadings_prior_els
         add_child(bx.el, prior_el)
     end
@@ -277,6 +284,13 @@ function add_el(bx::BEASTXMLElement, loggables::LoggablesXMLElement)
             add_el(bx, l)
         end
     end
+end
+
+function add_el(bx::BEASTXMLElement, el::ScaledOrthogonalMatrix)
+    make_xml(el)
+    add_child(bx.el, el.scale.el)
+    add_child(bx.el, el.U.el)
+    add_child(bx.el, el.el)
 end
 
 end

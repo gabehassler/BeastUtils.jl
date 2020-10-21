@@ -2,14 +2,14 @@
 
 function make_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
             newick::String, k::Int;
-            chain_length::Int = 100,
-            useHMC::Bool = true,
-            timing::Bool = false,
-            log_factors::Bool = false,
-            shrink_loadings::Bool = false,
-            rotate_prior::Bool = false,
-            fle::Int = 10,
-            sle::Int = 100) where T <: AbstractString
+            chain_length::Int=100,
+            useHMC::Bool=true,
+            timing::Bool=false,
+            log_factors::Bool=false,
+            shrink_loadings::Bool=false,
+            rotate_prior::Bool=false,
+            fle::Int=10,
+            sle::Int=100) where T <: AbstractString
 
     beastXML = BEASTXMLElement()
     data_el = DataXMLElement(data, taxa, newick)
@@ -21,7 +21,7 @@ function make_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
     treeModel_el = TreeModelXMLElement(newick_el, size(data, 2))
     add_child(beastXML, treeModel_el)
 
-    mbd_el = MBDXMLElement(k, diagonal_prec = true)
+    mbd_el = MBDXMLElement(k, diagonal_prec=true)
     mbd_el.is_random = false
     add_child(beastXML, mbd_el)
 
@@ -75,7 +75,110 @@ function make_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
                                 mbd_el,
                                 if_el,
                                 operators_el,
-                                chain_length = chain_length)
+                                chain_length=chain_length)
+    add_child(beastXML, mcmc_el)
+
+    mcmc_el.file_logEvery = fle
+    mcmc_el.screen_logEvery = sle
+
+    if log_factors
+        add_loggable(mcmc_el.loggables, traitLog_el)
+    end
+
+    if timing
+
+        mcmc_el.attrs[bn.FULL_EVALUATION] = "0"
+        filename = mcmc_el.filename
+        timer_el = TimerXMLElement(mcmc_el)
+        add_child(beastXML, timer_el)
+        timer_el.filename = "$(filename)_timer.txt"
+    end
+
+    return beastXML
+end
+
+function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
+                                 newick::String, k::Int;
+                                 shrinkage::Float64 = 1e1,
+                                 shrink_first::Bool = false,
+                                 chain_length::Int=100,
+                                 timing::Bool=false,
+                                 log_factors::Bool=false,
+                                 rotate_prior::Bool=false,
+                                 fle::Int=10,
+                                 sle::Int=100) where T <: AbstractString
+
+    beastXML = BEASTXMLElement()
+    data_el = DataXMLElement(data, taxa, newick)
+    add_child(beastXML, data_el)
+
+    newick_el = NewickXMLElement(newick)
+    add_child(beastXML, newick_el)
+
+    treeModel_el = TreeModelXMLElement(newick_el, size(data, 2))
+    add_child(beastXML, treeModel_el)
+
+    mbd_el = MBDXMLElement(k, diagonal_prec=true)
+    mbd_el.is_random = false
+    add_child(beastXML, mbd_el)
+
+    if_el = IntegratedFactorsXMLElement(treeModel_el, k, orthonormal = true)
+    add_child(beastXML, if_el)
+
+    mult_vals = [shrinkage for i = 1:k]
+    mult_shapes = [shrinkage for i = 1:k]
+    mult_scales = ones(k)
+
+    if !shrink_first
+        mult_vals[1] = 1.0
+        mult_shapes[1] = 1.0
+    end
+
+    mults = Parameter(mult_vals, "mults")
+    add_child(beastXML, mults)
+
+    mults_prior = MultivariateGammaLikelihood(mults, mult_shapes, mult_scales,
+                                              "mults.likelihood")
+    add_child(beastXML, mults_prior)
+
+
+
+    precs = MultiplicativeParameter(mults, "globalPrecision")
+    add_child(beastXML, precs)
+
+    loadings_prior = NormalMatrixNormLikelihood(precs, if_el.loadings, "scale.prior")
+    add_child(beastXML, loadings_prior)
+
+    traitLikelihood_el = TraitLikelihoodXMLElement(mbd_el, treeModel_el, if_el)
+    add_child(beastXML, traitLikelihood_el)
+
+    traitLikelihood_el.attrs[bn.TRAIT_NAME] = bn.DEFAULT_FACTOR_NAME
+    traitLikelihood_el.attrs[bn.ALLOW_SINGULAR] = bn.TRUE
+    traitLikelihood_el.attrs[bn.STANDARDIZE] = bn.FALSE
+
+    # TODO: operators on loadings
+
+    normal_gamma_op = NormalGammaPrecisionOperatorXMLElement(if_el,
+                                                        traitLikelihood_el)
+
+    ops_vec = [loadings_op, normal_gamma_op] #TODO: need to add other operators
+    if shrink_loadings
+        push!(ops_vec, ShrinkageScaleOperators(if_el.msls, if_el))
+    end
+
+    operators_el = OperatorsXMLElement(ops_vec)
+    add_child(beastXML, operators_el)
+
+    if log_factors
+        traitLog_el = TraitLoggerXMLElement(treeModel_el, traitLikelihood_el)
+        add_child(beastXML, traitLog_el)
+    end
+
+    mcmc_el = MCMCXMLElement(traitLikelihood_el,
+                        mbd_el,
+                        if_el,
+                        operators_el,
+                        chain_length=chain_length)
     add_child(beastXML, mcmc_el)
 
     mcmc_el.file_logEvery = fle
@@ -98,7 +201,7 @@ function make_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
 end
 
 function make_residual_xml(data::Matrix{Float64}, taxa::Vector{T},
-            newick::String; chain_length = 100) where T <: AbstractString
+            newick::String; chain_length=100) where T <: AbstractString
 
     beastXML = BEASTXMLElement()
     data_el = DataXMLElement(data, taxa, newick)
@@ -133,7 +236,7 @@ function make_residual_xml(data::Matrix{Float64}, taxa::Vector{T},
                                 MBD_el,
                                 extension_el,
                                 operators_el,
-                                chain_length = chain_length
+                                chain_length=chain_length
                                 )
     add_child(beastXML, mcmc_el)
 
@@ -162,7 +265,7 @@ function make_joint_xml(newick::String, dm::DataModel, jpm::JointProcessModel)
     add_child(beastXML, mbd_el)
 
     for i = 1:length(jpm.extensions)
-        ext_el = make_xmlelement(jpm.extensions[i], treeModel_el, ind = i)
+        ext_el = make_xmlelement(jpm.extensions[i], treeModel_el, ind=i)
         add_child(beastXML, ext_el)
     end
 

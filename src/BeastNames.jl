@@ -262,4 +262,13 @@ const MEAN_IN_REAL_SPACE = "meanInRealSpace"
 const OFFSET = "offset"
 
 const NORMAL_ORTHOGONAL_SUBSPACE = "normalOrthogonalSubspaceDistribution"
+
+const NORMAL_MATRIX_NORM = "normalMatrixNormLikelihood"
+const GLOBAL_PRECISION = "globalPrecision"
+const MATRIX = "matrix"
+
+const SCALED_MATRIX = "scaledMatrixParameter"
+const MULTIVARIATE_GAMMA_LIKELIHOOD = "multivariateGammaLikelihood"
+
+const MULTIPLICATIVE_PARAMETER = "multiplicativeParameter"
 end

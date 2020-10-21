@@ -63,7 +63,7 @@ function make_xml(gxml::LoadingsGradientXMLElement)
 
         el = new_element(bn.GRADIENT)
         add_ref_el(el, get_normal_prior(gxml.ifxml))
-        add_ref_el(el, gxml.ifxml.loadings_el)
+        add_ref_el(el, gxml.ifxml.loadings.el)
 
 
     else

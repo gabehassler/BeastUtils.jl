@@ -3,10 +3,9 @@ abstract type LoadingsPriorXMLElement <: MyXMLElement end
 
 mutable struct IntegratedFactorsXMLElement <: ModelExtensionXMLElement
     el::XMLOrNothing
-    loadings_el::XMLOrNothing
     loadings_prior_els::AbstractArray{XMLElement}
     precision_prior_el::XMLOrNothing
-    loadings::MatrixParameter
+    loadings::MyXMLElement
     precision::S where S <: AbstractArray{Float64, 1}
     precision_scale::Float64
     precision_shape::Float64
@@ -20,18 +19,23 @@ mutable struct IntegratedFactorsXMLElement <: ModelExtensionXMLElement
 end
 
 function IntegratedFactorsXMLElement(treeModel_el::TreeModelXMLElement,
-                                     k::Int; trait_ind::Int = 1)
+                                     k::Int; trait_ind::Int = 1,
+                                     orthonormal::Bool = false)
 
 
     p = treeModel_el.trait_dims[trait_ind]
 
     L = default_loadings(k, p)
-    load_param = MatrixParameter(L, "L", ["L$i" for i = 1:size(L, 1)])
+    if orthonormal
+        load_param = ScaledOrthogonalMatrix(L, "L", "U", "scale")
+    else
+        load_param = MatrixParameter(L, "L", ["L$i" for i = 1:size(L, 1)])
+    end
 
     precision = ones(p)
     precision_scale = 1.0
     precision_shape = 1.0
-    return IntegratedFactorsXMLElement(nothing, nothing, XMLElement[], nothing,
+    return IntegratedFactorsXMLElement(nothing, XMLElement[], nothing,
                                 load_param,
                                 precision, precision_scale,
                                 precision_shape,
@@ -52,7 +56,6 @@ end
 function copy(x::IntegratedFactorsXMLElement)
     return IntegratedFactorsXMLElement(
         x.el,
-        x.loadings_el,
         x.loadings_prior_els,
         x.precision_prior_el,
         x.loadings,
@@ -93,7 +96,6 @@ function make_xml(ifxml::IntegratedFactorsXMLElement;
                     reference_precision::Bool = false)
 
     make_xml(ifxml.loadings)
-    ifxml.loadings_el = ifxml.loadings.el
     # ifxml.loadings_el = make_loadings(ifxml.loadings)
     actual_prior = nothing
     if !isnothing(ifxml.msls)
@@ -120,7 +122,7 @@ function make_xml(ifxml::IntegratedFactorsXMLElement;
     end
 
     l_el = new_child(el, bn.LOADINGS)
-    add_ref_el(l_el, ifxml.loadings_el)
+    add_ref_el(l_el, ifxml.loadings.el)
 
     p_el = new_child(el, bn.PRECISION)
     if reference_precision
@@ -159,7 +161,7 @@ end
 
 function get_hmc_parameter(ifxml::IntegratedFactorsXMLElement)
     make_xml(ifxml)
-    return ifxml.loadings_el
+    return ifxml.loadings.el
 end
 
 function make_loadings(L::AbstractArray{Float64, 2})
@@ -189,7 +191,8 @@ function make_loadings_normal_prior(ifxml::IntegratedFactorsXMLElement)
     set_attribute(el, bn.ID, "$(bn.DEFAULT_LOADINGS_ID).prior")
 
     d_el = new_child(el, bn.DATA)
-    add_ref_el(d_el, ifxml.loadings_el)
+    make_xml(ifxml.loadings)
+    add_ref_el(d_el, ifxml.loadings.el)
     dist_el = new_child(el, bn.DISTRIBUTION)
 
     ndm_el = new_child(dist_el, bn.NORMAL_DISTRIBUTION_MODEL)
@@ -235,7 +238,7 @@ end
 function get_loggables(xml::IntegratedFactorsXMLElement)
     make_xml(xml)
 
-    loggables = [xml.loadings_el, xml.el[bn.PRECISION][1][bn.PARAMETER][1]]
+    loggables = [xml.loadings.el, xml.el[bn.PRECISION][1][bn.PARAMETER][1]]
 
     if !isnothing(xml.msls)
         make_xml(xml.msls)

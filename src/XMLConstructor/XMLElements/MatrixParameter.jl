@@ -12,8 +12,8 @@ mutable struct Parameter <: MyXMLElement
     id::String
 end
 
-function Parameter(val::Vector{Float64}, id::String)
-    return Parameter(nothing, val, length(val), NaN, NaN, id)
+function Parameter(val::Vector{Float64}, id::String; lower::Float64 = NaN)
+    return Parameter(nothing, val, length(val), lower, NaN, id)
 end
 
 
@@ -43,7 +43,7 @@ function make_parameter(;id::String = "",
 end
 
 function add_parameter(pel::XMLElement; id::String = "",
-                       value::AbstractArray{T} = Vector{Int8}(undef, 0),
+                       value::AbstractArray{<:Real} = Float64[],
                        lower::Float64 = NaN, upper::Float64 = NaN,
                        dim::Int = length(value)) where T <: Real
 
@@ -166,4 +166,29 @@ end
 function size(d::DiagonalMatrixParameter, dim::Int)
     p = length(d.vals)
     return p
+end
+
+################################################################################
+## Multiplicative parameter
+################################################################################
+
+mutable struct MultiplicativeParameter <: MyXMLElement
+    el::XMLOrNothing
+    param::Parameter
+    id::String
+
+    function MultiplicativeParameter(param::Parameter, id::String)
+        return new(nothing, param, id)
+    end
+end
+
+function make_xml(mp::MultiplicativeParameter)
+    el = new_element(MULTIPLICATIVE_PARAMETER)
+    set_id!(el, mp.id)
+
+    make_xml(mp.param)
+    add_ref_el(el, pm.param.el)
+
+    mp.el = el
+    return el
 end
