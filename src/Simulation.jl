@@ -32,6 +32,10 @@ struct TreeDiffusionModel
         return TreeDiffusionModel(tree, Σ)
     end
 
+    function TreeDiffusionModel(tree::Union{String, HybridNetwork}, p::Int)
+        return TreeDiffusionModel(tree, Diagonal(ones(p)))
+    end
+
 end
 
 struct ResidualVarianceModel <: ModelExtension
@@ -66,6 +70,14 @@ struct LatentFactorModel <: ModelExtension
 
 end
 
+function treeDimension(x::LatentFactorModel)
+    return size(x.L, 1)
+end
+
+function treeDimension(x::ResidualVarianceModel)
+    return size(x.Γ, 1)
+end
+
 mutable struct TraitSimulationModel
     taxa::AbstractArray{T, 1} where T <: AbstractString
     treeModel::TreeDiffusionModel
@@ -80,6 +92,13 @@ mutable struct TraitSimulationModel
     function TraitSimulationModel(taxa::AbstractArray{T, 1} where T <: AbstractString,
                                   treeModel::TreeDiffusionModel)
         return new(taxa, treeModel, nothing)
+    end
+
+    function TraitSimulationModel(taxa::AbstractArray{<:AbstractString, 1},
+                                  tree::Union{String, HybridNetwork},
+                                  extensionModel::ModelExtension)
+        treeModel = TreeDiffusionModel(tree, treeDimension(extensionModel))
+        return new(taxa, treeModel, extensionModel)
     end
 end
 

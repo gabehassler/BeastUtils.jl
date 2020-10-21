@@ -196,7 +196,7 @@ function vcv(net::HybridNetwork, taxa::Vector{String})
 end
 
 function scale_to!(net::HybridNetwork, height::Float64)
-    original_height = maximum(leaf_distances(net))
+    original_height = maximum(getNodeAges(net))
     mult = height / original_height
     for edge in net.edge
         edge.length *= mult
