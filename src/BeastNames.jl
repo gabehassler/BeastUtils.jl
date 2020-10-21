@@ -271,4 +271,7 @@ const SCALED_MATRIX = "scaledMatrixParameter"
 const MULTIVARIATE_GAMMA_LIKELIHOOD = "multivariateGammaLikelihood"
 
 const MULTIPLICATIVE_PARAMETER = "multiplicativeParameter"
+
+const GEODESIC_HMC = "geodesicHMC"
+const NORMALIZED_LOADINGS_GRADIENT = "normalizedIntegratedLoadingsGradient"
 end

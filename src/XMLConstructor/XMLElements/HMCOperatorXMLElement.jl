@@ -12,17 +12,20 @@ mutable struct HMCOperatorXMLElement <: OperatorXMLElement
     auto_optimize::Bool
     check_grad::Int
     grad_tolerance::Float64
+    geodesic::Bool
 
     function HMCOperatorXMLElement(param_provider::MyXMLElement,
-                        grads::Array{AbstractGradientXMLElement})
+                        grads::Array{<:AbstractGradientXMLElement};
+                        geodesic::Bool = false)
         return new(nothing, param_provider, grads,
-                    1.0, 10, 0.05, 1.0, true, 0, 1e-3)
+                    1.0, 10, 0.05, 1.0, true, 0, 1e-3, geodesic)
     end
 
 end
 
 function make_xml(hmcxml::HMCOperatorXMLElement)
-    el = new_element(bn.HMC)
+    name = hmcxml.geodesic ? bn.GEODESIC_HMC : bn.HMC
+    el = new_element(name)
     set_attributes(el, [bn.WEIGHT => string(hmcxml.weight),
                         bn.NSTEPS => string(hmcxml.n_steps),
                         bn.STEP_SIZE => string(hmcxml.step_size),
@@ -79,21 +82,31 @@ mutable struct FactorLoadingsGradientXMLElement <: AbstractGradientXMLElement
     el::XMLOrNothing
     ifxml::IntegratedFactorsXMLElement
     tdlxml::TraitLikelihoodXMLElement
+    name::String
+
 
     function FactorLoadingsGradientXMLElement(
             ifxml::IntegratedFactorsXMLElement,
             tdlxml::TraitLikelihoodXMLElement)
 
-        return new(nothing, ifxml, tdlxml)
+        return new(nothing, ifxml, tdlxml, bn.INTEGRATED_FACTOR_GRADIENT)
     end
 
+end
+
+function NormalizedLoadingsGradientXMLElement(
+    ifxml::IntegratedFactorsXMLElement,
+    tdlxml::TraitLikelihoodXMLElement)
+    grad = FactorLoadingsGradientXMLElement(ifxml, tdlxml)
+    grad.name = bn.NORMALIZED_LOADINGS_GRADIENT
+    return grad
 end
 
 function make_xml(flgxml::FactorLoadingsGradientXMLElement)
     make_xml(flgxml.ifxml)
     make_xml(flgxml.tdlxml)
 
-    el = new_element(bn.INTEGRATED_FACTOR_GRADIENT)
+    el = new_element(flgxml.name)
     add_ref_el(el, flgxml.ifxml.el)
     add_ref_el(el, flgxml.tdlxml.el)
 

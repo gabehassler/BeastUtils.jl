@@ -157,14 +157,17 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
     traitLikelihood_el.attrs[bn.STANDARDIZE] = bn.FALSE
 
     # TODO: operators on loadings
+    like_grad = NormalizedLoadingsGradientXMLElement(if_el, traitLikelihood_el)
+    loadings_op = HMCOperatorXMLElement(if_el, [like_grad])
 
     normal_gamma_op = NormalGammaPrecisionOperatorXMLElement(if_el,
                                                         traitLikelihood_el)
 
-    ops_vec = [loadings_op, normal_gamma_op] #TODO: need to add other operators
-    if shrink_loadings
-        push!(ops_vec, ShrinkageScaleOperators(if_el.msls, if_el))
-    end
+    scale_op = ScaleOperator(if_el.loadings.scale)
+
+
+    ops_vec = [loadings_op, scale_op, normal_gamma_op]
+
 
     operators_el = OperatorsXMLElement(ops_vec)
     add_child(beastXML, operators_el)

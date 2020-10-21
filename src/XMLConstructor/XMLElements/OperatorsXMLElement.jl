@@ -62,6 +62,42 @@ function make_xml(fpo_el::FireParameterOperatorXMLElement)
     return el
 end
 
+################################################################################
+## scale operator
+################################################################################
+
+mutable struct ScaleOperator <: OperatorXMLElement
+    el::XMLOrNothing
+    param::MyXMLElement
+    scale_factor::Float64
+    weight::Float64
+
+    function ScaleOperator(param::MyXMLElement, scale_factor::Float64,
+                           weight::Float64)
+        return new(nothing, param, scale_factor, weight)
+    end
+end
+
+function ScaleOperator(param::MyXMLElement)
+    return ScaleOperator(param, 0.5, 1.0)
+end
+
+function make_xml(so::ScaleOperator)
+    make_xml(so.param)
+    el = make_scale_operator(so.param.el, so.scale_factor, so.weight)
+    so.el = el
+    return el
+end
+
+
+################################################################################
+## shrinkage operators
+################################################################################
+
+
+
+
+
 abstract type CompoundOperatorXMLElement <: OperatorXMLElement end
 
 mutable struct ShrinkageScaleOperators <: CompoundOperatorXMLElement

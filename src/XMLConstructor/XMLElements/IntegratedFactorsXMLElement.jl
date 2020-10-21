@@ -27,7 +27,7 @@ function IntegratedFactorsXMLElement(treeModel_el::TreeModelXMLElement,
 
     L = default_loadings(k, p)
     if orthonormal
-        load_param = ScaledOrthogonalMatrix(L, "L", "U", "scale")
+        load_param = ScaledOrthogonalMatrix(L, "L", "scale", "U")
     else
         load_param = MatrixParameter(L, "L", ["L$i" for i = 1:size(L, 1)])
     end

@@ -24,10 +24,10 @@ function make_xml(mgl::MultivariateGammaLikelihood)
     add_ref_el(data_el, mgl.data.el)
 
     shape_el = new_child(el, bn.SHAPE)
-    add_parameter(shape_el, mgl.shapes, [0.0])
+    add_parameter(shape_el, value = mgl.shapes, lower = 0.0)
 
     scale_el = new_child(el, bn.SCALE)
-    add_parameter(scale_el, mgl.scales, [0.0])
+    add_parameter(scale_el, value = mgl.scales, lower = 0.0)
 
     mgl.el = el
     return el

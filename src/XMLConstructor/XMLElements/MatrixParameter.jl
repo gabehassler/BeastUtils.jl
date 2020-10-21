@@ -183,11 +183,11 @@ mutable struct MultiplicativeParameter <: MyXMLElement
 end
 
 function make_xml(mp::MultiplicativeParameter)
-    el = new_element(MULTIPLICATIVE_PARAMETER)
+    el = new_element(bn.MULTIPLICATIVE_PARAMETER)
     set_id!(el, mp.id)
 
     make_xml(mp.param)
-    add_ref_el(el, pm.param.el)
+    add_ref_el(el, mp.param.el)
 
     mp.el = el
     return el
