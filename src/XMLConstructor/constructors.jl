@@ -7,7 +7,6 @@ function make_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
             timing::Bool=false,
             log_factors::Bool=false,
             shrink_loadings::Bool=false,
-            rotate_prior::Bool=false,
             fle::Int=10,
             sle::Int=100) where T <: AbstractString
 
@@ -29,14 +28,12 @@ function make_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
     add_child(beastXML, if_el)
 
     if shrink_loadings
-        if_el.msls = MatrixShrinkageLikelihoods(
+        if_el.loadings_prior = MatrixShrinkageLikelihoods(
                         get_loadings_param(
                             get_integratedFactorModel(beastXML)
                         )
                         )
     end
-
-    if_el.rotate_prior = rotate_prior
 
     traitLikelihood_el = TraitLikelihoodXMLElement(mbd_el, treeModel_el, if_el)
     add_child(beastXML, traitLikelihood_el)
@@ -60,7 +57,7 @@ function make_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
 
     ops_vec = [loadings_op, normal_gamma_op]
     if shrink_loadings
-        push!(ops_vec, ShrinkageScaleOperators(if_el.msls, if_el))
+        push!(ops_vec, ShrinkageScaleOperators(if_el.loadings_prior, if_el))
     end
 
     operators_el = OperatorsXMLElement(ops_vec)

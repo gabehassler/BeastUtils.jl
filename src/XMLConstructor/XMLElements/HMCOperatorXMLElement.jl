@@ -60,19 +60,7 @@ end
 
 function make_xml(gxml::LoadingsGradientXMLElement)
     ifxml = gxml.ifxml
-    make_xml(ifxml)
-
-    if isnothing(ifxml.msls)
-
-        el = new_element(bn.GRADIENT)
-        add_ref_el(el, get_normal_prior(gxml.ifxml))
-        add_ref_el(el, gxml.ifxml.loadings.el)
-
-
-    else
-        make_xml(ifxml.msls)
-        el = reference_element(ifxml.msls.ms_el)
-    end
+    el = make_loadings_gradient(ifxml.loadings, ifxml.loadings_prior)
 
     gxml.el = el
     return el

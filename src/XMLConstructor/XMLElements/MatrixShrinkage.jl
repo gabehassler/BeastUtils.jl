@@ -157,3 +157,13 @@ function get_precision_prior(xml::MatrixShrinkageLikelihoods, ind::Int; make_xml
     end
     return xml.global_prior_els[ind]
 end
+
+function make_loadings_gradient(::MyXMLElement, msl::MatrixShrinkageLikelihoods)
+    make_xml(msl)
+    return msl.ms_el
+end
+
+function get_normal_prior(msl::MatrixShrinkageLikelihoods)
+    make_xml(msl)
+    return msl.ms_el
+end

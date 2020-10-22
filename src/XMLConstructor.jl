@@ -78,7 +78,7 @@ include(joinpath(element_dir, "NormalMatrixNormLikelihood.jl"))
 include(joinpath(element_dir, "ScaledOrthogonalMatrix.jl"))
 include(joinpath(element_dir, "MultivariateGammaLikelihood.jl"))
 include(joinpath(element_dir, "NormalMatrixNormLikelihood.jl"))
-
+include(joinpath(element_dir, "NormalDistributionLikelihood.jl"))
 
 
 
@@ -249,9 +249,7 @@ end
 function add_el(bx::BEASTXMLElement, if_el::IntegratedFactorsXMLElement)
     make_xml(if_el)
     add_el(bx, if_el.loadings)
-    for prior_el = if_el.loadings_prior_els
-        add_child(bx.el, prior_el)
-    end
+    add_el(bx, if_el.loadings_prior)
     add_child(bx.el, if_el.el)
     add_child(bx.el, if_el.precision_prior_el)
 end
@@ -291,6 +289,29 @@ function add_el(bx::BEASTXMLElement, el::ScaledOrthogonalMatrix)
     add_child(bx.el, el.scale.el)
     add_child(bx.el, el.U.el)
     add_child(bx.el, el.el)
+end
+
+function add_el(bx::BEASTXMLElement, el::MatrixShrinkageLikelihoods)
+    make_xml(el)
+    for mult in el.mult_els
+        add_child(bx.el, mult)
+    end
+    for gp in el.gp_els
+        add_child(bx.el, gp)
+    end
+    for ls in el.local_scale_els
+        add_child(bx.el, ls)
+    end
+    for gs in el.global_scale_els
+        add_child(bx.el, gs)
+    end
+    for bb in el.bb_els
+        add_child(bx.el, bb)
+    end
+    add_child(bx.el, el.ms_el)
+    for gp in el.global_prior_els
+        add_child(bx.el, gp)
+    end
 end
 
 end

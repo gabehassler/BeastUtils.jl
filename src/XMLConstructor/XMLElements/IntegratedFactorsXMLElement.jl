@@ -3,18 +3,15 @@ abstract type LoadingsPriorXMLElement <: MyXMLElement end
 
 mutable struct IntegratedFactorsXMLElement <: ModelExtensionXMLElement
     el::XMLOrNothing
-    loadings_prior_els::AbstractArray{XMLElement}
     precision_prior_el::XMLOrNothing
     loadings::MyXMLElement
+    loadings_prior::MyXMLElement
     precision::S where S <: AbstractArray{Float64, 1}
     precision_scale::Float64
     precision_shape::Float64
     treeModel::TreeModelXMLElement
     tree_trait_ind::Int
     standardize_traits::Bool
-    msls::Union{MatrixShrinkageLikelihoods, Nothing}
-    rotate_prior::Bool
-    rotation_el::XMLOrNothing
     id::String
 end
 
@@ -32,16 +29,19 @@ function IntegratedFactorsXMLElement(treeModel_el::TreeModelXMLElement,
         load_param = MatrixParameter(L, "L", ["L$i" for i = 1:size(L, 1)])
     end
 
+    prior = NormalDistributionLikelihood(load_param, "L.prior")
+
+
     precision = ones(p)
     precision_scale = 1.0
     precision_shape = 1.0
-    return IntegratedFactorsXMLElement(nothing, XMLElement[], nothing,
+    return IntegratedFactorsXMLElement(nothing, nothing,
                                 load_param,
+                                prior,
                                 precision, precision_scale,
                                 precision_shape,
                                 treeModel_el,
-                                trait_ind, true, nothing,
-                                false, nothing,
+                                trait_ind, true,
                                 bn.DEFAULT_IF_NAME)
 end
 
@@ -56,18 +56,15 @@ end
 function copy(x::IntegratedFactorsXMLElement)
     return IntegratedFactorsXMLElement(
         x.el,
-        x.loadings_prior_els,
         x.precision_prior_el,
         x.loadings,
+        x.loadings_prior,
         x.precision,
         x.precision_scale,
         x.precision_shape,
         x.treeModel,
         x.tree_trait_ind,
         x.standardize_traits,
-        x.msls,
-        x.rotate_prior,
-        x.rotation_el,
         x.id
     )
 end
@@ -98,19 +95,7 @@ function make_xml(ifxml::IntegratedFactorsXMLElement;
     make_xml(ifxml.loadings)
     # ifxml.loadings_el = make_loadings(ifxml.loadings)
     actual_prior = nothing
-    if !isnothing(ifxml.msls)
-        ifxml.loadings_prior_els = make_xml(ifxml.msls)
-        actual_prior = ifxml.msls.ms_el
-
-    else
-        ifxml.loadings_prior_els = [make_loadings_normal_prior(ifxml)]
-        actual_prior = ifxml.loadings_prior_els[1]
-    end
-
-    if ifxml.rotate_prior
-        ifxml.rotation_el = make_rotation_xml(ifxml, actual_prior)
-        push!(ifxml.loadings_prior_els, ifxml.rotation_el)
-    end
+    make_xml(ifxml.loadings_prior)
 
     el = new_element(bn.INTEGRATED_FACTORS)
     attrs = [(bn.ID, ifxml.id),
@@ -175,75 +160,18 @@ function make_loadings(L::AbstractArray{Float64, 2})
     return el
 end
 
-function get_normal_prior(ifxml::IntegratedFactorsXMLElement)
-    if ifxml.rotate_prior
-        return ifxml.rotation_el
-    end
-    if isnothing(ifxml.msls)
-        return ifxml.loadings_prior_els[1]
-    else
-        return ifxml.msls.ms_el
-    end
-end
-
-function make_loadings_normal_prior(ifxml::IntegratedFactorsXMLElement)
-    el = new_element(bn.DISTRIBUTION_LIKELIHOOD)
-    set_attribute(el, bn.ID, "$(bn.DEFAULT_LOADINGS_ID).prior")
-
-    d_el = new_child(el, bn.DATA)
-    make_xml(ifxml.loadings)
-    add_ref_el(d_el, ifxml.loadings.el)
-    dist_el = new_child(el, bn.DISTRIBUTION)
-
-    ndm_el = new_child(dist_el, bn.NORMAL_DISTRIBUTION_MODEL)
-
-    m_el = new_child(ndm_el, bn.MEAN)
-    add_parameter(m_el, value = [0.0])
-    std_el = new_child(ndm_el, bn.STDEV)
-    add_parameter(std_el, value =[1.0], lower=0.0)
-
-    return el
-end
-
-function make_rotation_xml(ifxml::IntegratedFactorsXMLElement,
-                           prior::XMLElement)
-    el = new_element(bn.NORMAL_ORTHOGONAL_SUBSPACE)
-    set_attribute(el, bn.ID, ifxml.id * ".orthogonalPrior")
-    add_ref_el(el, ifxml.loadings.el)
-    add_ref_el(el, prior)
-    return el
-end
 
 function get_priors(xml::IntegratedFactorsXMLElement)
     make_xml(xml)
 
-    if isnothing(xml.msls)
-        priors = [xml.loadings_prior_els; xml.precision_prior_el]
-    else
-        priors = [get_priors(xml.msls); xml.precision_prior_el]
-    end
-
-    if xml.rotate_prior
-        if isnothing(xml.msls)
-            replacement_ind = 1
-        else
-            replacement_ind = findfirst(x -> x === xml.msls.ms_el, priors)
-        end
-        priors[replacement_ind] = xml.rotation_el
-    end
-
-    return priors
+    return [xml.precision_prior_el]
 end
 
 function get_loggables(xml::IntegratedFactorsXMLElement)
     make_xml(xml)
 
     loggables = [xml.loadings.el, xml.el[bn.PRECISION][1][bn.PARAMETER][1]]
-
-    if !isnothing(xml.msls)
-        make_xml(xml.msls)
-        loggables = [loggables; get_loggables(xml.msls)]
-    end
+    loggables = [loggables; get_loggables(xml.loadings_prior)]
 
     return loggables
 end
