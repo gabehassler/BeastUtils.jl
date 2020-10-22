@@ -87,24 +87,34 @@ bx = XMLConstructor.make_pfa_xml(data, taxa, newick, k, useHMC = true)
 XMLConstructor.save_xml("facGibbs.xml", bx)
 @test isfile("facGibbs.xml")
 
-# HMC, shrinkage
-bx = XMLConstructor.make_pfa_xml(data, taxa, newick, k, useHMC = true,
-            shrink_loadings = true)
-XMLConstructor.save_xml("facHMCShrink.xml", bx)
-@test isfile("facHMCShrink.xml")
+# # HMC, shrinkage
+# bx = XMLConstructor.make_pfa_xml(data, taxa, newick, k, useHMC = true,
+#             shrink_loadings = true)
+# XMLConstructor.save_xml("facHMCShrink.xml", bx)
+# @test isfile("facHMCShrink.xml")
 
-# Gibbs, shrinkage
-bx = XMLConstructor.make_pfa_xml(data, taxa, newick, k, useHMC = false,
-            shrink_loadings = true)
-XMLConstructor.save_xml("facGibbsShrink.xml", bx)
-@test isfile("facGibbsShrink.xml")
+# # Gibbs, shrinkage
+# bx = XMLConstructor.make_pfa_xml(data, taxa, newick, k, useHMC = false,
+#             shrink_loadings = true)
+# XMLConstructor.save_xml("facGibbsShrink.xml", bx)
+# @test isfile("facGibbsShrink.xml")
 
-# Rotate prior
-fn = "facGibbsRotate.xml"
-bx = XMLConstructor.make_pfa_xml(data, taxa, newick, k, useHMC = false,
-            shrink_loadings = true, rotate_prior = true)
+# # Rotate prior
+# fn = "facGibbsRotate.xml"
+# bx = XMLConstructor.make_pfa_xml(data, taxa, newick, k, useHMC = false,
+#             shrink_loadings = true, rotate_prior = true)
+# XMLConstructor.save_xml(fn, bx)
+# @test isfile(fn)
+
+################################################################################
+## Orthogonal factor analysis
+################################################################################
+
+fn = "facOrthogonal.xml"
+bx = XMLConstructor.make_orthogonal_pfa_xml(data, taxa, newick, k)
 XMLConstructor.save_xml(fn, bx)
 @test isfile(fn)
+
 
 ################################################################################
 ## Joint models
@@ -160,3 +170,4 @@ XMLConstructor.merge_xml!(bx, bx_seq)
 # xml = XMLConstructor.make_xml(bx)
 XMLConstructor.save_xml("merge.xml", bx);
 # print(xml)
+
