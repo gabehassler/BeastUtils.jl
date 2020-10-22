@@ -75,7 +75,7 @@ make_mbd(data_path, newick_path, dates_xml_path, filename, dates_path = dates_pa
 
 
 ### Testing Factor xml
-k = 4
+k = 3
 
 # HMC, no shrinkage
 bx = XMLConstructor.make_pfa_xml(data, taxa, newick, k, useHMC = false)

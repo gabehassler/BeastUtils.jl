@@ -173,7 +173,7 @@ end
 function get_loggables(xml::IntegratedFactorsXMLElement)
     make_xml(xml)
 
-    loggables = [xml.loadings.el, xml.el[bn.PRECISION][1][bn.PARAMETER][1]]
+    loggables = [get_loggables(xml.loadings); [xml.el[bn.PRECISION][1][bn.PARAMETER][1]]]
     loggables = [loggables; get_loggables(xml.loadings_prior)]
 
     return loggables

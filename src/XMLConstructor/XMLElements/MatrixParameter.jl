@@ -73,6 +73,11 @@ function length(p::Parameter)
     return p.dim
 end
 
+function get_loggables(p::Parameter)
+    make_xml(p)
+    return [p.el]
+end
+
 ################################################################################
 ## MatrixParameter
 ################################################################################
@@ -125,6 +130,11 @@ end
 
 function size(p::MatrixParameter, dim::Int)
     return size(p.mat, dim)
+end
+
+function get_loggables(mp::MatrixParameter)
+    make_xml(mp)
+    return [mp.el]
 end
 
 ################################################################################

@@ -57,6 +57,10 @@ function make_xml(som::ScaledOrthogonalMatrix)
     return el
 end
 
+function get_loggables(som::ScaledOrthogonalMatrix)
+    make_xml(som)
+    return [get_loggables(som.scale); som.el]
+end
 
 
 
