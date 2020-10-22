@@ -272,6 +272,6 @@ const MULTIVARIATE_GAMMA_LIKELIHOOD = "multivariateGammaLikelihood"
 
 const MULTIPLICATIVE_PARAMETER = "multiplicativeParameter"
 
-const GEODESIC_HMC = "geodesicHMC"
+const GEODESIC_HMC = "geodesicHamiltonianMonteCarloOperator"
 const NORMALIZED_LOADINGS_GRADIENT = "normalizedIntegratedLoadingsGradient"
 end

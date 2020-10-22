@@ -146,6 +146,9 @@ end
 
 function get_hmc_parameter(ifxml::IntegratedFactorsXMLElement)
     make_xml(ifxml)
+    if typeof(ifxml.loadings) <: ScaledOrthogonalMatrix
+        return ifxml.loadings.U.el
+    end
     return ifxml.loadings.el
 end
 

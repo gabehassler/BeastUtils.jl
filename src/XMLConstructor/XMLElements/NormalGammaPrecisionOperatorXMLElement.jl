@@ -21,11 +21,11 @@ function NormalGammaPrecisionOperatorXMLElement(
                 ext_xml, 1.0)
 end
 
-function NormalGammaPrecisionOperatorXMLElement(msl::MatrixShrinkageLikelihoods,
-                                                row::Int)
-    gpp = MultipilcativeGammaGibbsProvider(msl, row)
-    return NormalGammaPrecisionOperatorXMLElement(nothing, gpp, gpp, 1.0)
-end
+# function NormalGammaPrecisionOperatorXMLElement(msl::MatrixShrinkageLikelihoods,
+#                                                 row::Int)
+#     gpp = MultipilcativeGammaGibbsProvider(msl, row)
+#     return NormalGammaPrecisionOperatorXMLElement(nothing, gpp, gpp, 1.0)
+# end
 
 
 mutable struct NormalExtentsionGibbsProvider <: GammaGibbsProvider
@@ -54,43 +54,39 @@ end
 
 mutable struct MultipilcativeGammaGibbsProvider <: GammaGibbsProvider
     el::XMLOrNothing
-    msl::MatrixShrinkageLikelihoods
-    row::Int
+    param::MyXMLElement
+    likelihood::MyXMLElement
 
-    function MultipilcativeGammaGibbsProvider(msl::MatrixShrinkageLikelihoods,
-                                              row::Int)
-        return new(nothing, msl, row)
+    function MultipilcativeGammaGibbsProvider(param::MyXMLElement,
+                                              likelihood::MyXMLElement)
+        return new(nothing, param, likelihood)
     end
 end
 
-function multiplicative_gamma_gibbs_proivders(msl::MatrixShrinkageLikelihoods)
-    k = get_fac_dim(msl)
-    mggs = Vector{MultipilcativeGammaGibbsProvider}(undef, k)
-    for i = 1:k
-        mggs[i] = MultipilcativeGammaGibbsProvider(msl, i)
-    end
-    return mggs
-end
+# function multiplicative_gamma_gibbs_proivders(msl::MatrixShrinkageLikelihoods)
+#     k = get_fac_dim(msl)
+#     mggs = Vector{MultipilcativeGammaGibbsProvider}(undef, k)
+#     for i = 1:k
+#         mggs[i] = MultipilcativeGammaGibbsProvider(msl, i)
+#     end
+#     return mggs
+# end
 
 function make_xml(mgg::MultipilcativeGammaGibbsProvider)
-    make_xml(mgg.msl)
+    make_xml(mgg.param)
+    make_xml(mgg.likelihood)
 
     el = new_element(bn.MULTIPLICATIVE_GAMMA_GIBBS)
-    set_attribute(el, bn.ROW, mgg.row)
-    rp_el = new_child(el, bn.ROW_MULTIPLIERS)
-    add_ref_el(rp_el, mgg.msl.gp_els[1])
-    for mult_el in mgg.msl.mult_els
-        add_ref_el(rp_el, mult_el)
-    end
+    add_ref_el(el, mgg.param.el)
+    add_ref_el(el, mgg.likelihood.el)
 
-    add_ref_el(el, mgg.msl.ms_el)
     mgg.el = el
 end
 
-function get_precision_prior(mgg::MultipilcativeGammaGibbsProvider)
-    make_xml(mgg.msl)
-    return mgg.msl.global_prior_els[mgg.row]
-end
+# function get_precision_prior(mgg::MultipilcativeGammaGibbsProvider)
+#     make_xml(mgg.msl)
+#     return mgg.msl.global_prior_els[mgg.row]
+# end
 
 
 

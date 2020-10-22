@@ -32,3 +32,8 @@ function make_xml(mgl::MultivariateGammaLikelihood)
     mgl.el = el
     return el
 end
+
+function get_precision_prior(mgl::MultivariateGammaLikelihood)
+    make_xml(mgl)
+    return mgl.el
+end

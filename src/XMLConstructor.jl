@@ -79,7 +79,7 @@ include(joinpath(element_dir, "ScaledOrthogonalMatrix.jl"))
 include(joinpath(element_dir, "MultivariateGammaLikelihood.jl"))
 include(joinpath(element_dir, "NormalMatrixNormLikelihood.jl"))
 include(joinpath(element_dir, "NormalDistributionLikelihood.jl"))
-
+include(joinpath(element_dir, "MultiplicativeScalePrior.jl"))
 
 
 include(joinpath(dir, "utils.jl"))
@@ -313,5 +313,13 @@ function add_el(bx::BEASTXMLElement, el::MatrixShrinkageLikelihoods)
         add_child(bx.el, gp)
     end
 end
+
+function add_el(bx::BEASTXMLElement, el::MultiplicativeScalePrior)
+    add_el(bx, el.mults)
+    add_el(bx, el.precs)
+    add_el(bx, el.mult_prior)
+    add_el(bx, el.scale_prior)
+end
+
 
 end

@@ -38,7 +38,7 @@ end
 
 function ScaledOrthogonalMatrix(L::Matrix{Float64}, id, scale_id, U_id)
     Lsvd = svd(L)
-    return ScaledOrthogonalMatrix(Parameter(Lsvd.S, scale_id),
+    return ScaledOrthogonalMatrix(Parameter(Lsvd.S, scale_id, lower=0.0),
                                   MatrixParameter(Lsvd.Vt, U_id),
                                   id)
 end
