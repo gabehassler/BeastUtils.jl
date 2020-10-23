@@ -104,6 +104,8 @@ function make_xml(ifxml::IntegratedFactorsXMLElement;
 
     if ifxml.standardize_traits
         set_attribute(el, bn.STANDARDIZE, bn.TRUE)
+    else
+        set_attribute(el, bn.STANDARDIZE, bn.FALSE)
     end
 
     l_el = new_child(el, bn.LOADINGS)
