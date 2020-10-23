@@ -65,7 +65,7 @@ function set_value(p::Parameter, val::AbstractVector{Float64})
     if length(val) != length(p.val)
         error("Incompatible dimensions.")
     end
-    p.val = val
+    p.val .= val
 end
 
 import Base: length

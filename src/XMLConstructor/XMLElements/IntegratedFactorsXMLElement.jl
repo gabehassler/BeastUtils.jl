@@ -167,7 +167,7 @@ end
 function get_priors(xml::IntegratedFactorsXMLElement)
     make_xml(xml)
 
-    return [xml.precision_prior_el]
+    return [xml.precision_prior_el; get_priors(xml.loadings_prior)]
 end
 
 function get_loggables(xml::IntegratedFactorsXMLElement)
@@ -186,17 +186,18 @@ end
 function set_shrinkage_mults!(ifxml::IntegratedFactorsXMLElement;
                         shapes::Vector{Float64} = Float64[],
                         scales::Vector{Float64} = Float64[])
-    msls = ifxml.msls
-    if isnothing(msls)
-        error("No shrinkage prior on the integrated factors model.")
-    else
-        if length(shapes) > 0
-            fill_shrinkage_array!(msls.shapes, shapes)
-        end
-        if length(scales) > 0
-            fill_shrinkage_array!(msls.scales, scales)
-        end
-    end
+    # msls = ifxml.msls
+    # if isnothing(msls)
+    #     error("No shrinkage prior on the integrated factors model.")
+    # else
+    #     if length(shapes) > 0
+    #         fill_shrinkage_array!(msls.shapes, shapes)
+    #     end
+    #     if length(scales) > 0
+    #         fill_shrinkage_array!(msls.scales, scales)
+    #     end
+    # end
+    set_shrinkage_mults!(ifxml.loadings_prior, shapes=shapes, scales=scales)
 end
 
 function fill_shrinkage_array!(to_fill::Vector{Float64},

@@ -163,6 +163,7 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
                                                         traitLikelihood_el)
 
     scale_op = ScaleOperator(if_el.loadings.scale)
+    scale_op.weight = 5.0
 
 
     ops_vec = [loadings_op, scale_op, mults_op, normal_gamma_op]

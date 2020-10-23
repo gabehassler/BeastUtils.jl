@@ -62,6 +62,12 @@ function get_loggables(som::ScaledOrthogonalMatrix)
     return [get_loggables(som.scale); som.el]
 end
 
+function set_mat!(som::ScaledOrthogonalMatrix, mat::Matrix{Float64})
+    s = svd(mat)
+    set_mat!(som.U, s.Vt)
+    set_value(som.scale, s.S)
+end
+
 
 
 

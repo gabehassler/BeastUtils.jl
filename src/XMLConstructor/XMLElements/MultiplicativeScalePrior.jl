@@ -30,3 +30,14 @@ function NormalGammaPrecisionOperatorXMLElement(
                 multiplicativeLikelihood.mult_prior,
                 1.0)
 end
+
+function set_shrinkage_mults!(msp::MultiplicativeScalePrior;
+                        shapes::Vector{Float64} = Float64[],
+                        scales::Vector{Float64} = Float64[])
+    set_shrinkage_mults!(msp.mult_prior, shapes=shapes, scales=scales)
+end
+
+function get_priors(msp::MultiplicativeScalePrior)
+    make_xml(msp)
+    return [msp.mult_prior.el, msp.scale_prior.el]
+end
