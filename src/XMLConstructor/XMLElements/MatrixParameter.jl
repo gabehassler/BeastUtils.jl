@@ -78,6 +78,13 @@ function get_loggables(p::Parameter)
     return [p.el]
 end
 
+
+function get_hmc_parameter(param::Parameter)
+    make_xml(param)
+    return param.el
+end
+
+
 ################################################################################
 ## MatrixParameter
 ################################################################################

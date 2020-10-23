@@ -154,16 +154,22 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
     traitLikelihood_el.attrs[bn.ALLOW_SINGULAR] = bn.TRUE
     traitLikelihood_el.attrs[bn.STANDARDIZE] = bn.FALSE
 
-    # TODO: operators on loadings
-    like_grad = NormalizedLoadingsGradientXMLElement(if_el, traitLikelihood_el)
-    loadings_op = HMCOperatorXMLElement(if_el, [like_grad], geodesic=true)
+    U_grad = NormalizedLoadingsGradientXMLElement(if_el, traitLikelihood_el)
+    loadings_op = HMCOperatorXMLElement(if_el, [U_grad], geodesic=true)
+
+    scale_grad = ScaleLoadingsGradientXMLElement(if_el, traitLikelihood_el)
+    scale_op = HMCOperatorXMLElement(if_el.loadings.scale,
+                                     [scale_grad, loadings_prior],
+                                     already_made = [false, true],
+                                     transform = "log")
+
     mults_op = NormalGammaPrecisionOperatorXMLElement(if_el.loadings_prior)
 
     normal_gamma_op = NormalGammaPrecisionOperatorXMLElement(if_el,
                                                         traitLikelihood_el)
 
-    scale_op = ScaleOperator(if_el.loadings.scale)
-    scale_op.weight = 5.0
+    # scale_op = ScaleOperator(if_el.loadings.scale)
+    # scale_op.weight = 5.0
 
 
     ops_vec = [loadings_op, scale_op, mults_op, normal_gamma_op]

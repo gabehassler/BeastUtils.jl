@@ -1,10 +1,8 @@
-abstract type AbstractGradientXMLElement <: MyXMLElement end
-
-
 mutable struct HMCOperatorXMLElement <: OperatorXMLElement
     el::XMLOrNothing
     param_provider::MyXMLElement
-    grads::Array{AbstractGradientXMLElement}
+    grads::Array{<:MyXMLElement}
+    already_made::Vector{Bool}
     weight::Real
     n_steps::Int
     step_size::Float64
@@ -13,12 +11,15 @@ mutable struct HMCOperatorXMLElement <: OperatorXMLElement
     check_grad::Int
     grad_tolerance::Float64
     geodesic::Bool
+    transform::String
 
     function HMCOperatorXMLElement(param_provider::MyXMLElement,
-                        grads::Array{<:AbstractGradientXMLElement};
-                        geodesic::Bool = false)
-        return new(nothing, param_provider, grads,
-                    1.0, 10, 0.05, 1.0, true, 0, 1e-3, geodesic)
+                        grads::Array{<:MyXMLElement};
+                        geodesic::Bool = false,
+                        already_made::Vector{Bool} = fill(false, length(grads)),
+                        transform::String = "")
+        return new(nothing, param_provider, grads, already_made,
+                    1.0, 10, 0.05, 1.0, true, 0, 1e-3, geodesic, transform)
     end
 
 end
@@ -36,18 +37,27 @@ function make_xml(hmcxml::HMCOperatorXMLElement)
 
     jg_el = new_child(el, bn.JOINT_GRADIENT)
 
-    for grad in hmcxml.grads
+    for i = 1:length(hmcxml.grads)
+        grad = hmcxml.grads[i]
         make_xml(grad)
-        add_child(jg_el, grad.el)
+        if hmcxml.already_made[i]
+            add_ref_el(jg_el, grad.el)
+        else
+            add_child(jg_el, grad.el)
+        end
     end
 
     add_ref_el(el, get_hmc_parameter(hmcxml.param_provider))
+    if hmcxml.transform != ""
+        t_el = new_child(el, bn.TRANSFORM)
+        set_attribute(t_el, bn.TYPE, hmcxml.transform)
+    end
 
     hmcxml.el = el
     return el
 end
 
-mutable struct LoadingsGradientXMLElement <: AbstractGradientXMLElement
+mutable struct LoadingsGradientXMLElement <: MyXMLElement
     el::XMLOrNothing
     ifxml::IntegratedFactorsXMLElement
 
@@ -66,7 +76,7 @@ function make_xml(gxml::LoadingsGradientXMLElement)
     return el
 end
 
-mutable struct FactorLoadingsGradientXMLElement <: AbstractGradientXMLElement
+mutable struct FactorLoadingsGradientXMLElement <: MyXMLElement
     el::XMLOrNothing
     ifxml::IntegratedFactorsXMLElement
     tdlxml::TraitLikelihoodXMLElement
@@ -87,6 +97,14 @@ function NormalizedLoadingsGradientXMLElement(
     tdlxml::TraitLikelihoodXMLElement)
     grad = FactorLoadingsGradientXMLElement(ifxml, tdlxml)
     grad.name = bn.NORMALIZED_LOADINGS_GRADIENT
+    return grad
+end
+
+function ScaleLoadingsGradientXMLElement(
+    ifxml::IntegratedFactorsXMLElement,
+    tdlxml::TraitLikelihoodXMLElement)
+    grad = FactorLoadingsGradientXMLElement(ifxml, tdlxml)
+    grad.name = bn.SCALE_LOADINGS_GRADIENT
     return grad
 end
 
