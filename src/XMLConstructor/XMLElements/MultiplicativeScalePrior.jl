@@ -34,7 +34,12 @@ end
 function set_shrinkage_mults!(msp::MultiplicativeScalePrior;
                         shapes::Vector{Float64} = Float64[],
                         scales::Vector{Float64} = Float64[])
+    μ = shapes .* scales
     set_shrinkage_mults!(msp.mult_prior, shapes=shapes, scales=scales)
+    set_value(msp.mults, μ)
+    scale_mode = [prod(μ[1:i]) for i = 1:length(μ)]
+    scale_mode = scale_mode.^(-0.5)
+    return scale_mode
 end
 
 function get_priors(msp::MultiplicativeScalePrior)

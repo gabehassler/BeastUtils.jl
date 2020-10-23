@@ -68,6 +68,10 @@ function set_mat!(som::ScaledOrthogonalMatrix, mat::Matrix{Float64})
     set_value(som.scale, s.S)
 end
 
+function set_scale!(som::ScaledOrthogonalMatrix, scale::Vector{Float64})
+    set_value(som.scale, scale)
+end
+
 
 
 

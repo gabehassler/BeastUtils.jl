@@ -197,7 +197,9 @@ function set_shrinkage_mults!(ifxml::IntegratedFactorsXMLElement;
     #         fill_shrinkage_array!(msls.scales, scales)
     #     end
     # end
-    set_shrinkage_mults!(ifxml.loadings_prior, shapes=shapes, scales=scales)
+    scale = set_shrinkage_mults!(ifxml.loadings_prior, shapes=shapes,
+                                 scales=scales)
+    set_scale!(ifxml.loadings, scale)
 end
 
 function fill_shrinkage_array!(to_fill::Vector{Float64},
