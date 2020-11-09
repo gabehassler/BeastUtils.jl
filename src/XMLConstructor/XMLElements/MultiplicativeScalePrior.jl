@@ -46,3 +46,7 @@ function get_priors(msp::MultiplicativeScalePrior)
     make_xml(msp)
     return [msp.mult_prior.el, msp.scale_prior.el]
 end
+
+function get_normal_prior(msp::MultiplicativeScalePrior)
+    return get_normal_prior(msp.scale_prior)
+end

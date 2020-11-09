@@ -28,3 +28,7 @@ function make_xml(nmnl::NormalMatrixNormLikelihood)
     return el
 end
 
+function get_normal_prior(nmnl::NormalMatrixNormLikelihood)
+    make_xml(nmnl)
+    return nmnl.el
+end

@@ -12,6 +12,7 @@ mutable struct HMCOperatorXMLElement <: OperatorXMLElement
     grad_tolerance::Float64
     geodesic::Bool
     transform::String
+    mask::Vector{<:Real}
 
     function HMCOperatorXMLElement(param_provider::MyXMLElement,
                         grads::Array{<:MyXMLElement};
@@ -19,7 +20,8 @@ mutable struct HMCOperatorXMLElement <: OperatorXMLElement
                         already_made::Vector{Bool} = fill(false, length(grads)),
                         transform::String = "")
         return new(nothing, param_provider, grads, already_made,
-                    1.0, 10, 0.05, 1.0, true, 0, 1e-3, geodesic, transform)
+                    1.0, 5, 0.05, 1.0, true, 0, 1e-3, geodesic, transform,
+                    Float64[])
     end
 
 end
@@ -52,6 +54,12 @@ function make_xml(hmcxml::HMCOperatorXMLElement)
         t_el = new_child(el, bn.TRANSFORM)
         set_attribute(t_el, bn.TYPE, hmcxml.transform)
     end
+
+    if length(hmcxml.mask) > 0
+        m_el = new_child(el, bn.MASK)
+        add_child(m_el, make_parameter(value=hmcxml.mask))
+    end
+
 
     hmcxml.el = el
     return el

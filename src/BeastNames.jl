@@ -275,4 +275,6 @@ const MULTIPLICATIVE_PARAMETER = "multiplicativeParameter"
 const GEODESIC_HMC = "geodesicHamiltonianMonteCarloOperator"
 const NORMALIZED_LOADINGS_GRADIENT = "normalizedIntegratedLoadingsGradient"
 const SCALE_LOADINGS_GRADIENT = "scaleIntegratedLoadingsGradient"
+
+const MASK = "mask"
 end
