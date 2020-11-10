@@ -50,18 +50,24 @@ function random_tips!(net::HybridNetwork,
 
 end
 
+function rtree(n::Int;
+                keep_order::Bool = false, # keep (true) or scramble (false) initial label ordering
+                ultrametric::Bool = false, # all leaf nodes at same time (true) or not (false)
+                edge_dist::ContinuousUnivariateDistribution = Exponential(1.0)
+                )
+    labels = ["t$i" for i = 1:n]
+    return rtree(labels, keep_order = keep_order, ultrametric = ultrametric,
+                    edge_dist = edge_dist)
+end
+
 # generates a random HybridNetwork
-function rtree(n::Int; # number of taxa
-                labels::Array{String} = ["t$i" for i = 1:n], # leaf labels (automatically [t1, ..., tn])
+function rtree(labels::Array{<:AbstractString}; # leaf labels
                 keep_order::Bool = false, # keep (true) or scramble (false) initial label ordering
                 ultrametric::Bool = false, # all leaf nodes at same time (true) or not (false)
                 edge_dist::ContinuousUnivariateDistribution = Exponential(1.0)) # distribution for generating random edge lengths
                                                                                 # (only applies with ultrametric = false)
 
-    if length(labels) != n
-        throw(ArgumentError("The `labels` argument must be an array of length" *
-            " n (only tip labels are currently supported)."))
-    end
+    n = length(labels)
 
 
     if !ultrametric
