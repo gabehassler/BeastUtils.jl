@@ -43,6 +43,11 @@ function get_normal_prior(ndl::NormalDistributionLikelihood)
     return ndl.el
 end
 
+function get_priors(ndl::NormalDistributionLikelihood)
+    make_xml(ndl)
+    return ndl.el
+end
+
 function get_loggables(::NormalDistributionLikelihood)
     return MyXMLElement[]
 end

@@ -41,3 +41,21 @@ end
 function get_mcmc(bx::BEASTXMLElement)
     return find_element(bx, MCMCXMLElement)
 end
+
+function get_loadings_op(bx::BEASTXMLElement)
+    ops = get_operators(bx)
+    for op in ops
+        t = typeof(op)
+        if t <: LoadingsGibbsOperatorXMLElement
+            return op
+        elseif t <: HMCOperatorXMLElement
+            for grad in op.grads
+                g = typeof(grad)
+                if g <: LoadingsGradientXMLElement || g <: FactorLoadingsGradientXMLElement
+                    return op
+                end
+            end
+        end
+    end
+    error("No loadings operator.")
+end
