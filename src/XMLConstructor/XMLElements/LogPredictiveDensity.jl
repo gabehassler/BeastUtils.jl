@@ -8,9 +8,10 @@ mutable struct FactorLogPredictiveDensity <: MyXMLElement
 
     function FactorLogPredictiveDensity(
                 intfac::IntegratedFactorsXMLElement,
-                like::TraitLikelihoodXMLElement)
+                like::TraitLikelihoodXMLElement;
+                trait_ind::Int = 2)
 
-        return new(nothing, nothing, nothing, intfac, like, 2)
+        return new(nothing, nothing, nothing, intfac, like, trait_ind)
     end
 end
 
