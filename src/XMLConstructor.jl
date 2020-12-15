@@ -33,6 +33,17 @@ mutable struct BEASTXMLElement
     components::Vector{MyXMLElement}
 end
 
+import Base.show
+
+function Base.show(io::IO, bx::BEASTXMLElement)
+    disp = "$(typeof(bx)):\n"
+    disp *= "components:"
+    for comp in bx.components
+        disp *= "\n\t$(typeof(comp))"
+    end
+    println(io, disp)
+end
+
 function BEASTXMLElement()
     return BEASTXMLElement(nothing, MyXMLElement[])
 end
