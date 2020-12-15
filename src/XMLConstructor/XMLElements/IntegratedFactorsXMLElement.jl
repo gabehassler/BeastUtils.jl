@@ -188,7 +188,7 @@ end
 function set_shrinkage_mults!(ifxml::IntegratedFactorsXMLElement;
                         shapes::Vector{Float64} = Float64[],
                         scales::Vector{Float64} = Float64[],
-                        set_scale::Bool = true)
+                        set_values::Bool = true)
     # msls = ifxml.msls
     # if isnothing(msls)
     #     error("No shrinkage prior on the integrated factors model.")
@@ -201,8 +201,9 @@ function set_shrinkage_mults!(ifxml::IntegratedFactorsXMLElement;
     #     end
     # end
     scale = set_shrinkage_mults!(ifxml.loadings_prior, shapes=shapes,
-                                 scales=scales)
-    if set_scale
+                                 scales=scales,
+                                 set_mults = set_values)
+    if set_values
         set_scale!(ifxml.loadings, scale)
     end
 end
