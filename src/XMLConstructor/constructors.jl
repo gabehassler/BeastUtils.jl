@@ -122,7 +122,7 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
     if_el = IntegratedFactorsXMLElement(treeModel_el, k, orthonormal = true)
     add_child(beastXML, if_el)
 
-    mult_vals = [shrinkage for i = 1:k]
+    mult_vals = [1.0 for i = 1:k]
     mult_shapes = [shrinkage for i = 1:k]
     mult_scales = ones(k)
 
