@@ -2,6 +2,25 @@ module DataStorage
 
 using DataFrames, CSV, BeastUtils.MatrixUtils
 
+struct TraitData
+    taxa::Vector{<:AbstractString}
+    trait_names::Vector{<:AbstractString}
+    data::Matrix{Float64}
+
+    function TraitData(taxa::Vector{<:AbstractString},
+                        trait_names::Vector{<:AbstractString},
+                        data::Matrix{Float64})
+        n, p = size(data)
+        if length(taxa) != n
+            error("supplied $(length(taxa)) taxa but data has $n rows.")
+        end
+        if length(trait_names) != p
+            error("supplied $(length(trait_names)) taxa but data has $p rows.")
+        end
+        return new(taxa, trait_names, data)
+    end
+end
+
 function make_sparse!(X::Matrix{Float64}, sparsity::Float64)
 
     n, p = size(X)
@@ -68,7 +87,7 @@ function data_to_df(taxa::Vector{String}, data::Matrix{Float64}, col_names::Vect
     return df
 end
 
-function df_to_data(df::DataFrame)
+function df_to_traitdata(df::DataFrame)
     nms = names(df)
     if lowercase(string(nms[1])) != "taxon"
         error("The first column name must be 'taxon'.")
@@ -89,17 +108,31 @@ function df_to_data(df::DataFrame)
             end
         end
     end
-    return convert(Vector{String}, df[!, 1]), data
+    return TraitData(convert(Vector{String}, df[!, 1]), nms[2:end], data)
+end
+
+function df_to_data(df::DataFrame)
+    td = df_to_traitdata(df)
+    return td.taxa, dt.data
 end
 
 function csv_to_data(path::String)
-    df = CSV.read(path)
-    return df_to_data(df)
+    td = csv_to_traitdata(path)
+    return td.taxa, td.data
+end
+
+function csv_to_traitdata(path::String)
+    df = CSV.read(path, missingstrings=["", "NA"])
+    return df_to_traitdata(df)
 end
 
 function data_to_csv(path::String, taxa::Vector{String}, data::Matrix{Float64}, col_names::Vector{String})
     df = data_to_df(taxa, data, col_names)
     CSV.write(path, df)
+end
+
+function traitdata_to_csv(path::String, td::TraitData)
+    data_to_csv(path, td.taxa, td.data, td.trait_names)
 end
 
 
