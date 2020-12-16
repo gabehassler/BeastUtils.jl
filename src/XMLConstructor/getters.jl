@@ -59,3 +59,16 @@ function get_loadings_op(bx::BEASTXMLElement)
     end
     error("No loadings operator.")
 end
+
+function get_multiplicative_gamma_op(bx::BEASTXMLElement)
+    ops = get_operators(bx)
+    for op in ops
+        t = typeof(op)
+        if t <: NormalGammaPrecisionOperatorXMLElement
+            if typeof(op.ggp) <: MultipilcativeGammaGibbsProvider
+                return op
+            end
+        end
+    end
+    error("No multiplicative gamma gibbs operator.")
+end

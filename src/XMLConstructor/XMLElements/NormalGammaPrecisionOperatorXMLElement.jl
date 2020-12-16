@@ -4,12 +4,13 @@ mutable struct NormalGammaPrecisionOperatorXMLElement <: OperatorXMLElement
     el::XMLOrNothing
     ggp::GammaGibbsProvider
     prior_provider::MyXMLElement
+    indices::Vector{Int}
     weight::Float64
 end
 
 function NormalGammaPrecisionOperatorXMLElement(ggp::GammaGibbsProvider,
                     prior::T) where T <: MyXMLElement
-    return NormalGammaPrecisionOperatorXMLElement(nothing, ggp, prior, 1.0)
+    return NormalGammaPrecisionOperatorXMLElement(nothing, ggp, prior, Int[], 1.0)
 end
 
 
@@ -18,7 +19,7 @@ function NormalGammaPrecisionOperatorXMLElement(
             td_xml::TraitLikelihoodXMLElement)
     return NormalGammaPrecisionOperatorXMLElement(nothing,
                 NormalExtentsionGibbsProvider(ext_xml, td_xml),
-                ext_xml, 1.0)
+                ext_xml, Int[], 1.0)
 end
 
 # function NormalGammaPrecisionOperatorXMLElement(msl::MatrixShrinkageLikelihoods,
@@ -97,6 +98,9 @@ function make_xml(ngpxml::NormalGammaPrecisionOperatorXMLElement)
 
     el = new_element(bn.NGP_OPERATOR)
     set_attribute(el, bn.WEIGHT, ngpxml.weight)
+    if length(ngpxml.indices) > 0
+        set_attribute(el, bn.INDICES, join(ngpxml.indices, ' '))
+    end
     prior_el = new_child(el, bn.PRIOR)
     add_ref_el(prior_el, get_precision_prior(ngpxml.prior_provider))
 
@@ -104,4 +108,9 @@ function make_xml(ngpxml::NormalGammaPrecisionOperatorXMLElement)
 
     ngpxml.el = el
     return el
+end
+
+function set_indices!(ngp::NormalGammaPrecisionOperatorXMLElement,
+                     inds::Vector{Int})
+    ngp.indices = inds
 end

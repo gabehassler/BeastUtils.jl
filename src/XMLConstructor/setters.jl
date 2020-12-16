@@ -41,3 +41,8 @@ function set_loadings(bx::BEASTXMLElement, L::AbstractArray{Float64, 2})
     set_loadings(ifa, L)
 end
 
+function set_muliplicative_gamma_indices(bx::BEASTXMLElement, inds::Vector{Int})
+    op = get_multiplicative_gamma_op(bx)
+    set_indices!(op, inds)
+end
+

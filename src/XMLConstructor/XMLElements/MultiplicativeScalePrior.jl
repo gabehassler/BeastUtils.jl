@@ -28,6 +28,7 @@ function NormalGammaPrecisionOperatorXMLElement(
     return NormalGammaPrecisionOperatorXMLElement(nothing,
                 ggp,
                 multiplicativeLikelihood.mult_prior,
+                Int[],
                 1.0)
 end
 

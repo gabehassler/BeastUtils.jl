@@ -277,4 +277,6 @@ const NORMALIZED_LOADINGS_GRADIENT = "normalizedIntegratedLoadingsGradient"
 const SCALE_LOADINGS_GRADIENT = "scaleIntegratedLoadingsGradient"
 
 const MASK = "mask"
+
+const INDICES = "indices"
 end
