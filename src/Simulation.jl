@@ -4,7 +4,8 @@ export TreeDiffusionModel,
        ResidualVarianceModel,
        LatentFactorModel,
        TraitSimulationModel,
-       simulate
+       simulate,
+       get_newick
 
 using PhyloNetworks, LinearAlgebra, LinearAlgebra.BLAS, DataFrames, Distributions
 using BeastUtils.MatrixUtils, BeastUtils.TreeUtils
@@ -125,7 +126,7 @@ mutable struct TraitSimulationModel
     end
 end
 
-function get_tree(tsm::TraitSubstitutionModel)
+function get_tree(tsm::TraitSimulationModel)
     return tsm.treeModel.tree
 end
 
