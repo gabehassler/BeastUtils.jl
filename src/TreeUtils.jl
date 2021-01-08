@@ -151,7 +151,7 @@ function rtree(labels::Array{<:AbstractString}; # leaf labels
         push!(net.names, nm)
     end
 
-    return net
+    return readTopology(writeTopology(net)) # hacky, but should catch some problems
 end
 
 
@@ -202,6 +202,7 @@ function vcv(net::HybridNetwork, taxa::Vector{String})
 end
 
 function scale_to!(net::HybridNetwork, height::Float64)
+    preorder!(net)
     original_height = maximum(getNodeAges(net))
     mult = height / original_height
     for edge in net.edge
