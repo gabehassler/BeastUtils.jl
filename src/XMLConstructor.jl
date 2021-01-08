@@ -1,6 +1,7 @@
 module XMLConstructor
 
 export BEASTXMLElement,
+       MCMCOptions,
        save_xml,
        make_residual_xml,
        make_pfa_xml,
@@ -31,6 +32,31 @@ abstract type AbstractDataXMLElement <: MyXMLElement end
 mutable struct BEASTXMLElement
     el::XMLOrNothing
     components::Vector{MyXMLElement}
+end
+
+mutable struct MCMCOptions
+    chain_length::Int
+    file_log_every::Int
+    screen_log_every::Int
+    likelihood_check_count::Int
+end
+
+function MCMCOptions(;
+                     chain_length::Int = 10_000,
+                     file_log_every::Int = maximum(1, div(chain_length, 1_000)),
+                     screen_log_every::Int = file_log_every,
+                     likelihood_check_count::Int = -1)
+
+    if likelihood_check_count == -1
+        check_count = div(chain_length, 10)
+        check_count = maximum(check_count, 100)
+        check_count = minimum(check_count, 1000)
+    else
+        check_count = likelihood_check_count
+    end
+
+    return MCMCOptions(chain_length, file_log_every, screen_log_every,
+                       likelihood_check_count)
 end
 
 import Base.show

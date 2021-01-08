@@ -1,3 +1,11 @@
+# general tools
+
+function set_options!(bx::BEASTXMLElement, options::MCMCOptions)
+    mcmc = get_mcmc(bx)
+    set_options!(mcmc, options)
+end
+
+
 # contstructors for specific, commonly run analyses
 
 function make_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
@@ -309,6 +317,66 @@ function add_MBD_loggables!(bx::BEASTXMLElement)
 
     return loggables
 end
+
+# function make_oldPFA_XML(data::Matrix{Float64}, taxa::Vector{T},
+#     newick::String, k::Int;
+#     chain_length::Int = 100,
+#     timing::Bool = false) where T <: AbstractString
+
+#     beastXML = BEASTXMLElement()
+#     beastXML.data_el = DataXMLElement([data, zeros(size(data, 1), k)],
+#                 [bn.DEFAULT_TRAIT_NAME, bn.FACTOR_TRAIT_NAME], taxa, newick)
+#     beastXML.newick_el = NewickXMLElement(newick)
+#     beastXML.treeModel_el = TreeModelXMLElement(beastXML.newick_el,
+#                                                 size(data, 2))
+#     beastXML.MBD_el = MBDXMLElement(k)
+#     beastXML.MBD_el.is_random = false
+#     beastXML.MBD_el.diagonal_prec = true
+
+#     beastXML.traitLikelihood_el = TraitLikelihoodXMLElement(beastXML.MBD_el,
+#                         beastXML.treeModel_el, nothing)
+
+#     beastXML.traitLikelihood_el.xml_name = bn.MULTIVARIATE_TRAIT_LIKELIHOOD
+
+#     beastXML.extension_el = LatentFactorModelXMLElement(beastXML.treeModel_el,
+#                                             beastXML.traitLikelihood_el, k)
+
+
+#     beastXML.traitLikelihood_el.attrs[bn.TRAIT_NAME] = bn.DEFAULT_FACTOR_NAME
+
+#     delete!(beastXML.traitLikelihood_el.attrs, bn.ALLOW_SINGULAR)
+
+
+
+
+
+#     loadings_op = OldLoadingsGibbsOperatorXMLElement(beastXML.extension_el)
+#     prec_op = LatentFactorModelPrecisionOperatorXMLElement(beastXML.extension_el)
+#     fac_op = FactorTreeGibbsOperatorXMLElement(beastXML.extension_el,
+#                 beastXML.traitLikelihood_el)
+
+
+#     beastXML.operators_el = OperatorsXMLElement([loadings_op, prec_op, fac_op])
+
+
+#     beastXML.mcmc_el = MCMCXMLElement(beastXML.traitLikelihood_el,
+#                                     beastXML.MBD_el,
+#                                     beastXML.extension_el,
+#                                     beastXML.operators_el,
+#                                     chain_length = chain_length)
+
+#     if timing
+
+#     beastXML.mcmc_el.attrs[bn.FULL_EVALUATION] = "0"
+#     filename = beastXML.mcmc_el.filename
+#     beastXML.timer_el = TimerXMLElement(beastXML.mcmc_el)
+#     beastXML.timer_el.filename = "$(filename)_timer.txt"
+#     end
+
+#     return beastXML
+
+
+# end
 
 
 # ## TODO: need to update below

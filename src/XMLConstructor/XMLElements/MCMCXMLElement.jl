@@ -58,9 +58,17 @@ mutable struct MCMCXMLElement <: MyXMLElement
                     fle, sle, lg_el, filename, true, attrs,
                     MyXMLElement[])
     end
+end
 
+function set_options!(mcmc::MCMCXMLElement, options::MCMCOptions)
+    mcmc.chain_length = options.chain_length
+    mcmc.file_logEvery = options.file_log_every
+    mcmc.screen_logEvery = options.screen_log_every
+    set_full_eval!(mcmc, options.likelihood_check_count)
+end
 
-
+function set_full_eval!(mcmc::MCMCXMLElement, n_eval::Int)
+    mcmc.attrs[bn.FULL_EVALUATION] = string(n_eval)
 end
 
 function make_xml(mc_el::MCMCXMLElement)

@@ -20,9 +20,9 @@ function set_data_dates(bx::BEASTXMLElement, dates::AbstractVector{Float64})
     set_dates(data_el, dates)
 end
 
-function set_full_eval(bx::BEASTXMLElement, n_eval::Int)
+function set_full_eval!(bx::BEASTXMLElement, n_eval::Int)
     mcmc = get_mcmc(bx)
-    mcmc.attrs[bn.FULL_EVALUATION] = string(n_eval)
+    set_full_eval!(mcmc, n_eval)
 end
 
 ## Model Parameters
