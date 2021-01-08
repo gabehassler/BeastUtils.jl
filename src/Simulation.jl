@@ -7,7 +7,7 @@ export TreeDiffusionModel,
        simulate
 
 using PhyloNetworks, LinearAlgebra, LinearAlgebra.BLAS, DataFrames, Distributions
-using BeastUtils.MatrixUtils
+using BeastUtils.MatrixUtils, BeastUtils.TreeUtils
 
 abstract type ModelExtension end
 
@@ -78,6 +78,23 @@ function treeDimension(x::ResidualVarianceModel)
     return size(x.Γ, 1)
 end
 
+function randomLFM(k::Int, p::Int;
+                    L_dist::UnivariateDistribution = Normal(0, 1),
+                    Λ_dist::UnivariateDistribution = Gamma(2, 0.25))
+    L = rand(L_dist, k, p)
+    λ = rand(Λ_dist, p)
+    return LatentFactorModel(L, Diagonal(λ))
+end
+
+function randomFactorSimulationModel(n::Int, k::Int, p::Int)
+    tree = TreeUtils.rtree(n, ultrametric = true)
+    standardize_height!(tree)
+    lfm = randomLFM(k, p)
+    tsm = TraitSimulationModel(tipLabels(tree), tree, lfm)
+    return tsm
+end
+
+
 mutable struct TraitSimulationModel
     taxa::AbstractArray{T, 1} where T <: AbstractString
     treeModel::TreeDiffusionModel
@@ -100,6 +117,20 @@ mutable struct TraitSimulationModel
         treeModel = TreeDiffusionModel(tree, treeDimension(extensionModel))
         return new(taxa, treeModel, extensionModel)
     end
+
+    function TraitSimulationModel(tree::Union{String, HybridNetwork},
+                                  extensionModel::ModelExtension)
+        treeModel = TreeDiffusionModel(tree, treeDimension(extensionModel))
+        return new(tipLabels(tree), treeModel, extensionModel)
+    end
+end
+
+function get_tree(tsm::TraitSubstitutionModel)
+    return tsm.treeModel.tree
+end
+
+function get_newick(tsm::TraitSimulationModel)
+    return writeTopology(get_tree(tsm))
 end
 
 
