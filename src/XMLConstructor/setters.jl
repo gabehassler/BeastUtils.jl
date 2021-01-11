@@ -1,5 +1,10 @@
 ## set parts of BeastXML
 
+function set_chain_length!(bx::BEASTXMLElement, cl::Int)
+    mcmc_el = get_mcmc(bx)
+    set_chain_length!(mcmc_el, cl)
+end
+
 function set_screen_logEvery(bx::BEASTXMLElement, sle::Int)
     mcmc_el = get_mcmc(bx)
     set_screen_logEvery(mcmc_el, sle)
@@ -44,5 +49,10 @@ end
 function set_muliplicative_gamma_indices(bx::BEASTXMLElement, inds::Vector{Int})
     op = get_multiplicative_gamma_op(bx)
     set_indices!(op, inds)
+end
+
+function set_options!(bx::BEASTXMLElement, options::MCMCOptions)
+    mcmc = get_mcmc(bx)
+    set_options!(mcmc, options)
 end
 

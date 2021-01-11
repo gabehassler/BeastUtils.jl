@@ -67,6 +67,10 @@ function set_options!(mcmc::MCMCXMLElement, options::MCMCOptions)
     set_full_eval!(mcmc, options.likelihood_check_count)
 end
 
+function set_chain_length!(mcmc::MCMCXMLElement, cl::Int)
+    mcmc.chain_length = cl
+end
+
 function set_full_eval!(mcmc::MCMCXMLElement, n_eval::Int)
     mcmc.attrs[bn.FULL_EVALUATION] = string(n_eval)
 end

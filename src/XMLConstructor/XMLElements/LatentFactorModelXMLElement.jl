@@ -131,7 +131,7 @@ function make_loadings_prior(lfxml::LatentFactorModelXMLElement)
     m_el = new_child(ndm_el, bn.MEAN)
     add_parameter(m_el, value = [0.0])
     std_el = new_child(ndm_el, bn.STDEV)
-    add_parameter(std_el, value =[1.0], lower="0")
+    add_parameter(std_el, value =[1.0], lower=0.0)
 
     return el
 end

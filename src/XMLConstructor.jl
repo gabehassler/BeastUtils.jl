@@ -15,7 +15,11 @@ export BEASTXMLElement,
        JointProcessModel,
        DataModel,
        tip_dimension,
-       data_dimension
+       data_dimension,
+       set_options!,
+       set_chain_length!,
+       get_operators,
+       set_file_logEvery
 
 
 using LightXML, LinearAlgebra, DataFrames, PhyloNetworks, UnPack
