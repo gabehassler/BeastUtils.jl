@@ -122,7 +122,7 @@ function csv_to_data(path::String)
 end
 
 function csv_to_traitdata(path::String)
-    df = CSV.read(path, missingstrings=["", "NA"])
+    df = DataFrame(CSV.File(path, missingstrings=["", "NA"]))
     return df_to_traitdata(df)
 end
 
