@@ -191,7 +191,7 @@ function find_element_ind(bx::BEASTXMLElement, type::Type)
     found = findall(x -> typeof(x) <: type, bx.components)
 
     if length(found) == 0
-        error("No elements of type $type.")
+        return nothing
     elseif length(found) > 1
         error("Multiple elements of type $type. " *
               "Please use function 'find_elements'.")

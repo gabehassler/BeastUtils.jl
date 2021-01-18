@@ -18,6 +18,10 @@ end
 function set_filename(bx::BEASTXMLElement, filename::AbstractString)
     mcmc_el = get_mcmc(bx)
     set_filename(mcmc_el, string(filename))
+    timer_el = get_timer(bx)
+    if !isnothing(timer_el)
+        set_filename(timer_el, "$(filename)_timer.txt")
+    end
 end
 
 function set_data_dates(bx::BEASTXMLElement, dates::AbstractVector{Float64})

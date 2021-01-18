@@ -42,6 +42,10 @@ function get_mcmc(bx::BEASTXMLElement)
     return find_element(bx, MCMCXMLElement)
 end
 
+function get_timer(bx::BEASTXMLElement)
+    return find_element(bx, TimerXMLElement)
+end
+
 function get_loadings_op(bx::BEASTXMLElement)
     ops = get_operators(bx)
     for op in ops

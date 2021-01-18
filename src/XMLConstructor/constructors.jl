@@ -338,7 +338,7 @@ function make_old_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
         filename = mcmc_el.filename
         timer_el = TimerXMLElement(mcmc_el)
         timer_el.filename = "$(filename)_timer.txt"
-        add_child(timer_el)
+        add_child(beastXML, timer_el)
     end
 
     return beastXML

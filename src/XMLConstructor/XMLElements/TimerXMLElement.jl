@@ -21,3 +21,7 @@ function make_xml(t_el::TimerXMLElement)
     t_el.el = el
     return el
 end
+
+function set_filename(t::TimerXMLElement, fn::String)
+    t.filename = fn
+end
