@@ -12,6 +12,7 @@ end
 function make_xml(op::LatentFactorModelPrecisionOperatorXMLElement)
     el = new_element(bn.LAT_FAC_PREC_OP)
     set_attribute(el, bn.WEIGHT, op.weight)
+    set_attribute(el, bn.RANDOM_SCAN, bn.FALSE)
 
     make_xml(op.lfm)
     add_ref_el(el, op.lfm.el)
