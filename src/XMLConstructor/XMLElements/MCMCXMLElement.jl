@@ -166,3 +166,7 @@ function merge_mcmc!(mcmc::MCMCXMLElement, pmcmc::ParsedMCMCXMLElement)
     mcmc.priors = [mcmc.priors; pmcmc.priors]
     push!(mcmc.extras, pmcmc.tree_log)
 end
+
+function add_prior!(mcmc::MCMCXMLElement, xml::MyXMLElement)
+    push!(mcmc.priors, xml)
+end

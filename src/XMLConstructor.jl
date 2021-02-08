@@ -120,6 +120,8 @@ include(joinpath(element_dir, "ScaledOrthogonalMatrix.jl"))
 include(joinpath(element_dir, "MultivariateGammaLikelihood.jl"))
 include(joinpath(element_dir, "NormalDistributionLikelihood.jl"))
 include(joinpath(element_dir, "MultiplicativeScalePrior.jl"))
+include(joinpath(element_dir, "ForceOrderedLikelihood.jl"))
+
 
 
 include(joinpath(dir, "utils.jl"))

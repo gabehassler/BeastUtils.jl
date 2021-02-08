@@ -76,3 +76,8 @@ function get_multiplicative_gamma_op(bx::BEASTXMLElement)
     end
     error("No multiplicative gamma gibbs operator.")
 end
+
+function get_loadings_scale(bx::BEASTXMLElement)
+    ifm = get_integratedFactorModel(bx)
+    return get_loadings_scale(ifm)
+end

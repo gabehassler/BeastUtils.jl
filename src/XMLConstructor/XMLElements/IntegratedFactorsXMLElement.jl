@@ -249,3 +249,13 @@ function set_precision(ifa::IntegratedFactorsXMLElement,
     end
     ifa.precision = precs
 end
+
+function get_loadings_scale(ifm::IntegratedFactorsXMLElement)
+    loadings = ifm.loadings
+    if typeof(loadings) <: ScaledOrthogonalMatrix
+        return loadings.scale
+    else
+        error("Scale matrix does not exist " *
+              "(loadings must be of type ScaledOrthogonalMatrix).")
+    end
+end

@@ -102,6 +102,7 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
                                  timing::Bool=false,
                                  log_factors::Bool=false,
                                  rotate_prior::Bool=false,
+                                 force_ordered::Bool=false,
                                  fle::Int=10,
                                  sle::Int=100) where T <: AbstractString
 
@@ -121,6 +122,12 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
 
     if_el = IntegratedFactorsXMLElement(treeModel_el, k, orthonormal = true)
     add_child(beastXML, if_el)
+
+    if force_ordered
+        load_scale = get_loadings_scale(if_el)
+        fol_el = ForceOrderedLikelihood(load_scale)
+        add_child(beastXML, fol_el)
+    end
 
     mult_vals = [1.0 for i = 1:k]
     mult_shapes = [shrinkage for i = 1:k]
@@ -174,6 +181,11 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
 
     ops_vec = [loadings_op, scale_op, mults_op, normal_gamma_op]
 
+    if force_ordered
+        cso = ColumnSwapOperator(if_el.loadings.U, 1.0)
+        push!(ops_vec, cso)
+    end
+
 
     operators_el = OperatorsXMLElement(ops_vec)
     add_child(beastXML, operators_el)
@@ -188,6 +200,10 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
                         if_el,
                         operators_el,
                         chain_length=chain_length)
+    if force_ordered
+        add_prior!(mcmc_el, fol_el)
+    end
+
     add_child(beastXML, mcmc_el)
 
     mcmc_el.file_logEvery = fle
