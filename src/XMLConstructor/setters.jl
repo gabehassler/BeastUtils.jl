@@ -17,6 +17,9 @@ end
 
 function set_filename(bx::BEASTXMLElement, filename::AbstractString)
     mcmc_el = get_mcmc(bx)
+    if isnothing(mcmc_el)
+        error("No MCMC component. Cannot set log file names.")
+    end
     set_filename(mcmc_el, string(filename))
     timer_el = get_timer(bx)
     if !isnothing(timer_el)

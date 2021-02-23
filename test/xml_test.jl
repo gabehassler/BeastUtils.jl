@@ -9,11 +9,11 @@ using DataFrames, CSV, Test
 function make_mbd(data_path::String, newick_path::String, xml_path::String,
                 filename::String; dates_path::String = "")
 
-    df = CSV.read(data_path)
+    df = DataFrame(CSV.File(data_path))
 
     use_dates = false
     if length(dates_path) > 0
-        dates_df = CSV.read(dates_path)
+        dates_df = DataFrame(CSV.File(dates_path))
         @assert dates_df[!, :taxon] == df[!, :taxon]
         use_dates = true
     end
@@ -60,7 +60,7 @@ filename = "test"
 CSV.write(data_path, df)
 CSV.write(dates_path, DataFrame(taxon = taxa, date = dates))
 
-newick = writeTopology(TreeUtils.rtree(n, labels = taxa))
+newick = writeTopology(TreeUtils.rtree(taxa))
 write(newick_path, newick)
 
 
@@ -128,7 +128,7 @@ p_diff = k + p_res
 
 taxa = ["taxon_$i" for i = 1:n]
 
-tree = rtree(n, labels=taxa)
+tree = rtree(taxa)
 newick = writeTopology(tree)
 
 rm = ResidualVarianceModel(p_res)
@@ -160,7 +160,7 @@ k = 2
 p = 10
 n = length(taxa)
 data = randn(n, p)
-newick = writeTopology(rtree(n, labels = taxa))
+newick = writeTopology(rtree(taxa))
 
 bx = XMLConstructor.make_pfa_xml(data, taxa, newick, k, useHMC = false)
 XMLConstructor.save_xml("facGibbs.xml", bx)
@@ -171,3 +171,14 @@ XMLConstructor.merge_xml!(bx, bx_seq)
 XMLConstructor.save_xml("merge.xml", bx);
 # print(xml)
 
+################################################################################
+## Sampled factor model with integrated factors sampler
+################################################################################
+k = 2
+p = 10
+n = length(taxa)
+data = randn(n, p)
+newick = writeTopology(rtree(taxa))
+
+bx = XMLConstructor.make_sampled_pfa_xml(data, taxa, newick, k)
+save_xml("facSampledHMC.xml", bx, change_filename=false)

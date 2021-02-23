@@ -175,3 +175,30 @@ function make_xml(xml::ShrinkageScaleOperators)
     end
 
 end
+
+
+################################################################################
+## joint operator
+################################################################################
+
+mutable struct JointOperator <: OperatorXMLElement
+    el::XMLOrNothing
+    operators::Vector{<:OperatorXMLElement}
+    weight::Float64
+
+    function JointOperator(operators::Vector{<:OperatorXMLElement},
+                           weight::Float64)
+        return new(nothing, operators, weight)
+    end
+end
+
+function make_xml(jo::JointOperator)
+    el = new_element(bn.JOINT_OPERATOR)
+    for op in jo.operators
+        op_el = make_xml(op)
+        add_child(el, op_el)
+    end
+    set_attribute(el, bn.WEIGHT, jo.weight)
+    jo.el = el
+    return el
+end

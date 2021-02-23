@@ -360,6 +360,127 @@ function make_old_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
     return beastXML
 end
 
+function make_sampled_pfa_xml(data::Matrix{Float64}, taxa::Vector{<:AbstractString},
+                              newick::String, k::Int;
+                              chain_length::Int = 100,
+                              timing::Bool = false,
+                              force_ordered::Bool = false,
+                              shrinkage::Float64 = 1e2,
+                              shrink_first::Bool = false)
+
+    beastXML = BEASTXMLElement()
+
+    data_el = DataXMLElement([data, zeros(size(data, 1), k)],
+                [bn.DEFAULT_TRAIT_NAME, bn.FACTOR_TRAIT_NAME], taxa, newick)
+    add_child(beastXML, data_el)
+
+    newick_el = NewickXMLElement(newick)
+    add_child(beastXML, newick_el)
+
+    treeModel_el = TreeModelXMLElement(newick_el, size(data, 2))
+    add_child(beastXML, treeModel_el)
+
+    MBD_el = MBDXMLElement(k, diagonal_prec=true)
+    MBD_el.is_random = false
+    add_child(beastXML, MBD_el)
+
+    if_el = IntegratedFactorsXMLElement(treeModel_el, k, orthonormal = true)
+    add_child(beastXML, if_el)
+
+    if force_ordered
+        load_scale = get_loadings_scale(if_el)
+        fol_el = ForceOrderedLikelihood(load_scale)
+        add_child(beastXML, fol_el)
+    end
+
+    mult_vals = [1.0 for i = 1:k]
+    mult_shapes = [shrinkage for i = 1:k]
+    mult_scales = ones(k)
+
+    if !shrink_first
+        mult_vals[1] = 1.0
+        mult_shapes[1] = 1.0
+    end
+
+    mults = Parameter(mult_vals, "mults")
+
+    mults_prior = MultivariateGammaLikelihood(mults, mult_shapes, mult_scales,
+                                              "mults.likelihood")
+
+
+
+    precs = MultiplicativeParameter(mults, "globalPrecision")
+
+    loadings_prior = NormalMatrixNormLikelihood(precs, if_el.loadings, "scale.prior")
+
+    multiplicative_prior = MultiplicativeScalePrior(mults, precs, mults_prior,
+                                loadings_prior)
+
+    if_el.loadings_prior = multiplicative_prior
+
+    traitLikelihood_el = TraitLikelihoodXMLElement(MBD_el, treeModel_el, if_el)
+    add_child(beastXML, traitLikelihood_el)
+
+    traitLikelihood_el.attrs[bn.TRAIT_NAME] = bn.DEFAULT_FACTOR_NAME
+    traitLikelihood_el.attrs[bn.ALLOW_SINGULAR] = bn.TRUE
+    traitLikelihood_el.attrs[bn.STANDARDIZE] = bn.FALSE
+    traitLikelihood_el.attrs[bn.ID] = "integratedTreeLikelihood"
+
+    traitLikelihood_el2 = TraitLikelihoodXMLElement(MBD_el,
+                                                   treeModel_el, nothing)
+    traitLikelihood_el2.xml_name = bn.MULTIVARIATE_TRAIT_LIKELIHOOD
+    traitLikelihood_el2.attrs[bn.TRAIT_NAME] = bn.DEFAULT_FACTOR_NAME
+    delete!(traitLikelihood_el2.attrs, bn.ALLOW_SINGULAR)
+    add_child(beastXML, traitLikelihood_el2)
+
+    lfm_el = LatentFactorModelXMLElement(treeModel_el,
+                                         traitLikelihood_el2, k)
+    lfm_el.parameters_already_made = true
+    lfm_el.loadings_prior = if_el.loadings_prior
+    lfm_el.loadings = if_el.loadings
+    add_child(beastXML, lfm_el)
+
+    fac_op = IntegratedFactorsGibbsOperator(traitLikelihood_el2,
+                                            traitLikelihood_el, if_el, 1.0)
+
+
+    loadings_gradient = SampledLoadingsGradient(lfm_el)
+    U_grad = ScaledMatrixGradient(loadings_gradient, "matrix")
+    loadings_op = HMCOperatorXMLElement(if_el, [U_grad], geodesic=true)
+
+    scale_grad = ScaledMatrixGradient(loadings_gradient, "scale")
+    scale_op = HMCOperatorXMLElement(if_el.loadings.scale,
+                                        [scale_grad, loadings_prior],
+                                        already_made = [false, true],
+                                        transform = "log")
+
+    mults_op = NormalGammaPrecisionOperatorXMLElement(if_el.loadings_prior)
+
+    normal_gamma_op = NormalGammaPrecisionOperatorXMLElement(if_el,
+                                                             traitLikelihood_el)
+
+    U_joint = JointOperator([fac_op, loadings_op], 1.0)
+    scale_joint = JointOperator([fac_op, scale_op], 1.0)
+
+    ops_vec = [U_joint, scale_joint, mults_op, normal_gamma_op]
+    operators_el = OperatorsXMLElement(ops_vec)
+    add_child(beastXML, operators_el)
+
+    mcmc = MCMCXMLElement(traitLikelihood_el2,
+                          MBD_el,
+                          lfm_el,
+                          operators_el,
+                          chain_length = chain_length)
+    add_child(beastXML, mcmc)
+
+
+    return beastXML
+end
+
+
+
+
+
 
 ################################################################################
 ## Lower level constructors

@@ -65,6 +65,12 @@ function make_xml(hmcxml::HMCOperatorXMLElement)
     return el
 end
 
+################################################################################
+## Factor model loadings gradients
+################################################################################
+
+
+## loadings prior
 mutable struct LoadingsGradientXMLElement <: MyXMLElement
     el::XMLOrNothing
     ifxml::IntegratedFactorsXMLElement
@@ -84,6 +90,7 @@ function make_xml(gxml::LoadingsGradientXMLElement)
     return el
 end
 
+## integrated likelihood
 mutable struct FactorLoadingsGradientXMLElement <: MyXMLElement
     el::XMLOrNothing
     ifxml::IntegratedFactorsXMLElement
@@ -100,22 +107,6 @@ mutable struct FactorLoadingsGradientXMLElement <: MyXMLElement
 
 end
 
-function NormalizedLoadingsGradientXMLElement(
-    ifxml::IntegratedFactorsXMLElement,
-    tdlxml::TraitLikelihoodXMLElement)
-    grad = FactorLoadingsGradientXMLElement(ifxml, tdlxml)
-    grad.name = bn.NORMALIZED_LOADINGS_GRADIENT
-    return grad
-end
-
-function ScaleLoadingsGradientXMLElement(
-    ifxml::IntegratedFactorsXMLElement,
-    tdlxml::TraitLikelihoodXMLElement)
-    grad = FactorLoadingsGradientXMLElement(ifxml, tdlxml)
-    grad.name = bn.SCALE_LOADINGS_GRADIENT
-    return grad
-end
-
 function make_xml(flgxml::FactorLoadingsGradientXMLElement)
     make_xml(flgxml.ifxml)
     make_xml(flgxml.tdlxml)
@@ -130,30 +121,67 @@ end
 
 
 
+mutable struct ScaledMatrixGradient <: MyXMLElement
+    el::XMLOrNothing
+    original_gradient::MyXMLElement
+    component::String
+
+    function ScaledMatrixGradient(
+            original_gradient::MyXMLElement,
+            component::String)
+        return new(nothing, original_gradient, component)
+    end
+end
+
+function make_xml(smg::ScaledMatrixGradient)
+    el = new_element(bn.SCALED_MATRIX_GRADIENT)
+    set_attribute(el, bn.COMPONENT, smg.component)
+    sub_el = make_xml(smg.original_gradient)
+    add_child(el, sub_el)
+    smg.el = el
+    return el
+end
+
+function NormalizedLoadingsGradientXMLElement(
+    ifxml::IntegratedFactorsXMLElement,
+    tdlxml::TraitLikelihoodXMLElement)
+    grad = FactorLoadingsGradientXMLElement(ifxml, tdlxml)
+    return ScaledMatrixGradient(grad, bn.MATRIX)
+end
+
+function ScaleLoadingsGradientXMLElement(
+    ifxml::IntegratedFactorsXMLElement,
+    tdlxml::TraitLikelihoodXMLElement)
+    grad = FactorLoadingsGradientXMLElement(ifxml, tdlxml)
+    return ScaledMatrixGradient(grad, bn.SCALE)
+end
+
+## sampled likelihood
+mutable struct SampledLoadingsGradient <: MyXMLElement
+    el::XMLOrNothing
+    factor_model::LatentFactorModelXMLElement
+    gibbs_op::OldLoadingsGibbsOperatorXMLElement
+
+    function SampledLoadingsGradient(
+            factor_model::LatentFactorModelXMLElement,
+            gibbs_op::OldLoadingsGibbsOperatorXMLElement)
+        return new(nothing, factor_model, gibbs_op)
+    end
+end
+
+function SampledLoadingsGradient(factor_model::LatentFactorModelXMLElement)
+    gibbs_op = OldLoadingsGibbsOperatorXMLElement(factor_model)
+    return SampledLoadingsGradient(factor_model, gibbs_op)
+end
+
+function make_xml(slg::SampledLoadingsGradient)
+    el = new_element(bn.SAMPLED_LOADINGS_GRADIENT)
+    fac_el = make_xml(slg.factor_model)
+    add_ref_el(el, fac_el)
+    op_el = make_xml(slg.gibbs_op)
+    add_child(el, op_el)
+    slg.el = el
+    return el
+end
 
 
-
-
-
-
-
-# <hamiltonianMonteCarloOperator weight="5.0" nSteps="1" stepSize="0.05" drawVariance="1.0" autoOptimize="true" gradientCheckCount="100000">
-#             <jointGradient>
-#                 <!--                <gradient>-->
-#                 <!--                    <distributionLikelihood idref="L.prior"/>-->
-#                 <!--                    <matrixParameter idref="L"/>-->
-#                 <!--                </gradient>-->
-#                 <loadingsShrinkageGradient id="L.grad">
-#                     <matrixParameter idref="L"/>
-#                     <rowPriors>
-#                         <bayesianBridge idref="bb1"/>
-#                         <bayesianBridge idref="bb2"/>
-#                     </rowPriors>
-#                 </loadingsShrinkageGradient>
-#                 <integratedFactorAnalysisLoadingsGradient threadType="parallel">
-#                     <integratedFactorModel idref="factorModel"/>
-#                     <traitDataLikelihood idref="traitLikelihood"/>
-#                 </integratedFactorAnalysisLoadingsGradient>
-#             </jointGradient>
-#             <matrixParameter idref="L"/>
-#         </hamiltonianMonteCarloOperator>

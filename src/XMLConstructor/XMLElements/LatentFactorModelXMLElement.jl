@@ -1,9 +1,8 @@
 mutable struct LatentFactorModelXMLElement <: ModelExtensionXMLElement
     el::XMLOrNothing
-    loadings_el::XMLOrNothing
-    loadings_prior_el::XMLOrNothing
     precision_prior_el::XMLOrNothing
-    loadings::S where S <: AbstractArray{Float64, 2}
+    loadings::MyXMLElement
+    loadings_prior::MyXMLElement
     precision::S where S <: AbstractArray{Float64, 1}
     precision_scale::Float64
     precision_shape::Float64
@@ -12,6 +11,7 @@ mutable struct LatentFactorModelXMLElement <: ModelExtensionXMLElement
     tree_trait_ind::Int
     trait_name::String
     standardize_traits::Bool
+    parameters_already_made::Bool
 
     function LatentFactorModelXMLElement(treeModel_xml::TreeModelXMLElement,
                 tl_xml::TraitLikelihoodXMLElement, k::Int)
@@ -20,19 +20,23 @@ mutable struct LatentFactorModelXMLElement <: ModelExtensionXMLElement
         p = treeModel_xml.trait_dims[1]
 
         L = default_loadings(k, p)
+        L_param = MatrixParameter(L, bn.DEFAULT_LOADINGS_ID)
 
         trait_name = treeModel_xml.node_traits[1]
         precision = ones(p)
         precision_scale = 1.0
         precision_shape = 1.0
         tree_trait_ind = 1
-        return new(nothing, nothing, nothing, nothing,
-                L,
+        return new(nothing, nothing,
+                L_param,
+                NormalDistributionLikelihood(
+                                        L_param,
+                                        bn.DEFAULT_LOADINGS_ID * ".prior"),
                 precision, precision_scale,
                 precision_shape,
                 treeModel_xml,
                 tl_xml,
-                tree_trait_ind, trait_name, true)
+                tree_trait_ind, trait_name, true, false)
     end
 end
 
@@ -51,7 +55,7 @@ end
 
 function make_xml(lfxml::LatentFactorModelXMLElement)
 
-    lfxml.loadings_el = make_lf_loadings(lfxml.loadings)
+
     # set_attribute(lfxml.loadings_el, bn.ID, bn.LOADINGS)
 
     el = new_element(bn.LATENT_FACTOR_MODEL)
@@ -76,7 +80,7 @@ function make_xml(lfxml::LatentFactorModelXMLElement)
 
     add_ref_el(el, lfxml.treeModel.el)
     l_el = new_child(el,bn.LOADINGS)
-    add_ref_el(l_el, lfxml.loadings_el)
+    add_ref_el(l_el, lfxml.loadings)
 
     rp_el = new_child(el, bn.ROW_PRECISION)
     dm_el = new_child(rp_el, bn.DIAGONAL_MATRIX)
@@ -84,7 +88,11 @@ function make_xml(lfxml::LatentFactorModelXMLElement)
 
     cp_el = new_child(el, bn.COL_PRECISION)
     dm_el = new_child(cp_el, bn.DIAGONAL_MATRIX)
-    add_parameter(dm_el, value=lfxml.precision, id=bn.FACTOR_PRECISION)
+    if lfxml.parameters_already_made
+        add_ref_el(dm_el, bn.PARAMETER, bn.FACTOR_PRECISION)
+    else
+        add_parameter(dm_el, value=lfxml.precision, id=bn.FACTOR_PRECISION)
+    end
 
 
 
@@ -92,7 +100,7 @@ function make_xml(lfxml::LatentFactorModelXMLElement)
 
     lfxml.precision_prior_el = make_precision_prior(lfxml)
 
-    lfxml.loadings_prior_el = make_loadings_prior(lfxml)
+    # lfxml.loadings_prior_el = make_loadings_prior(lfxml)
     return el
 end
 
@@ -107,44 +115,74 @@ end
 
 
 
-function make_lf_loadings(L::AbstractArray{Float64, 2})
-    el = new_element(bn.MATRIX_PARAMETER)
-    set_attribute(el, bn.ID, bn.DEFAULT_LOADINGS_ID)
-    n, p = size(L)
-    for i = 1:n
-        add_parameter(el, id = "$(bn.DEFAULT_LOADINGS_ID)$i",
-                        value = L[i, :])
-    end
-    return el
-end
+# function make_lf_loadings(L::AbstractArray{Float64, 2})
+#     el = new_element(bn.MATRIX_PARAMETER)
+#     set_attribute(el, bn.ID, bn.DEFAULT_LOADINGS_ID)
+#     n, p = size(L)
+#     for i = 1:n
+#         add_parameter(el, id = "$(bn.DEFAULT_LOADINGS_ID)$i",
+#                         value = L[i, :])
+#     end
+#     return el
+# end
 
-function make_loadings_prior(lfxml::LatentFactorModelXMLElement)
-    el = new_element(bn.DISTRIBUTION_LIKELIHOOD)
-    set_attribute(el, bn.ID, "$(bn.DEFAULT_LOADINGS_ID).prior")
+# mutable struct NormalDistributionLikelihood <: MyXMLElement
+#     el::XMLOrNothing
+#     parameter::MyXMLElement
+#     μ::Float64
+#     σ::Float64
 
-    d_el = new_child(el, bn.DATA)
-    add_ref_el(d_el, lfxml.loadings_el)
-    dist_el = new_child(el, bn.DISTRIBUTION)
+#     function NormalDistributionLikelihood(parameter::MyXMLElement)
+#         return new(nothing, parameter, 0.0, 1.0)
+#     end
+# end
 
-    ndm_el = new_child(dist_el, bn.NORMAL_DISTRIBUTION_MODEL)
+# function make_xml(ndl::NormalDistributionLikelihood)
+#     el = new_element(bn.DISTRIBUTION_LIKELIHOOD)
+#     set_attribute(el, bn.ID, "$(get_id(ndl.parameter)).prior")
 
-    m_el = new_child(ndm_el, bn.MEAN)
-    add_parameter(m_el, value = [0.0])
-    std_el = new_child(ndm_el, bn.STDEV)
-    add_parameter(std_el, value =[1.0], lower=0.0)
+#     d_el = new_child(el, bn.DATA)
+#     add_ref_el(d_el, ndl.parameter)
+#     dist_el = new_child(el, bn.DISTRIBUTION)
 
-    return el
-end
+#     ndm_el = new_child(dist_el, bn.NORMAL_DISTRIBUTION_MODEL)
+
+#     m_el = new_child(ndm_el, bn.MEAN)
+#     add_parameter(m_el, value = [μ])
+#     std_el = new_child(ndm_el, bn.STDEV)
+#     add_parameter(std_el, value =[σ], lower=0.0)
+
+#     return el
+# end
+
+
+# function make_loadings_prior(lfxml::LatentFactorModelXMLElement)
+#     el = new_element(bn.DISTRIBUTION_LIKELIHOOD)
+#     set_attribute(el, bn.ID, "$(bn.DEFAULT_LOADINGS_ID).prior")
+
+#     d_el = new_child(el, bn.DATA)
+#     add_ref_el(d_el, lfxml.loadings_el)
+#     dist_el = new_child(el, bn.DISTRIBUTION)
+
+#     ndm_el = new_child(dist_el, bn.NORMAL_DISTRIBUTION_MODEL)
+
+#     m_el = new_child(ndm_el, bn.MEAN)
+#     add_parameter(m_el, value = [0.0])
+#     std_el = new_child(ndm_el, bn.STDEV)
+#     add_parameter(std_el, value =[1.0], lower=0.0)
+
+#     return el
+# end
 
 function get_priors(xml::LatentFactorModelXMLElement)
     make_xml(xml)
-    return [xml.loadings_prior_el, xml.precision_prior_el]
+    return [get_priors(xml.loadings_prior); xml.precision_prior_el]
 end
 
 function get_loggables(xml::LatentFactorModelXMLElement)
     make_xml(xml)
-    return [xml.loadings_el,
-            xml.el[bn.COL_PRECISION][1][bn.DIAGONAL_MATRIX][1][bn.PARAMETER][1]]
+    return [get_loggables(xml.loadings);
+            [xml.el[bn.COL_PRECISION][1][bn.DIAGONAL_MATRIX][1][bn.PARAMETER][1]]]
 end
 
 #

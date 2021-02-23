@@ -279,4 +279,10 @@ const SCALE_LOADINGS_GRADIENT = "scaleIntegratedLoadingsGradient"
 const MASK = "mask"
 
 const INDICES = "indices"
+
+const JOINT_OPERATOR = "jointOperator"
+const INTEGRATED_FACTOR_GIBBS = "integratedFactorsGibbsOperator"
+const SCALED_MATRIX_GRADIENT = "scaledMatrixGradient"
+const COMPONENT = "component"
+const SAMPLED_LOADINGS_GRADIENT = "sampledLoadingsGradient"
 end

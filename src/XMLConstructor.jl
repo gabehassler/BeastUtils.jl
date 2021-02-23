@@ -108,9 +108,9 @@ include(joinpath(element_dir, "LoggablesXMLElement.jl"))
 include(joinpath(element_dir, "MCMCXMLElement.jl"))
 include(joinpath(element_dir, "TimerXMLElement.jl"))
 include(joinpath(element_dir, "TraitValidationXMLElement.jl"))
+include(joinpath(element_dir, "OldLoadingsGibbsOperatorXMLElement.jl"))
 include(joinpath(element_dir, "HMCOperatorXMLElement.jl"))
 include(joinpath(element_dir, "LoadingsGibbsOperatorXMLElement.jl"))
-include(joinpath(element_dir, "OldLoadingsGibbsOperatorXMLElement.jl"))
 include(joinpath(element_dir, "LatentFactorPrecisionOperatorXMLElement.jl"))
 include(joinpath(element_dir, "FactorTreeGibbsOperatorXMLElement.jl"))
 include(joinpath(element_dir, "TraitLoggerXMLElement.jl"))
@@ -121,6 +121,8 @@ include(joinpath(element_dir, "MultivariateGammaLikelihood.jl"))
 include(joinpath(element_dir, "NormalDistributionLikelihood.jl"))
 include(joinpath(element_dir, "MultiplicativeScalePrior.jl"))
 include(joinpath(element_dir, "ForceOrderedLikelihood.jl"))
+include(joinpath(element_dir, "IntegratedFactorsGibbsOperator.jl"))
+
 
 
 
@@ -302,10 +304,14 @@ end
 
 function add_el(bx::BEASTXMLElement, lfm_el::LatentFactorModelXMLElement)
     make_xml(lfm_el)
-    add_child(bx.el, lfm_el.loadings_el)
-    add_child(bx.el, lfm_el.loadings_prior_el)
+    if !lfm_el.parameters_already_made
+        add_child(bx, lfm_el.loadings)
+        add_child(bx, lfm_el.loadings_prior)
+    end
     add_child(bx.el, lfm_el.el)
-    add_child(bx.el, lfm_el.precision_prior_el)
+    if !lfm_el.parameters_already_made
+        add_child(bx.el, lfm_el.precision_prior_el)
+    end
 end
 
 function add_el(bx::BEASTXMLElement, el::FactorLogPredictiveDensity)

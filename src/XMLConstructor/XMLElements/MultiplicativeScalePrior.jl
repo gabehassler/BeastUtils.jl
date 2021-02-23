@@ -18,6 +18,10 @@ function get_loggables(mps::MultiplicativeScalePrior)
     return [mps.mults.el]
 end
 
+function get_loadings_prior(msp::MultiplicativeScalePrior)
+    return msp.scale_prior
+end
+
 function NormalGammaPrecisionOperatorXMLElement(
     multiplicativeLikelihood::MultiplicativeScalePrior)
 

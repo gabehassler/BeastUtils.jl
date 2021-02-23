@@ -72,6 +72,13 @@ function set_scale!(som::ScaledOrthogonalMatrix, scale::Vector{Float64})
     set_value(som.scale, scale)
 end
 
+function size(som::ScaledOrthogonalMatrix, args...)
+    return size(som.U, args...)
+end
+
+function name(::ScaledOrthogonalMatrix)
+    return bn.SCALED_MATRIX
+end
 
 
 

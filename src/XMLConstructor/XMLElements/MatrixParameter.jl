@@ -1,7 +1,21 @@
+function get_id(param::MyXMLElement)::String
+    return param.id
+end
+
+function add_ref_el(el::XMLElement, param::MyXMLElement)
+    ref_el = new_element(name(param))
+    set_attribute(ref_el, bn.IDREF, get_id(param))
+    add_child(el, ref_el)
+end
+
+
+
+
 ################################################################################
 ## Parameter
 ################################################################################
 import Base: size
+import LightXML: name
 
 mutable struct Parameter <: MyXMLElement
     el::XMLOrNothing
@@ -40,6 +54,10 @@ function make_parameter(;id::String = "",
     end
 
     return el
+end
+
+function name(::Parameter)
+    return bn.PARAMETER
 end
 
 function add_parameter(pel::XMLElement; id::String = "",
@@ -109,6 +127,10 @@ end
 function MatrixParameter(mat::AbstractMatrix{Float64}, id::String)
     m = size(mat, 1)
     return MatrixParameter(mat, id, ["" for i = 1:m])
+end
+
+function name(::MatrixParameter)
+    return bn.MATRIX_PARAMETER
 end
 
 function make_xml(mp::MatrixParameter)

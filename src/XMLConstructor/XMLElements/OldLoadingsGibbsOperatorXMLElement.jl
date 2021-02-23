@@ -19,7 +19,7 @@ function make_xml(lgo::OldLoadingsGibbsOperatorXMLElement)
 
     make_xml(lgo.lfm)
     add_ref_el(el, lgo.lfm.el)
-    add_ref_el(el, lgo.lfm.loadings_prior_el)
+    add_ref_el(el, make_xml(get_loadings_prior(lgo.lfm.loadings_prior)))
 
     lgo.el = el
     return el
