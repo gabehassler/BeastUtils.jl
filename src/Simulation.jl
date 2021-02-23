@@ -5,7 +5,8 @@ export TreeDiffusionModel,
        LatentFactorModel,
        TraitSimulationModel,
        simulate,
-       get_newick
+       get_newick,
+       randomFactorSimulationModel
 
 using PhyloNetworks, LinearAlgebra, LinearAlgebra.BLAS, DataFrames, Distributions
 using BeastUtils.MatrixUtils, BeastUtils.TreeUtils
