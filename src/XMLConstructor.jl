@@ -182,6 +182,10 @@ end
 import LightXML: find_element
 
 function find_element(bx::BEASTXMLElement, type::Type)
+    ind = find_element_ind(bx, type)
+    if isnothing(ind)
+        return nothing
+    end
     return bx.components[find_element_ind(bx, type)]
 end
 
