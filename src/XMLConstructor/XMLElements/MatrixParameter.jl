@@ -30,6 +30,10 @@ function Parameter(val::Vector{Float64}, id::String; lower::Float64 = NaN)
     return Parameter(nothing, val, length(val), lower, NaN, id)
 end
 
+function Parameter(val::Vector{<:Real})
+    return Parameter(val, "")
+end
+
 
 function make_parameter(;id::String = "",
         value::AbstractArray{T} = Vector{Int8}(undef, 0),
@@ -231,3 +235,28 @@ function make_xml(mp::MultiplicativeParameter)
     mp.el = el
     return el
 end
+
+################################################################################
+## Masked parameter
+################################################################################
+
+mutable struct MaskedParameter <: MyXMLElement
+    el::XMLOrNothing
+    param::MyXMLElement
+    mask::Vector{Float64}
+
+    function MaskedParameter(param::MyXMLElement, mask::Vector{Float64})
+        return new(nothing, param, mask)
+    end
+end
+
+function make_xml(mp::MaskedParameter)
+    el = new_element(bn.MASKED_PARAMETER)
+    add_ref_el(el, mp.param)
+    m_el = new_child(el, bn.MASK)
+    add_child(m_el, make_xml(Parameter(mp.mask)))
+    mp.el = el
+    return el
+end
+
+

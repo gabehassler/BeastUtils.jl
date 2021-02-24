@@ -64,3 +64,7 @@ function make_loadings_gradient(loadings::MyXMLElement,
     return el
 end
 
+function get_loadings_prior(ndl::NormalDistributionLikelihood)
+    return ndl
+end
+

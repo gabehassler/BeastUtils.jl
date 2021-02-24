@@ -70,11 +70,12 @@ mutable struct ScaleOperator <: OperatorXMLElement
     el::XMLOrNothing
     param::MyXMLElement
     scale_factor::Float64
+    inds::Vector{Int}
     weight::Float64
 
     function ScaleOperator(param::MyXMLElement, scale_factor::Float64,
                            weight::Float64)
-        return new(nothing, param, scale_factor, weight)
+        return new(nothing, param, scale_factor, Int[], weight)
     end
 end
 
@@ -83,8 +84,18 @@ function ScaleOperator(param::MyXMLElement)
 end
 
 function make_xml(so::ScaleOperator)
-    make_xml(so.param)
-    el = make_scale_operator(so.param.el, so.scale_factor, so.weight)
+    el = new_element(bn.SCALE_OPERATOR)
+    set_attribute(el, bn.SCALE_FACTOR, so.scale_factor)
+    set_attribute(el, bn.WEIGHT, so.weight)
+    if length(so.inds) == 0
+        add_ref_el(el, so.param)
+    else
+        mask = zeros(length(so.param))
+        mask[so.inds] .= 1.0
+        mask_param = MaskedParameter(so.param, mask)
+        add_child(el, make_xml(mask_param))
+    end
+
     so.el = el
     return el
 end
@@ -125,11 +136,7 @@ end
 function make_scale_operator(param::XMLElement,
                             scale_factor::Float64,
                             weight::Float64)
-    el = new_element(bn.SCALE_OPERATOR)
-    set_attribute(el, bn.SCALE_FACTOR, scale_factor)
-    set_attribute(el, bn.WEIGHT, weight)
-    add_ref_el(el, param)
-    return el
+    return make_xml(ScaleOperator(param, scale_factor, weight))
 end
 
 function make_bb_operator(bb::XMLElement, weight::Float64)

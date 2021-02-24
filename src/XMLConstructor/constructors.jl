@@ -363,10 +363,16 @@ end
 function make_sampled_pfa_xml(data::Matrix{Float64}, taxa::Vector{<:AbstractString},
                               newick::String, k::Int;
                               chain_length::Int = 100,
-                              timing::Bool = false,
+                              timing::Bool = true,
                               force_ordered::Bool = false,
+                              shrink_first::Bool = false,
                               shrinkage::Float64 = 1e2,
-                              shrink_first::Bool = false)
+                              hmc_scale::Bool = true,
+                              log_scale::Bool = true,
+                              scale_together::Bool = true,
+                              always_draw_factors::Bool = true,
+                              fix_mults::Bool = false
+                              )
 
     beastXML = BEASTXMLElement()
 
@@ -448,21 +454,63 @@ function make_sampled_pfa_xml(data::Matrix{Float64}, taxa::Vector{<:AbstractStri
     U_grad = ScaledMatrixGradient(loadings_gradient, "matrix")
     loadings_op = HMCOperatorXMLElement(if_el, [U_grad], geodesic=true)
 
-    scale_grad = ScaledMatrixGradient(loadings_gradient, "scale")
-    scale_op = HMCOperatorXMLElement(if_el.loadings.scale,
+    scale_ops = Vector{MyXMLElement}(undef, scale_together ? 1 : k)
+
+
+    if hmc_scale
+        hmc_transform = log_scale ? "log" : ""
+        scale_grad = ScaledMatrixGradient(loadings_gradient, "scale")
+        if scale_together
+            scale_op = HMCOperatorXMLElement(if_el.loadings.scale,
+                                            [scale_grad, loadings_prior],
+                                            already_made = [false, true],
+                                            transform = hmc_transform)
+            scale_ops[1] = scale_op
+        else
+            for i = 1:k
+                mask = zeros(k)
+                mask[i] = 1.0
+                op = HMCOperatorXMLElement(if_el.loadings.scale,
                                         [scale_grad, loadings_prior],
                                         already_made = [false, true],
-                                        transform = "log")
+                                        transform = hmc_transform)
+                op.mask = mask
+                scale_ops[i] = op
+            end
+        end
+    else
+        if scale_together
+            scale_ops[1] = ScaleOperator(if_el.loadings.scale, 0.5, 1.0)
+        else
+            for i = 1:k
+                op = ScaleOperator(if_el.loadings.scale, 0.5, 1.0)
+                op.inds = [i]
+                scale_ops[i] = op
+            end
+        end
+    end
 
     mults_op = NormalGammaPrecisionOperatorXMLElement(if_el.loadings_prior)
 
     normal_gamma_op = NormalGammaPrecisionOperatorXMLElement(if_el,
                                                              traitLikelihood_el)
 
-    U_joint = JointOperator([fac_op, loadings_op], 1.0)
-    scale_joint = JointOperator([fac_op, scale_op], 1.0)
 
-    ops_vec = [U_joint, scale_joint, mults_op, normal_gamma_op]
+    if always_draw_factors
+        loadings_op = JointOperator([fac_op, loadings_op], 1.0)
+        scale_ops = [JointOperator([fac_op, so], 1.0) for so in scale_ops]
+    end
+
+
+
+    ops_vec = [loadings_op; scale_ops; normal_gamma_op]
+    if !always_draw_factors
+        push!(ops_vec, fac_op)
+    end
+    if !fix_mults
+        push!(ops_vec, mults_op)
+    end
+
     operators_el = OperatorsXMLElement(ops_vec)
     add_child(beastXML, operators_el)
 
@@ -471,7 +519,20 @@ function make_sampled_pfa_xml(data::Matrix{Float64}, taxa::Vector{<:AbstractStri
                           lfm_el,
                           operators_el,
                           chain_length = chain_length)
+    if force_ordered
+        add_prior!(mcmc, fol_el)
+    end
     add_child(beastXML, mcmc)
+
+    add_loggable(beastXML, if_el.loadings.U, already_made = true)
+
+    if timing
+        set_full_eval!(mcmc, 0)
+        filename = mcmc.filename
+        timer_el = TimerXMLElement(mcmc)
+        timer_el.filename = "$(filename)_timer.txt"
+        add_child(beastXML, timer_el)
+    end
 
 
     return beastXML

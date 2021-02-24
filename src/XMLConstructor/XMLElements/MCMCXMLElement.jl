@@ -16,7 +16,7 @@ mutable struct MCMCXMLElement <: MyXMLElement
                     mbd_el::MBDXMLElement,
                     rm_el::RepeatedMeasuresXMLElement,
                     os_el::OperatorsXMLElement; chain_length = 100)
-        fle = 10
+        fle = max(1, div(chain_length, 1000))
         sle = 1000
         filename = "defaultFile"
         lg_el = LoggablesXMLElement([mbd_el, rm_el], [true, true])
@@ -33,7 +33,7 @@ mutable struct MCMCXMLElement <: MyXMLElement
                     os_el::OperatorsXMLElement,
                     loggables::LoggablesXMLElement;
                     chain_length = 100)
-        fle = 10
+        fle = max(1, div(chain_length, 1000))
         sle = 1000
         filename = "defaultFile"
         attrs = Dict(bn.AUTO_OPTIMIZE => bn.TRUE)
@@ -48,7 +48,7 @@ mutable struct MCMCXMLElement <: MyXMLElement
                     mbd_el::MBDXMLElement,
                     if_el::Union{IntegratedFactorsXMLElement, LatentFactorModelXMLElement},
                     os_el::OperatorsXMLElement; chain_length = 100)
-        fle = 10
+        fle = max(1, div(chain_length, 1000))
         sle = 1000
         filename = "defaultFile"
         lg_el = LoggablesXMLElement([mbd_el, if_el], [true, true])

@@ -19,7 +19,8 @@ export get_log,
     condense_logs,
     make_log,
     compress_log,
-    compress_log!
+    compress_log!,
+    read_time
 
 const DELIM_CHAR = '\t'
 
@@ -408,6 +409,21 @@ function condense_logs(in_path::String, out_path::String; every = 20)
     new_lines[(first_ind + n_new + 1):m_new] .= lines[(last_ind + 1):m]
     write(out_path, join(new_lines, "\n"))
 end
+
+
+
+const TIME_DICT = Dict("seconds" => 1.0,
+                       "minutes" => 60.0,
+                       "hours" => 3600.0,
+                       "days" => 86400.0)
+
+
+function read_time(path::String; unit::String = "seconds")
+    t, u = split(read(path, String))
+    t = parse(Float64, t)
+    return t * TIME_DICT[u] / TIME_DICT[unit]
+end
+
 
 
 
