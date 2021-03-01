@@ -305,8 +305,8 @@ end
 function add_el(bx::BEASTXMLElement, lfm_el::LatentFactorModelXMLElement)
     make_xml(lfm_el)
     if !lfm_el.parameters_already_made
-        add_child(bx, lfm_el.loadings)
-        add_child(bx, lfm_el.loadings_prior)
+        add_el(bx, lfm_el.loadings)
+        add_el(bx, lfm_el.loadings_prior)
     end
     add_child(bx.el, lfm_el.el)
     if !lfm_el.parameters_already_made

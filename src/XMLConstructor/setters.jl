@@ -49,8 +49,8 @@ function set_residual_precision(bx::BEASTXMLElement, mat::AbstractArray{Float64,
 end
 
 function set_loadings(bx::BEASTXMLElement, L::AbstractArray{Float64, 2})
-    ifa = get_integratedFactorModel(bx)
-    set_loadings(ifa, L)
+    loadings = get_loadings(bx)
+    set_mat!(loadings, L)
 end
 
 function set_muliplicative_gamma_indices(bx::BEASTXMLElement, inds::Vector{Int})

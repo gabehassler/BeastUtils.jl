@@ -303,11 +303,13 @@ end
 function make_old_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
                         newick::String, k::Int;
                         chain_length::Int = 100,
-                        timing::Bool = false) where T <: AbstractString
+                        timing::Bool = false,
+                        factors::Matrix{Float64} = zeros(size(data, 1), k)
+                        ) where T <: AbstractString
 
     beastXML = BEASTXMLElement()
 
-    data_el = DataXMLElement([data, zeros(size(data, 1), k)],
+    data_el = DataXMLElement([data, factors],
                 [bn.DEFAULT_TRAIT_NAME, bn.FACTOR_TRAIT_NAME], taxa, newick)
     add_child(beastXML, data_el)
 
@@ -371,7 +373,10 @@ function make_sampled_pfa_xml(data::Matrix{Float64}, taxa::Vector{<:AbstractStri
                               log_scale::Bool = true,
                               scale_together::Bool = true,
                               always_draw_factors::Bool = true,
-                              fix_mults::Bool = false
+                              fix_mults::Bool = false,
+                              adaptive_diagonal::Bool = false,
+                              precondition::Bool = false,
+                              log_factors::Bool = false
                               )
 
     beastXML = BEASTXMLElement()
@@ -399,14 +404,17 @@ function make_sampled_pfa_xml(data::Matrix{Float64}, taxa::Vector{<:AbstractStri
         add_child(beastXML, fol_el)
     end
 
-    mult_vals = [1.0 for i = 1:k]
     mult_shapes = [shrinkage for i = 1:k]
     mult_scales = ones(k)
+    mult_vals = mult_shapes .* mult_scales
+
 
     if !shrink_first
         mult_vals[1] = 1.0
-        mult_shapes[1] = 1.0
+        mult_shapes[1] = 2.0
+        mult_scales[1] = 1.0
     end
+
 
     mults = Parameter(mult_vals, "mults")
 
@@ -423,6 +431,9 @@ function make_sampled_pfa_xml(data::Matrix{Float64}, taxa::Vector{<:AbstractStri
                                 loadings_prior)
 
     if_el.loadings_prior = multiplicative_prior
+
+    set_shrinkage_mults!(if_el, scales = mult_scales, shapes = mult_shapes,
+                         set_values = true)
 
     traitLikelihood_el = TraitLikelihoodXMLElement(MBD_el, treeModel_el, if_el)
     add_child(beastXML, traitLikelihood_el)
@@ -478,6 +489,12 @@ function make_sampled_pfa_xml(data::Matrix{Float64}, taxa::Vector{<:AbstractStri
                 scale_ops[i] = op
             end
         end
+
+        if precondition
+            for op in scale_ops
+                op.preconditioning = AdaptiveDiagonalPreconditioning()
+            end
+        end
     else
         if scale_together
             scale_ops[1] = ScaleOperator(if_el.loadings.scale, 0.5, 1.0)
@@ -513,6 +530,11 @@ function make_sampled_pfa_xml(data::Matrix{Float64}, taxa::Vector{<:AbstractStri
 
     operators_el = OperatorsXMLElement(ops_vec)
     add_child(beastXML, operators_el)
+
+    if log_factors
+        traitLog_el = TraitLoggerXMLElement(treeModel_el, traitLikelihood_el)
+        add_child(beastXML, traitLog_el)
+    end
 
     mcmc = MCMCXMLElement(traitLikelihood_el2,
                           MBD_el,

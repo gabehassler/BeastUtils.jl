@@ -1,3 +1,5 @@
+abstract type Preconditioner end
+
 mutable struct HMCOperatorXMLElement <: OperatorXMLElement
     el::XMLOrNothing
     param_provider::MyXMLElement
@@ -13,6 +15,7 @@ mutable struct HMCOperatorXMLElement <: OperatorXMLElement
     geodesic::Bool
     transform::String
     mask::Vector{<:Real}
+    preconditioning::Preconditioner
 
     function HMCOperatorXMLElement(param_provider::MyXMLElement,
                         grads::Array{<:MyXMLElement};
@@ -21,7 +24,8 @@ mutable struct HMCOperatorXMLElement <: OperatorXMLElement
                         transform::String = "")
         return new(nothing, param_provider, grads, already_made,
                     1.0, 5, 0.05, 1.0, true, 0, 1e-3, geodesic, transform,
-                    Float64[])
+                    Float64[],
+                    NoPreconditioning())
     end
 
 end
@@ -36,6 +40,7 @@ function make_xml(hmcxml::HMCOperatorXMLElement)
                         bn.AUTO_OPTIMIZE => string(hmcxml.auto_optimize),
                         bn.GRAD_CHECK_COUNT => string(hmcxml.check_grad),
                         bn.GRAD_TOLERANCE => string(hmcxml.grad_tolerance)])
+    set_attributes(el, preconditioningAttrs(hmcxml.preconditioning))
 
     jg_el = new_child(el, bn.JOINT_GRADIENT)
 
@@ -183,5 +188,53 @@ function make_xml(slg::SampledLoadingsGradient)
     slg.el = el
     return el
 end
+
+
+################################################################################
+## preconditioning
+################################################################################
+
+
+mutable struct PreconditioningSchedule
+    delay::Int
+    update_frequency::Int
+    max_update::Int
+    memory::Int
+end
+
+function preconditioningAttrs(ps::PreconditioningSchedule)
+    return Dict{String, String}(
+        bn.PRECONDITIONING_UPDATE_FREQUENCY => string(ps.update_frequency),
+        bn.PRECONDITIONING_MAX_UPDATE => string(ps.max_update),
+        bn.PRECONDITIONING_DELAY => string(ps.delay),
+        bn.PRECONDITIONING_MEMORY => string(ps.memory)
+    )
+end
+
+function PreconditioningSchedule()
+    return PreconditioningSchedule(100, 100, 0, 100)
+end
+
+struct NoPreconditioning <: Preconditioner
+end
+
+function preconditioningAttrs(::NoPreconditioning)
+    return Dict{String, String}()
+end
+
+mutable struct AdaptiveDiagonalPreconditioning <: Preconditioner
+    schedule::PreconditioningSchedule
+end
+
+function AdaptiveDiagonalPreconditioning()
+    return AdaptiveDiagonalPreconditioning(PreconditioningSchedule())
+end
+
+function preconditioningAttrs(adp::AdaptiveDiagonalPreconditioning)
+    attrs = preconditioningAttrs(adp.schedule)
+    attrs[bn.PRECONDITIONING] = bn.ADAPTIVE_DIAGONAL
+    return attrs
+end
+
 
 

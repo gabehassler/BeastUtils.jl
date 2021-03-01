@@ -29,6 +29,10 @@ function get_integratedFactorModel(bx::BEASTXMLElement)
     return find_element(bx, IntegratedFactorsXMLElement)
 end
 
+function get_latentFactorModel(bx::BEASTXMLElement)
+    return find_element(bx, LatentFactorModelXMLElement)
+end
+
 function get_traitLikelihood(bx::BEASTXMLElement)
     return find_element(bx, TraitLikelihoodXMLElement)
 end
@@ -80,4 +84,17 @@ end
 function get_loadings_scale(bx::BEASTXMLElement)
     ifm = get_integratedFactorModel(bx)
     return get_loadings_scale(ifm)
+end
+
+function get_loadings(bx::BEASTXMLElement)
+    fac_models = [IntegratedFactorsXMLElement, LatentFactorModelXMLElement]
+    fac_model = nothing
+    for model in fac_models
+        fac_model = find_element(bx, model)
+        if !isnothing(fac_model)
+            break
+        end
+    end
+    loadings = get_loadings(fac_model)
+    return loadings
 end

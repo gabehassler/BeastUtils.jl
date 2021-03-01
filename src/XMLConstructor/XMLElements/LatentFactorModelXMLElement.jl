@@ -113,6 +113,10 @@ function make_precision_prior(lfxml::LatentFactorModelXMLElement)
     return el
 end
 
+function get_loadings(lfm::LatentFactorModelXMLElement)
+    return lfm.loadings
+end
+
 
 
 # function make_lf_loadings(L::AbstractArray{Float64, 2})

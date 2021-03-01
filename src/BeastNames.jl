@@ -203,7 +203,7 @@ const LATENT_FACTOR_MODEL = "latentFactorModel"
 const FACTOR_NUMBER = "factorNumber"
 const SCALE_DATA = "scaleData"
 const FACTORS = "factors"
-const DATA_FROM_TIPS = "dataFromTreeTips"
+const DATA_FROM_TIPS = "dataAndMissingFromTreeTips"
 const ROW_PRECISION = "rowPrecision"
 const COL_PRECISION = "columnPrecision"
 const LAT_FAC_PREC_OP = "latentFactorModelPrecisionOperator"
@@ -286,4 +286,14 @@ const INTEGRATED_FACTOR_GIBBS = "integratedFactorsGibbsOperator"
 const SCALED_MATRIX_GRADIENT = "scaledMatrixGradient"
 const COMPONENT = "component"
 const SAMPLED_LOADINGS_GRADIENT = "sampledLoadingsGradient"
+
+const PRECONDITIONING = "preconditioning"
+const PRECONDITIONING_UPDATE_FREQUENCY = "preconditioningUpdateFrequency"
+const PRECONDITIONING_MAX_UPDATE = "preconditioningMaxUpdate"
+const PRECONDITIONING_DELAY = "preconditioningDelay"
+const PRECONDITIONING_MEMORY = "preconditioningMemory"
+
+const ADAPTIVE_DIAGONAL = "adaptiveDiagonal"
+const MISSING_INDICATOR = "missingIndicator"
+
 end
