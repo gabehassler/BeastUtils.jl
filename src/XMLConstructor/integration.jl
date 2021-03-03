@@ -2,11 +2,6 @@ struct TextXMLElement <: MyXMLElement
     el::XMLElement
 end
 
-import LightXML: name
-function name(::MyXMLElement)
-    return nothing
-end
-
 function name(el::TextXMLElement)
     return name(el.el)
 end

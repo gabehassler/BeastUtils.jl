@@ -1,5 +1,7 @@
 # getting elements
-
+function get_id(el::MyXMLElement)
+    return el.id
+end
 
 function get_data(bx::BEASTXMLElement)
     return find_element(bx, DataXMLElement)

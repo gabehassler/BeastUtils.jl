@@ -33,6 +33,11 @@ abstract type MyXMLElement end
 abstract type SimpleXMLElement <: MyXMLElement end
 abstract type AbstractDataXMLElement <: MyXMLElement end
 
+import LightXML: name
+function name(x::MyXMLElement)
+    error("Not yet implemented for object of type " * string(typeof(x)))
+end
+
 mutable struct BEASTXMLElement
     el::XMLOrNothing
     components::Vector{MyXMLElement}
@@ -122,6 +127,10 @@ include(joinpath(element_dir, "NormalDistributionLikelihood.jl"))
 include(joinpath(element_dir, "MultiplicativeScalePrior.jl"))
 include(joinpath(element_dir, "ForceOrderedLikelihood.jl"))
 include(joinpath(element_dir, "IntegratedFactorsGibbsOperator.jl"))
+include(joinpath(element_dir, "IndependentNormalDistributionModel.jl"))
+include(joinpath(element_dir, "LoadingsScaleGibbsOperator.jl"))
+
+
 
 
 
@@ -130,6 +139,7 @@ include(joinpath(dir, "utils.jl"))
 include(joinpath(dir, "constructors.jl"))
 include(joinpath(dir, "getters.jl"))
 include(joinpath(dir, "setters.jl"))
+
 
 
 

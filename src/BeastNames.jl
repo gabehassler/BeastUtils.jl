@@ -296,4 +296,7 @@ const PRECONDITIONING_MEMORY = "preconditioningMemory"
 const ADAPTIVE_DIAGONAL = "adaptiveDiagonal"
 const MISSING_INDICATOR = "missingIndicator"
 
+const LOCADINGS_SCALE_GIBBS = "loadingsScaleGibbsOperator"
+const INDEPENDENT_NORMAL_DISTRIBUTION = "independentNormalDistributionModel"
+
 end

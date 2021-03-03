@@ -165,26 +165,18 @@ end
 mutable struct SampledLoadingsGradient <: MyXMLElement
     el::XMLOrNothing
     factor_model::LatentFactorModelXMLElement
-    gibbs_op::OldLoadingsGibbsOperatorXMLElement
 
     function SampledLoadingsGradient(
-            factor_model::LatentFactorModelXMLElement,
-            gibbs_op::OldLoadingsGibbsOperatorXMLElement)
-        return new(nothing, factor_model, gibbs_op)
+            factor_model::LatentFactorModelXMLElement)
+        return new(nothing, factor_model)
     end
 end
 
-function SampledLoadingsGradient(factor_model::LatentFactorModelXMLElement)
-    gibbs_op = OldLoadingsGibbsOperatorXMLElement(factor_model)
-    return SampledLoadingsGradient(factor_model, gibbs_op)
-end
 
 function make_xml(slg::SampledLoadingsGradient)
     el = new_element(bn.SAMPLED_LOADINGS_GRADIENT)
     fac_el = make_xml(slg.factor_model)
     add_ref_el(el, fac_el)
-    op_el = make_xml(slg.gibbs_op)
-    add_child(el, op_el)
     slg.el = el
     return el
 end

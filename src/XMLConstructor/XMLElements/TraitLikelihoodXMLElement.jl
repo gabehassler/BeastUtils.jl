@@ -24,6 +24,14 @@ function TraitLikelihoodXMLElement(mbd_el::MBDXMLElement,
                 bn.TRAIT_DATA_LIKELIHOOD)
 end
 
+function name(tl::TraitLikelihoodXMLElement)
+    return tl.xml_name
+end
+
+function get_id(tl::TraitLikelihoodXMLElement)
+    return tl.attrs[bn.ID]
+end
+
 function copy(x::TraitLikelihoodXMLElement)
     return TraitLikelihoodXMLElement(
         x.el,

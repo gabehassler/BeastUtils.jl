@@ -1,7 +1,3 @@
-function get_id(param::MyXMLElement)::String
-    return param.id
-end
-
 function add_ref_el(el::XMLElement, param::MyXMLElement)
     ref_el = new_element(name(param))
     set_attribute(ref_el, bn.IDREF, get_id(param))
@@ -15,7 +11,6 @@ end
 ## Parameter
 ################################################################################
 import Base: size
-import LightXML: name
 
 mutable struct Parameter <: MyXMLElement
     el::XMLOrNothing
@@ -234,6 +229,10 @@ function make_xml(mp::MultiplicativeParameter)
 
     mp.el = el
     return el
+end
+
+function name(::MultiplicativeParameter)
+    return bn.MULTIPLICATIVE_PARAMETER
 end
 
 ################################################################################

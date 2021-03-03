@@ -45,6 +45,10 @@ function IntegratedFactorsXMLElement(treeModel_el::TreeModelXMLElement,
                                 bn.DEFAULT_IF_NAME)
 end
 
+function name(::IntegratedFactorsXMLElement)
+    return bn.INTEGRATED_FACTORS
+end
+
 function make_xmlelement(model::IntegratedFactorModel, tm::TreeModelXMLElement;
                          ind::Int = 1)
     ifx = IntegratedFactorsXMLElement(tm, tip_dimension(model), trait_ind = ind)

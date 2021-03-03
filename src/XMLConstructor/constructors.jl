@@ -147,7 +147,12 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
 
     precs = MultiplicativeParameter(mults, "globalPrecision")
 
-    loadings_prior = NormalMatrixNormLikelihood(precs, if_el.loadings, "scale.prior")
+    # loadings_prior = NormalMatrixNormLikelihood(precs, if_el.loadings, "scale.prior")
+    loadings_prior = IndependentNormalDistributionModel(
+                        get_loadings_scale(if_el), "scale.prior",
+                        mean = zeros(k),
+                        precision = precs
+                        )
 
     multiplicative_prior = MultiplicativeScalePrior(mults, precs, mults_prior,
                                 loadings_prior)
@@ -164,11 +169,13 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
     U_grad = NormalizedLoadingsGradientXMLElement(if_el, traitLikelihood_el)
     loadings_op = HMCOperatorXMLElement(if_el, [U_grad], geodesic=true)
 
-    scale_grad = ScaleLoadingsGradientXMLElement(if_el, traitLikelihood_el)
-    scale_op = HMCOperatorXMLElement(if_el.loadings.scale,
-                                     [scale_grad, loadings_prior],
-                                     already_made = [false, true],
-                                     transform = "log")
+    # scale_grad = ScaleLoadingsGradientXMLElement(if_el, traitLikelihood_el)
+    # scale_op = HMCOperatorXMLElement(if_el.loadings.scale,
+    #                                  [scale_grad, loadings_prior],
+    #                                  already_made = [false, true],
+    #                                  transform = "log")
+    scale_op = LoadingsScaleGibbsOperator(if_el, traitLikelihood_el)
+
 
     mults_op = NormalGammaPrecisionOperatorXMLElement(if_el.loadings_prior)
 
@@ -425,10 +432,14 @@ function make_sampled_pfa_xml(data::Matrix{Float64}, taxa::Vector{<:AbstractStri
 
     precs = MultiplicativeParameter(mults, "globalPrecision")
 
-    loadings_prior = NormalMatrixNormLikelihood(precs, if_el.loadings, "scale.prior")
+    scale_prior = IndependentNormalDistributionModel(
+                        get_loadings_scale(if_el), "scale.prior",
+                        mean = zeros(k),
+                        precision = precs
+                        )
 
     multiplicative_prior = MultiplicativeScalePrior(mults, precs, mults_prior,
-                                loadings_prior)
+                                scale_prior)
 
     if_el.loadings_prior = multiplicative_prior
 
@@ -465,65 +476,67 @@ function make_sampled_pfa_xml(data::Matrix{Float64}, taxa::Vector{<:AbstractStri
     U_grad = ScaledMatrixGradient(loadings_gradient, "matrix")
     loadings_op = HMCOperatorXMLElement(if_el, [U_grad], geodesic=true)
 
-    scale_ops = Vector{MyXMLElement}(undef, scale_together ? 1 : k)
+    # scale_ops = Vector{MyXMLElement}(undef, scale_together ? 1 : k)
+
+    scale_op = LoadingsScaleGibbsOperator(lfm_el, scale_prior)
 
 
-    if hmc_scale
-        hmc_transform = log_scale ? "log" : ""
-        scale_grad = ScaledMatrixGradient(loadings_gradient, "scale")
-        if scale_together
-            scale_op = HMCOperatorXMLElement(if_el.loadings.scale,
-                                            [scale_grad, loadings_prior],
-                                            already_made = [false, true],
-                                            transform = hmc_transform)
-            scale_ops[1] = scale_op
-        else
-            for i = 1:k
-                mask = zeros(k)
-                mask[i] = 1.0
-                op = HMCOperatorXMLElement(if_el.loadings.scale,
-                                        [scale_grad, loadings_prior],
-                                        already_made = [false, true],
-                                        transform = hmc_transform)
-                op.mask = mask
-                scale_ops[i] = op
-            end
-        end
 
-        if precondition
-            for op in scale_ops
-                op.preconditioning = AdaptiveDiagonalPreconditioning()
-            end
-        end
-    else
-        if scale_together
-            scale_ops[1] = ScaleOperator(if_el.loadings.scale, 0.5, 1.0)
-        else
-            for i = 1:k
-                op = ScaleOperator(if_el.loadings.scale, 0.5, 1.0)
-                op.inds = [i]
-                scale_ops[i] = op
-            end
-        end
-    end
+    # if hmc_scale
+    #     hmc_transform = log_scale ? "log" : ""
+    #     scale_grad = ScaledMatrixGradient(loadings_gradient, "scale")
+    #     if scale_together
+    #         scale_op = HMCOperatorXMLElement(if_el.loadings.scale,
+    #                                         [scale_grad, loadings_prior],
+    #                                         already_made = [false, true],
+    #                                         transform = hmc_transform)
+    #         scale_ops[1] = scale_op
+    #     else
+    #         for i = 1:k
+    #             mask = zeros(k)
+    #             mask[i] = 1.0
+    #             op = HMCOperatorXMLElement(if_el.loadings.scale,
+    #                                     [scale_grad, loadings_prior],
+    #                                     already_made = [false, true],
+    #                                     transform = hmc_transform)
+    #             op.mask = mask
+    #             scale_ops[i] = op
+    #         end
+    #     end
+
+    #     if precondition
+    #         for op in scale_ops
+    #             op.preconditioning = AdaptiveDiagonalPreconditioning()
+    #         end
+    #     end
+    # else
+    #     if scale_together
+    #         scale_ops[1] = ScaleOperator(if_el.loadings.scale, 0.5, 1.0)
+    #     else
+    #         for i = 1:k
+    #             op = ScaleOperator(if_el.loadings.scale, 0.5, 1.0)
+    #             op.inds = [i]
+    #             scale_ops[i] = op
+    #         end
+    #     end
+    # end
 
     mults_op = NormalGammaPrecisionOperatorXMLElement(if_el.loadings_prior)
 
-    normal_gamma_op = NormalGammaPrecisionOperatorXMLElement(if_el,
-                                                             traitLikelihood_el)
+    prec_op = LatentFactorModelPrecisionOperatorXMLElement(lfm_el)
+    # normal_gamma_op = NormalGammaPrecisionOperatorXMLElement(if_el,
+    #                                                          traitLikelihood_el)
 
 
-    if always_draw_factors
-        loadings_op = JointOperator([fac_op, loadings_op], 1.0)
-        scale_ops = [JointOperator([fac_op, so], 1.0) for so in scale_ops]
-    end
+    # if always_draw_factors
+    #     loadings_op = JointOperator([fac_op, loadings_op], 1.0)
+    #     scale_ops = [JointOperator([fac_op, so], 1.0) for so in scale_ops]
+    # end
 
 
 
-    ops_vec = [loadings_op; scale_ops; normal_gamma_op]
-    if !always_draw_factors
-        push!(ops_vec, fac_op)
-    end
+    ops_vec = [loadings_op; scale_op; prec_op; fac_op]
+
     if !fix_mults
         push!(ops_vec, mults_op)
     end
@@ -544,8 +557,10 @@ function make_sampled_pfa_xml(data::Matrix{Float64}, taxa::Vector{<:AbstractStri
     if force_ordered
         add_prior!(mcmc, fol_el)
     end
+
     add_child(beastXML, mcmc)
 
+    add_loggable(beastXML, multiplicative_prior, already_made = true)
     add_loggable(beastXML, if_el.loadings.U, already_made = true)
 
     if timing

@@ -12,6 +12,7 @@ mutable struct LatentFactorModelXMLElement <: ModelExtensionXMLElement
     trait_name::String
     standardize_traits::Bool
     parameters_already_made::Bool
+    id::String
 
     function LatentFactorModelXMLElement(treeModel_xml::TreeModelXMLElement,
                 tl_xml::TraitLikelihoodXMLElement, k::Int)
@@ -36,7 +37,8 @@ mutable struct LatentFactorModelXMLElement <: ModelExtensionXMLElement
                 precision_shape,
                 treeModel_xml,
                 tl_xml,
-                tree_trait_ind, trait_name, true, false)
+                tree_trait_ind, trait_name, true, false,
+                bn.LATENT_FACTOR_MODEL)
     end
 end
 
@@ -51,7 +53,9 @@ end
 #     # L = randn(k, p)
 #     return L
 # end
-
+function name(::LatentFactorModelXMLElement)
+    return bn.LATENT_FACTOR_MODEL
+end
 
 function make_xml(lfxml::LatentFactorModelXMLElement)
 

@@ -2,7 +2,7 @@ mutable struct MultiplicativeScalePrior <: MyXMLElement
     mults::Parameter
     precs::MultiplicativeParameter
     mult_prior::MultivariateGammaLikelihood
-    scale_prior::NormalMatrixNormLikelihood
+    scale_prior::MyXMLElement
 end
 
 function make_xml(mps::MultiplicativeScalePrior)
