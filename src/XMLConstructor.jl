@@ -159,10 +159,15 @@ end
 
 function save_xml(path::String, bx::BEASTXMLElement;
                   change_filename::Bool = true)
+
     nm = basename(path)
     s = split(nm, '.')
-    @assert length(s) == 2
-    @assert s[2] == "xml"
+
+    if length(s) == 1
+        path = path * ".xml"
+    elseif length(s) == 2
+        @assert s[2] == "xml"
+    end
 
     if change_filename
         filename = s[1]

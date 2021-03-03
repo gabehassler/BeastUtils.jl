@@ -77,9 +77,7 @@ function default_loadings(k::Int, p::Int)
     @assert k <= p
     L = zeros(k, p)
     for i = 1:k
-        for j = i:p
-            L[i, j] = 1.0
-        end
+        L[i, i] = 1.0
     end
     # L = randn(k, p)
     return L

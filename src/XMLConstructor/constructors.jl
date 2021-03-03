@@ -96,8 +96,9 @@ end
 
 function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
                                  newick::String, k::Int;
-                                 shrinkage::Float64 = 1e1,
+                                 shrinkage::Float64 = 3e1,
                                  shrink_first::Bool = false,
+                                 fix_first::Bool = true,
                                  chain_length::Int=100,
                                  timing::Bool=false,
                                  log_factors::Bool=false,
@@ -178,6 +179,9 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
 
 
     mults_op = NormalGammaPrecisionOperatorXMLElement(if_el.loadings_prior)
+    if fix_first
+        set_indices!(mults_op, collect(2:k))
+    end
 
     normal_gamma_op = NormalGammaPrecisionOperatorXMLElement(if_el,
                                                         traitLikelihood_el)
@@ -219,6 +223,8 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
     if log_factors
         add_loggable(mcmc_el.loggables, traitLog_el)
     end
+
+    add_loggable(mcmc_el.loggables, if_el.loadings.U)
 
     if timing
 
@@ -375,14 +381,9 @@ function make_sampled_pfa_xml(data::Matrix{Float64}, taxa::Vector{<:AbstractStri
                               timing::Bool = true,
                               force_ordered::Bool = false,
                               shrink_first::Bool = false,
-                              shrinkage::Float64 = 1e2,
-                              hmc_scale::Bool = true,
-                              log_scale::Bool = true,
-                              scale_together::Bool = true,
-                              always_draw_factors::Bool = true,
+                              shrinkage::Float64 = 3e1,
                               fix_mults::Bool = false,
-                              adaptive_diagonal::Bool = false,
-                              precondition::Bool = false,
+                              fix_first::Bool = true,
                               log_factors::Bool = false
                               )
 
@@ -522,6 +523,9 @@ function make_sampled_pfa_xml(data::Matrix{Float64}, taxa::Vector{<:AbstractStri
     # end
 
     mults_op = NormalGammaPrecisionOperatorXMLElement(if_el.loadings_prior)
+    if fix_first
+        set_indices!(mults_op, collect(2:k))
+    end
 
     prec_op = LatentFactorModelPrecisionOperatorXMLElement(lfm_el)
     # normal_gamma_op = NormalGammaPrecisionOperatorXMLElement(if_el,
