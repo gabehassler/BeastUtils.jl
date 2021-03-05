@@ -1,4 +1,4 @@
-mutable struct LoadingsScaleGibbsOperator <: MyXMLElement
+mutable struct LoadingsScaleGibbsOperator <: OperatorXMLElement
     el::XMLOrNothing
     likelihoods::Vector{MyXMLElement}
     prior::MyXMLElement
