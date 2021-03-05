@@ -299,4 +299,7 @@ const MISSING_INDICATOR = "missingIndicator"
 const LOCADINGS_SCALE_GIBBS = "loadingsScaleGibbsOperator"
 const INDEPENDENT_NORMAL_DISTRIBUTION = "independentNormalDistributionModel"
 
+const REJECTION_OPERATOR = "rejectionOperator"
+const CONDITION = "condition"
+
 end

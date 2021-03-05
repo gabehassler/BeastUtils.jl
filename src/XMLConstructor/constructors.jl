@@ -177,6 +177,10 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
     #                                  transform = "log")
     scale_op = LoadingsScaleGibbsOperator(if_el, traitLikelihood_el)
 
+    if force_ordered
+        scale_op = RejectionOperator(scale_op, "descendingAbsoluteValue")
+    end
+
 
     mults_op = NormalGammaPrecisionOperatorXMLElement(if_el.loadings_prior)
     if fix_first
@@ -192,12 +196,6 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
 
     ops_vec = [loadings_op, scale_op, mults_op, normal_gamma_op]
 
-    if force_ordered
-        cso = ColumnSwapOperator(if_el.loadings.U, 1.0)
-        push!(ops_vec, cso)
-    end
-
-
     operators_el = OperatorsXMLElement(ops_vec)
     add_child(beastXML, operators_el)
 
@@ -211,9 +209,6 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
                         if_el,
                         operators_el,
                         chain_length=chain_length)
-    if force_ordered
-        add_prior!(mcmc_el, fol_el)
-    end
 
     add_child(beastXML, mcmc_el)
 

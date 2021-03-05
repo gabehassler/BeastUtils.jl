@@ -209,3 +209,29 @@ function make_xml(jo::JointOperator)
     jo.el = el
     return el
 end
+
+################################################################################
+## rejection operator
+################################################################################
+
+mutable struct RejectionOperator <: OperatorXMLElement
+    el::XMLOrNothing
+    operator::OperatorXMLElement
+    condition::String
+
+    function RejectionOperator(op::OperatorXMLElement, condition::String)
+        return new(nothing, op, condition)
+    end
+end
+
+function name(::RejectionOperator)
+    return bn.REJECTION_OPERATOR
+end
+
+function make_xml(ro::RejectionOperator)
+    el = new_element(name(ro))
+    set_attribute(el, bn.CONDITION, ro.condition)
+    add_child(el, make_xml(ro.operator))
+    ro.el = el
+    return el
+end
