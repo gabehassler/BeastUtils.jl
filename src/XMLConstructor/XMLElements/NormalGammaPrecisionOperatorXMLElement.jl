@@ -28,6 +28,9 @@ end
 #     return NormalGammaPrecisionOperatorXMLElement(nothing, gpp, gpp, 1.0)
 # end
 
+function get_parameter(ngpo::NormalGammaPrecisionOperatorXMLElement)
+    return get_parameter(ngpo.ggp)
+end
 
 mutable struct NormalExtentsionGibbsProvider <: GammaGibbsProvider
     el::XMLOrNothing
@@ -40,14 +43,16 @@ mutable struct NormalExtentsionGibbsProvider <: GammaGibbsProvider
     end
 end
 
+function get_parameter(negp::NormalExtentsionGibbsProvider)
+    return get_precision(negp.ext)
+end
+
 function make_xml(negp::NormalExtentsionGibbsProvider)
     el = new_element(bn.NORMAL_EXTENSION)
 
-    make_xml(negp.ext)
-    make_xml(negp.tdl)
     set_attribute(el, bn.TREE_TRAIT_NAME, negp.tdl.attrs[bn.TRAIT_NAME])
-    add_ref_el(el, negp.ext.el)
-    add_ref_el(el, negp.tdl.el)
+    add_ref_el(el, negp.ext)
+    add_ref_el(el, negp.tdl)
 
     negp.el = el
     return el
@@ -72,6 +77,10 @@ end
 #     end
 #     return mggs
 # end
+
+function get_parameter(mggp::MultipilcativeGammaGibbsProvider)
+    return mggp.param
+end
 
 function make_xml(mgg::MultipilcativeGammaGibbsProvider)
     make_xml(mgg.param)

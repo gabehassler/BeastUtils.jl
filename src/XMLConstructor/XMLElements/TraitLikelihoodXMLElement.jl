@@ -56,7 +56,7 @@ function make_xml(tl_el::TraitLikelihoodXMLElement)
     add_ref_el(el, tl_el.mbd_el.el)
     add_ref_el(el, tl_el.treeModel_el.el)
     if !isnothing(tl_el.extension_el)
-        add_ref_el(el, tl_el.extension_el.el)
+        add_ref_el(el, tl_el.extension_el)
     else
         tp_el = new_child(el, bn.TRAIT_PARAMETER)
         add_parameter_id(tp_el, bn.TRAIT_PARAMETER)

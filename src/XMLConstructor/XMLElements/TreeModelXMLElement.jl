@@ -5,12 +5,14 @@ mutable struct TreeModelXMLElement <: MyXMLElement
     param_names::Vector{String}
     newick_el::NewickXMLElement
     fixed_tree::Bool
+    id::String
 
     function TreeModelXMLElement(newick_el::NewickXMLElement,
                 dim::Int;
                 trait::String = bn.DEFAULT_TRAIT_NAME)
         param_name = bn.LEAF_TRAITS
-        return new(nothing, [trait], [dim], [param_name], newick_el, true)
+        return new(nothing, [trait], [dim], [param_name], newick_el, true,
+                    bn.TREE_MODEL)
     end
 
     function TreeModelXMLElement(newick_el::NewickXMLElement,
@@ -30,26 +32,35 @@ mutable struct TreeModelXMLElement <: MyXMLElement
     end
 end
 
+function name(::TreeModelXMLElement)
+    return bn.TREE_MODEL
+end
+
+function get_id(tm::TreeModelXMLElement)
+    return tm.id
+end
 
 function make_xml(tl::TreeModelXMLElement)
     make_xml(tl.newick_el)
     tl.el =  make_treeModel(tl.newick_el.el,
                     tl.node_traits,
                     tl.trait_dims,
-                    tl.param_names)
+                    tl.param_names,
+                    id=tl.id)
 end
 
 function make_treeModel(newick_el::XMLElement,
         trait_names::Vector{String},
         trait_dims::Vector{Int},
         param_names::Vector{String};
-        fixed_tree::Bool = false)
+        fixed_tree::Bool = false,
+        id::String = bn.TREE_MODEL)
 
 
     @assert name(newick_el) == bn.NEWICK
 
     el = new_element(bn.TREE_MODEL)
-    set_attribute(el, bn.ID, bn.TREE_MODEL)
+    set_attribute(el, bn.ID, id)
     set_attribute(el, bn.FIX_HEIGHTS, bn.TRUE)
 
     if fixed_tree

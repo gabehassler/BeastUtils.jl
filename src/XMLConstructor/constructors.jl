@@ -224,7 +224,7 @@ function make_orthogonal_pfa_xml(data::Matrix{Float64}, taxa::Vector{T},
         add_loggable(mcmc_el.loggables, traitLog_el)
     end
 
-    add_loggable(mcmc_el.loggables, if_el.loadings.U)
+    add_loggable(mcmc_el.loggables, if_el.loadings.U, already_made = true)
 
     if timing
 

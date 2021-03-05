@@ -70,6 +70,10 @@ function make_xml(hmcxml::HMCOperatorXMLElement)
     return el
 end
 
+function get_parameter(op::HMCOperatorXMLElement)
+    return get_hmc_parameter(op.param_provider)
+end
+
 ################################################################################
 ## Factor model loadings gradients
 ################################################################################

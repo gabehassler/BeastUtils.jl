@@ -53,18 +53,11 @@ function get_timer(bx::BEASTXMLElement)
 end
 
 function get_loadings_op(bx::BEASTXMLElement)
+    loadings = get_loadings(bx)
     ops = get_operators(bx)
     for op in ops
-        t = typeof(op)
-        if t <: LoadingsGibbsOperatorXMLElement
+        if get_parameter(op) === loadings
             return op
-        elseif t <: HMCOperatorXMLElement
-            for grad in op.grads
-                g = typeof(grad)
-                if g <: LoadingsGradientXMLElement || g <: FactorLoadingsGradientXMLElement
-                    return op
-                end
-            end
         end
     end
     error("No loadings operator.")

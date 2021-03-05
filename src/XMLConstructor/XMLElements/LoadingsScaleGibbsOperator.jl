@@ -25,3 +25,14 @@ function make_xml(lsgo::LoadingsScaleGibbsOperator)
     lsgo.el = el
     return el
 end
+
+function get_parameter(lsg::LoadingsScaleGibbsOperator)
+    for likelihood in lsg.likelihoods
+        T = typeof(likelihood)
+        if T <: IntegratedFactorsXMLElement || T <: LatentFactorModelXMLElement
+            return get_loadings_scale(likelihood)
+        end
+    end
+
+    error("Could not find parameter")
+end

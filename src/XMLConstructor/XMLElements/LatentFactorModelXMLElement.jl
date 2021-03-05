@@ -3,7 +3,7 @@ mutable struct LatentFactorModelXMLElement <: ModelExtensionXMLElement
     precision_prior_el::XMLOrNothing
     loadings::MyXMLElement
     loadings_prior::MyXMLElement
-    precision::S where S <: AbstractArray{Float64, 1}
+    precision::MyXMLElement
     precision_scale::Float64
     precision_shape::Float64
     treeModel::TreeModelXMLElement
@@ -24,7 +24,7 @@ mutable struct LatentFactorModelXMLElement <: ModelExtensionXMLElement
         L_param = MatrixParameter(L, bn.DEFAULT_LOADINGS_ID)
 
         trait_name = treeModel_xml.node_traits[1]
-        precision = ones(p)
+        precision = Parameter(ones(p), bn.FACTOR_PRECISION)
         precision_scale = 1.0
         precision_shape = 1.0
         tree_trait_ind = 1
@@ -95,7 +95,8 @@ function make_xml(lfxml::LatentFactorModelXMLElement)
     if lfxml.parameters_already_made
         add_ref_el(dm_el, bn.PARAMETER, bn.FACTOR_PRECISION)
     else
-        add_parameter(dm_el, value=lfxml.precision, id=bn.FACTOR_PRECISION)
+        prec_el = make_xml(lfxml.precision)
+        add_child(dm_el, prec_el)
     end
 
 
@@ -121,6 +122,9 @@ function get_loadings(lfm::LatentFactorModelXMLElement)
     return lfm.loadings
 end
 
+function get_precision(lfm::LatentFactorModelXMLElement)
+    return lfm.precision
+end
 
 
 # function make_lf_loadings(L::AbstractArray{Float64, 2})

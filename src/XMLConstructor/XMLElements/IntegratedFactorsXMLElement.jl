@@ -6,7 +6,7 @@ mutable struct IntegratedFactorsXMLElement <: ModelExtensionXMLElement
     precision_prior_el::XMLOrNothing
     loadings::MyXMLElement
     loadings_prior::MyXMLElement
-    precision::S where S <: AbstractArray{Float64, 1}
+    precision::MyXMLElement
     precision_scale::Float64
     precision_shape::Float64
     treeModel::TreeModelXMLElement
@@ -32,7 +32,7 @@ function IntegratedFactorsXMLElement(treeModel_el::TreeModelXMLElement,
     prior = NormalDistributionLikelihood(load_param, "L.prior")
 
 
-    precision = ones(p)
+    precision = Parameter(ones(p), bn.FACTOR_PRECISION, lower=0.0)
     precision_scale = 1.0
     precision_shape = 1.0
     return IntegratedFactorsXMLElement(nothing, nothing,
@@ -91,6 +91,10 @@ function get_loadings_param(ifxml::IntegratedFactorsXMLElement)
     return ifxml.loadings
 end
 
+function get_precision(ifxml::IntegratedFactorsXMLElement)
+    return ifxml.precision
+end
+
 function make_xml(ifxml::IntegratedFactorsXMLElement;
                     reference_precision::Bool = false)
 
@@ -115,12 +119,12 @@ function make_xml(ifxml::IntegratedFactorsXMLElement;
 
     p_el = new_child(el, bn.PRECISION)
     if reference_precision
-        add_ref_el(p_el, bn.PARAMETER, bn.FACTOR_PRECISION)
+        add_ref_el(p_el, ifxml.precision)
     else
-        add_parameter(p_el, id=bn.FACTOR_PRECISION, value = ifxml.precision,
-                    lower=0.0)
+        prec_el = make_xml(ifxml.precision)
+        add_child(p_el, prec_el)
     end
-    add_ref_el(el, ifxml.treeModel.el)
+    add_ref_el(el, ifxml.treeModel)
     tp_el = new_child(el, bn.TRAIT_PARAMETER)
     tp_id = ifxml.treeModel.param_names[ifxml.tree_trait_ind]
     add_ref_el(tp_el, bn.PARAMETER, tp_id)
@@ -143,7 +147,7 @@ function make_precision_prior(ifxml::IntegratedFactorsXMLElement)
     set_attributes(el, [bn.ID => "$(bn.FACTOR_PRECISION).prior",
                         bn.SCALE => string(ifxml.precision_scale),
                         bn.SHAPE => string(ifxml.precision_shape)])
-    add_ref_el(el, ifxml.el[bn.PRECISION][1][bn.PARAMETER][1])
+    add_ref_el(el, ifxml.precision)
     return el
 end
 
@@ -151,7 +155,7 @@ end
 function get_hmc_parameter(ifxml::IntegratedFactorsXMLElement)
     make_xml(ifxml)
     if typeof(ifxml.loadings) <: ScaledOrthogonalMatrix
-        return ifxml.loadings.U.el
+        return ifxml.loadings.U
     end
     return ifxml.loadings.el
 end
@@ -177,7 +181,7 @@ end
 function get_loggables(xml::IntegratedFactorsXMLElement)
     make_xml(xml)
 
-    loggables = [get_loggables(xml.loadings); [xml.el[bn.PRECISION][1][bn.PARAMETER][1]]]
+    loggables = [get_loggables(xml.loadings); xml.precision]
     loggables = [loggables; get_loggables(xml.loadings_prior)]
 
     return loggables
@@ -260,4 +264,12 @@ function get_loadings_scale(ifm::IntegratedFactorsXMLElement)
         error("Scale matrix does not exist " *
               "(loadings must be of type ScaledOrthogonalMatrix).")
     end
+end
+
+function get_loadings(ifm::IntegratedFactorsXMLElement)
+    loadings = ifm.loadings
+    if typeof(loadings) <: ScaledOrthogonalMatrix
+        return loadings.U
+    end
+    return loadings
 end

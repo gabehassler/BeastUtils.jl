@@ -34,3 +34,7 @@ end
 function sparsity_constraint!(lgo::LoadingsGibbsOperatorXMLElement, constraint::String)
     lgo.sparsity = constraint
 end
+
+function get_parameter(op::LoadingsGibbsOperatorXMLElement)
+    return get_loadings(op.if_xml)
+end
