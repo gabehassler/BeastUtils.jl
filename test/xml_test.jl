@@ -181,4 +181,4 @@ data = randn(n, p)
 newick = writeTopology(rtree(taxa))
 
 bx = XMLConstructor.make_sampled_pfa_xml(data, taxa, newick, k)
-save_xml("facSampledHMC.xml", bx, change_filename=false)
+save_xml("facSampledHMC.xml", bx, change_filename=true)

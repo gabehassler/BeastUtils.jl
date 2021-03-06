@@ -8,7 +8,7 @@ export TreeData,
        var
 
 using PhyloNetworks, LinearAlgebra, Distributions, UnPack, Statistics
-using BeastUtils.MatrixUtils, BeastUtils.Simulation, BeastUtils.XMLConstructor
+using BeastUtils.MatrixUtils, BeastUtils.Simulation
 
 const DEFAULT_PSS = 0.001
 
@@ -192,10 +192,10 @@ function xmlext_to_params(ifm::IntegratedFactorModel)
     return ifm.L, Diagonal(ifm.λ)
 end
 
-function xmlext_to_params(rvm::XMLConstructor.ResidualVarianceModel)
-    p = data_dimension(rvm)
-    return Diagonal(ones(p)), rvm.Γ
-end
+# function xmlext_to_params(rvm::XMLConstructor.ResidualVarianceModel)
+#     p = data_dimension(rvm)
+#     return Diagonal(ones(p)), rvm.Γ
+# end
 
 
 
