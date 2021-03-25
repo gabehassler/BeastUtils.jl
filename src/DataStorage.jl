@@ -1,6 +1,10 @@
 module DataStorage
 
+export TraitData,
+       csv_to_traitdata
+
 using DataFrames, CSV, BeastUtils.MatrixUtils
+
 
 struct TraitData
     taxa::Vector{<:AbstractString}
