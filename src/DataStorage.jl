@@ -1,7 +1,8 @@
 module DataStorage
 
 export TraitData,
-       csv_to_traitdata
+       csv_to_traitdata,
+       parse_traitdata
 
 using DataFrames, CSV, BeastUtils.MatrixUtils
 
@@ -129,6 +130,15 @@ function csv_to_traitdata(path::String)
     df = DataFrame(CSV.File(path, missingstrings=["", "NA"]))
     return df_to_traitdata(df)
 end
+
+function parse_traitdata(path::String)
+    delims = Dict("csv" => ',', "tsv" => '\t', "txt" => '\t')
+    ext = path[(findlast(isequal('.'), path) + 1):end]
+    delim = delims[ext]
+    df = CSV.read(path, DataFrame, delim=delim, missingstrings=["", "NA"])
+    return df_to_traitdata(df)
+end
+
 
 function data_to_csv(path::String, taxa::Vector{String}, data::Matrix{Float64}, col_names::Vector{String})
     df = data_to_df(taxa, data, col_names)
