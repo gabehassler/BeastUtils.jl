@@ -18,7 +18,8 @@ export cov2corr,
     standardize!,
     log!,
     issquare,
-    randpd
+    randpd,
+    missing_var
 
 function cov2corr(Σ::Matrix{Float64})
     n, p = size(Σ)
@@ -236,6 +237,25 @@ end
 function issquare(x::AbstractArray{T, 2}) where T <: Any
     n, m = size(x)
     return n == m
+end
+
+function missing_var(x::AbstractArray{Float64})
+    μ = 0.0
+    σ2 = 0.0
+
+    n = length(x)
+    for i = 1:n
+        if !isnan(x[i])
+            μ += x[i]
+            σ2 += x[i] * x[i]
+        end
+    end
+
+    μ /= n
+    σ2 /= n
+    σ2 -= μ * μ
+
+    return σ2
 end
 
 function missing_cov(X::Matrix{Float64})
