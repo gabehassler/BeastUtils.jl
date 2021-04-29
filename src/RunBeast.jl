@@ -4,8 +4,15 @@ export run_beast,
        check_beast
 
 const BEAST_JAR = "beast.jar"
+const BEAST_HOME = "BEAST_HOME"
 
-function find_beast(beast_home::String)
+function find_beast()
+    beast_home = haskey(ENV, BEAST_HOME) ? ENV[BEAST_HOME] : pwd()
+
+    if basename(beast_home) == BEAST_JAR
+        return beast_home
+    end
+
     path = joinpath(beast_home, BEAST_JAR)
     if isfile(path)
         beast_path = path
@@ -14,28 +21,28 @@ function find_beast(beast_home::String)
         if isfile(path)
             beast_path = path
         else
-            error("Could not find BEAST .jar file.") # TODO: better error message
+            error("Could not find beast.jar file.")
         end
     end
 
     return beast_path
 end
 
-function check_beast(;beast_jar::String = find_beast(ENV["BEAST_HOME"]))
+function check_beast(;beast_jar::String = find_beast())
     println("Checking Java installation...")
     run(`java -version`)
 
-    println("Checking BEAST installation...")
+    println("\n\nChecking BEAST installation...")
     run(`java -jar $beast_jar -version`)
 
-    println("Java and BEAST checks suceeded.")
+    println("\n\nJava and BEAST checks succeeded.")
 end
 
 function run_beast(xml_path::String;
                     seed::Int = -1, # don't set seed by default
                     overwrite::Bool = false, # don't overwrite log files by default
                     directory::String = pwd(), #don't change working directory by default
-                    beast_jar::String = find_beast(ENV["BEAST_HOME"])
+                    beast_jar::String = find_beast()
                     )
 
     old_directory = pwd()
