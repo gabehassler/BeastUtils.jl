@@ -1,7 +1,8 @@
 module RunBeast #module for running BEAST
 
 export run_beast,
-       check_beast
+       check_beast,
+       find_beast
 
 const BEAST_JAR = "beast.jar"
 const BEAST_HOME = "BEAST_HOME"
@@ -12,7 +13,7 @@ function find_beast(;beast_home::String="")
     end
 
     if basename(beast_home) == BEAST_JAR
-        return beast_home
+        return abspath(beast_home)
     end
 
     path = joinpath(beast_home, BEAST_JAR)
