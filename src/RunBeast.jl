@@ -6,8 +6,10 @@ export run_beast,
 const BEAST_JAR = "beast.jar"
 const BEAST_HOME = "BEAST_HOME"
 
-function find_beast()
-    beast_home = haskey(ENV, BEAST_HOME) ? ENV[BEAST_HOME] : pwd()
+function find_beast(;beast_home::String="")
+    if isempty(beast_home)
+        beast_home = haskey(ENV, BEAST_HOME) ? ENV[BEAST_HOME] : pwd()
+    end
 
     if basename(beast_home) == BEAST_JAR
         return beast_home
@@ -21,11 +23,14 @@ function find_beast()
         if isfile(path)
             beast_path = path
         else
-            error("Could not find beast.jar file.")
+            error("Could not find beast.jar file. Consider setting the " *
+                  "$BEAST_HOME environment variable to the location of your " *
+                  "BEAST installation or git repo. You may also specify the " *
+                  "optional argument 'beast_jar=path/to/your/beast.jar'")
         end
     end
 
-    return beast_path
+    return abspath(beast_path)
 end
 
 function check_beast(;beast_jar::String = find_beast())
