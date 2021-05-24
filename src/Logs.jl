@@ -379,28 +379,27 @@ end
 function condense_logs(in_path::String, out_path::String; every = 20)
     lines = readlines(in_path)
     m = length(lines)
-    firsts = [split(lines[i], "\t")[1] for i = 1:m]
     first_ind = 0
     last_ind = 0
     for i = 1:m
-        if firsts[i] == "0"
-            first_ind= i
+        if startswith(lines[i], "state")
+            first_ind= i + 1
             break
         end
     end
     for i = m:-1:1
-        try parse(Int, firsts[i])
+        first_tab = findfirst('\t', lines[i])
+        try Int(parse(Float64, lines[i][1:(first_tab - 1)]))
             last_ind = i
             break
         catch
             continue
         end
-        # if typeof(parse(firsts[i])) == Int
-        #     last_ind = i
-        #     break
-        # end
     end
-    n = last_ind - first_ind
+    n = last_ind - first_ind + 1
+    @show first_ind
+    @show last_ind
+    @show m
     n_new = div(n, every)
     m_new = first_ind + n_new + m - last_ind
     new_lines = Vector{String}(undef, m_new)
