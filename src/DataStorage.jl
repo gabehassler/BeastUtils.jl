@@ -2,7 +2,8 @@ module DataStorage
 
 export TraitData,
        csv_to_traitdata,
-       parse_traitdata
+       parse_traitdata,
+       traitdata_to_df
 
 using DataFrames, CSV, BeastUtils.MatrixUtils
 
@@ -94,8 +95,9 @@ end
 
 function df_to_traitdata(df::DataFrame)
     nms = names(df)
-    if lowercase(string(nms[1])) != "taxon"
-        error("The first column name must be 'taxon'.")
+    nm1 = lowercase(string(nms[1]))
+    if !(nm1 == "taxon" || nm1 == "traits")
+        error("The first column name must be 'taxon' or 'traits'.")
     end
     # @assert string(nms[1]) == "taxon"
     n, p = size(df)
@@ -124,6 +126,14 @@ end
 function csv_to_data(path::String)
     td = csv_to_traitdata(path)
     return td.taxa, td.data
+end
+
+function traitdata_to_df(td::TraitData)
+    df = DataFrame(taxon = td.taxa)
+    for i = 1:length(td.trait_names)
+        df[!, td.trait_names[i]] = td.data[:, i]
+    end
+    return df
 end
 
 function csv_to_traitdata(path::String)
