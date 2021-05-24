@@ -8,8 +8,7 @@ export TreeData,
        var
 
 using PhyloNetworks, LinearAlgebra, Distributions, UnPack, Statistics
-using BeastUtils.MatrixUtils, BeastUtils.Simulation
-
+using BeastUtils.MatrixUtils, BEASTSimulation, BEASTXMLConstructor
 const DEFAULT_PSS = 0.001
 
 struct TreeData
