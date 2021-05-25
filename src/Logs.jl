@@ -17,6 +17,7 @@ export get_log,
     get_cols,
     combine_logs,
     condense_logs,
+    condense_trees,
     make_log,
     compress_log,
     compress_log!,
@@ -376,37 +377,61 @@ function combine_logs(paths::Vector{String}, outpath::String;
     write(outpath, lines)
 end
 
-function condense_logs(in_path::String, out_path::String; every = 20)
-    lines = readlines(in_path)
-    m = length(lines)
-    first_ind = 0
-    last_ind = 0
-    for i = 1:m
-        if startswith(lines[i], "state")
-            first_ind= i + 1
-            break
+function writeline(io::IOStream, s::AbstractString)
+    write(io, s)
+    write(io, "\n")
+end
+
+function condense_logfiles(in_path::String, out_path::String;
+                       every::Int = 10,
+                       is_valid = is_valid_logfile
+    )
+
+    counter = 0
+
+    open(in_path, "r") do input
+        open(out_path, "w") do output
+
+            for line in eachline(input)
+                if is_valid(line)
+                    if rem(counter, every) == 0
+                        writeline(output, line)
+                    end
+                    counter += 1
+                else
+                    writeline(output, line)
+                end
+            end
         end
     end
-    for i = m:-1:1
-        first_tab = findfirst('\t', lines[i])
-        try Int(parse(Float64, lines[i][1:(first_tab - 1)]))
-            last_ind = i
-            break
-        catch
-            continue
-        end
+end
+
+
+function is_valid_logfile(line::AbstractString)::Bool
+    first_tab = findfirst('\t', line)
+    if isnothing(first_tab)
+        return false
     end
-    n = last_ind - first_ind + 1
-    @show first_ind
-    @show last_ind
-    @show m
-    n_new = div(n, every)
-    m_new = first_ind + n_new + m - last_ind
-    new_lines = Vector{String}(undef, m_new)
-    new_lines[1:(first_ind - 1)] .= lines[1:(first_ind - 1)]
-    new_lines[first_ind:(first_ind + n_new)] .= lines[first_ind:every:last_ind]
-    new_lines[(first_ind + n_new + 1):m_new] .= lines[(last_ind + 1):m]
-    write(out_path, join(new_lines, "\n"))
+
+    sub_line = @view line[1:(first_tab - 1)]
+
+    try parse(Int, sub_line)
+        return true
+    catch
+        return false
+    end
+end
+
+function is_valid_treefile(line::AbstractString)::Bool
+    return startswith(line, "tree STATE_")
+end
+
+function condense_logs(in_path::String, out_path::String; every::Int = 10)
+    return condense_logfiles(in_path, out_path, every = every, is_valid = is_valid_logfile)
+end
+
+function condense_trees(in_path::String, out_path::String; every::Int = 10)
+    return condense_logfiles(in_path, out_path, every = every, is_valid = is_valid_treefile)
 end
 
 
