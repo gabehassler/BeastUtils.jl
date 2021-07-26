@@ -27,6 +27,12 @@ function hpd_interval(x::AbstractVector{Float64}; alpha::Float64 = 0.05, sorted:
     return (lower = rng_lower, upper = rng_upper)
 end
 
+function hpd_interval(X::AbstractMatrix{Float64}; args...)
+    p = size(X, 2)
+    hpds = [hpd_interval(@view X[:, i]; args...) for i = 1:p]
+    return hpds
+end
+
 function hpd_excludes_value(x::AbstractVector{Float64}, value::Float64; alpha::Float64 = 0.05, sorted::Bool = false)
     hpd = hpd_interval(x, alpha = alpha, sorted = sorted)
     return hpd[1] > value || hpd[2] < value
