@@ -1,9 +1,10 @@
 module Logs
 
-using Statistics, DelimitedFiles, BeastUtils.MatrixUtils, JLD
+using Statistics, DelimitedFiles, BeastUtils.MatrixUtils, JLD, CSV, DataFrames
 
 export get_log,
        get_log_match,
+       import_log,
     list_cols,
     make_meanmatrix,
     make_meanvector,
@@ -83,6 +84,23 @@ function make_log(path::String, data::AbstractMatrix{Float64},
         end
     end
 end
+
+# function below should eventually deprecate get_log()
+function import_log(path::String; burnin::Float64 = 0.0)
+    header_row = find_header_row(path)
+    all_lines = countlines(path)
+    n = all_lines - header_row
+    skipto = header_row + Int(round(n * burnin)) + 1
+
+    df = CSV.read(path,
+                  DataFrame,
+                  header=header_row,
+                  skipto = skipto,
+                  delim='\t')
+
+    return df
+end
+
 
 function get_log(inpath::String; burnin::Float64 = 0.1)
     if endswith(inpath, ".jld")
@@ -165,6 +183,20 @@ function get_cols_and_ind(inpath::String)
     cols = split(col_labels)
     return cols, ind
 end
+
+function find_header_row(inpath::String)
+    counter = 0
+    open(inpath, "r") do f
+        for line in eachline(inpath)
+            counter += 1
+            if startswith(line, "state")
+                break
+            end
+        end
+    end
+    return counter
+end
+
 
 function list_cols(cols::Vector{String})
     p = length(cols)
