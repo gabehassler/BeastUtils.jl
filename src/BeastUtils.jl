@@ -11,6 +11,7 @@ include("XMLTools.jl")
 include("ESS.jl")
 include("RunBeast.jl")
 include("PosteriorSummary.jl")
+include("Nexus.jl")
 # include("SlowLikelihoods.jl")
 
 end
