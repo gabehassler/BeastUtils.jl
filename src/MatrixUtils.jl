@@ -1,6 +1,6 @@
 module MatrixUtils
 
-using LinearAlgebra, Statistics
+using LinearAlgebra, Statistics, DataFrames
 
 export cov2corr,
     make_symmetric!,
@@ -19,7 +19,9 @@ export cov2corr,
     log!,
     issquare,
     randpd,
-    missing_var
+    missing_var,
+    missing_cov,
+    missing_mean
 
 function cov2corr(Σ::Matrix{Float64})
     n, p = size(Σ)
@@ -239,6 +241,31 @@ function issquare(x::AbstractArray{T, 2}) where T <: Any
     return n == m
 end
 
+function missing_mean(x::AbstractMatrix{Union{Missing, Float64}})
+    missing_mean(convert_to_float(x))
+end
+
+function missing_mean(x::AbstractMatrix{Float64})
+    n, p = size(x)
+    μ = zeros(p)
+    ns = zeros(Int, p)
+    for j = 1:p
+        for i = 1:n
+            if !isnan(x[i, j])
+                μ[j] += x[i, j]
+                ns[j] += 1
+            end
+        end
+    end
+
+    return μ ./ ns
+end
+
+
+function missing_var(x::AbstractArray{Union{Float64, Missing}})
+    return missing_var(convert_to_float(x))
+end
+
 function missing_var(x::AbstractArray{Float64})
     μ = 0.0
     σ2 = 0.0
@@ -256,6 +283,10 @@ function missing_var(x::AbstractArray{Float64})
     σ2 -= μ * μ
 
     return σ2
+end
+
+function missing_cov(x::AbstractArray{Union{Float64, Missing}})
+    return missing_cov(convert_to_float(x))
 end
 
 function missing_cov(X::Matrix{Float64})
@@ -322,6 +353,31 @@ function missing_cor(X::Matrix{Float64})
         end
     end
     return Σ
+end
+
+
+function convert_to_float(X::Matrix{Float64})
+    return X
+end
+
+function convert_to_float(X::Matrix{Union{Missing, Float64}})
+    s = size(X)
+    Y = zeros(s)
+    for i = 1:length(X)
+        if ismissing(X[i])
+            Y[i] = NaN
+        else
+            Y[i] = X[i]
+        end
+    end
+    return Y
+end
+
+
+function missing_cor(df::DataFrame)
+    M = Matrix(df)
+    M = convert_to_float(M)
+    return missing_cor(M)
 end
 
 function randpd(n::Int; rescale::Bool = true)
