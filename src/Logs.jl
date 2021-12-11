@@ -2,29 +2,63 @@ module Logs
 
 using Statistics, DelimitedFiles, BeastUtils.MatrixUtils, JLD, CSV, DataFrames
 
-export get_log,
+export LazyLog,
+       BeastLog,
+       get_log,
        get_log_match,
        import_log,
-    list_cols,
-    make_meanmatrix,
-    make_meanvector,
-    make_diagonal_vector,
-    make_vector,
-    make_correlationMatrix,
-    confidence_intervals,
-    HDP_intervals,
-    log2corr,
-    find_cols,
-    get_cols,
-    combine_logs,
-    condense_logs,
-    condense_trees,
-    make_log,
-    compress_log,
-    compress_log!,
-    read_time
+       list_cols,
+       make_meanmatrix,
+       make_meanvector,
+       make_diagonal_vector,
+       make_vector,
+       make_correlationMatrix,
+       confidence_intervals,
+       HDP_intervals,
+       log2corr,
+       find_cols,
+       get_cols,
+       combine_logs,
+       condense_logs,
+       condense_trees,
+       make_log,
+       compress_log,
+       compress_log!,
+       read_time
 
 const DELIM_CHAR = '\t'
+
+
+mutable struct LazyLog
+    log_path::String
+    df::DataFrame
+    burnin::Float64
+
+    function LazyLog(path::String)
+        return new(path, DataFrame(), NaN)
+    end
+end
+
+const BeastLog = Union{String, LazyLog}
+
+function lazy_import!(lz::LazyLog, burnin::Float64)
+    if isempty(lz.df) || lz.burnin != burnin
+        df = import_log(lz.log_path, burnin = burnin)
+        lz.df = df
+        lz.burnin = burnin
+    end
+    return nothing
+end
+
+function get_log(lz::LazyLog; burnin::Float64 = 0.0)
+    lazy_import!(lz, burnin)
+    return names(lz.df), Matrix(lz.df)
+end
+
+function import_log(lz::LazyLog; burnin::Float64 = 0.0)
+    lazy_import!(lz, burnin)
+    return lz.df
+end
 
 
 function compress_log(log_path::String, compressed_path::String)
