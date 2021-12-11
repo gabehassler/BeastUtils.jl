@@ -21,7 +21,8 @@ export cov2corr,
     randpd,
     missing_var,
     missing_cov,
-    missing_mean
+    missing_mean,
+    missing_cor
 
 function cov2corr(Σ::Matrix{Float64})
     n, p = size(Σ)
@@ -354,6 +355,16 @@ function missing_cor(X::Matrix{Float64})
     end
     return Σ
 end
+
+function missing_cor(x::AbstractArray{<:Union{Float64, Missing}},
+                     y::AbstractArray{<:Union{Float64, Missing}})
+    x_inds = findall(a -> !ismissing(a) && !isnan(a), x)
+    y_inds = findall(a -> !ismissing(a) && !isnan(a), y)
+    both_inds = intersect(x_inds, y_inds)
+    return cor((@view x[both_inds]), (@view y[both_inds]))
+end
+
+
 
 
 function convert_to_float(X::Matrix{Float64})
