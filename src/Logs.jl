@@ -349,9 +349,9 @@ function HPD_intervals(d::Matrix{Float64}, p::Int; conf::Float64 = 0.95)
     return HDP_intervals(x, conf = conf)
 end
 
-function HPD_intervals(x::Vector{Float64}; conf::Float64 = 0.95)
-    n = length(x)
-    sort!(x)
+function HPD_intervals(y::Vector{Float64}; conf::Float64 = 0.95)
+    n = length(y)
+    x = sort(y)
     s = Int(ceil(conf * n))
     smallest = Inf
     smallest_inds = [0, 0]
