@@ -371,7 +371,7 @@ function convert_to_float(X::Matrix{Float64})
     return X
 end
 
-function convert_to_float(X::Matrix{Union{Missing, Float64}})
+function convert_to_float(X::AbstractArray{Union{Missing, Float64}})
     s = size(X)
     Y = zeros(s)
     for i = 1:length(X)
