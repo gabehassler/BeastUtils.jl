@@ -120,7 +120,13 @@ function make_log(path::String, data::AbstractMatrix{Float64},
 end
 
 # function below should eventually deprecate get_log()
-function import_log(path::String; burnin::Float64 = 0.0)
+function import_log(path::String; burnin::Float64 = 0.0, verbose::Bool = true)
+
+    if verbose
+        print("importing BEAST log file $path with ")
+        printstyled("burnin = $burnin\n", color=:yellow)
+    end
+
     header_row = find_header_row(path)
     all_lines = countlines(path)
     n = all_lines - header_row
