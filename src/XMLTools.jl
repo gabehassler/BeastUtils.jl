@@ -185,6 +185,12 @@ function replace_data!(xdoc::XMLDocument, trait_name::String,
     end
 end
 
+function replace_data!(path::String, args...)
+    xdoc = parse_file(path)
+    replace_data!(xdoc, args...)
+    save_file(xdoc, path)
+end
+
 function remove_all_data!(xdoc::XMLDocument)
     taxa_el = find_element(root(xdoc), TAXA)
     unlink(taxa_el)
