@@ -90,8 +90,7 @@ function run_beast(xml_path::String;
             end
 
             open(output_path, "w") do outio
-                    out = run(pipeline(Cmd(cmds), stdout=outio, stderr=outio))
-
+                out = run(pipeline(Cmd(cmds), stdout=outio, stderr=outio))
             end
 
         else
