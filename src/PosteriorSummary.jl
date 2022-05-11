@@ -2,7 +2,8 @@ module PosteriorSummary
 
 export effective_sample_size,
        hpd_interval,
-       hpd_excludes_value
+       hpd_excludes_value,
+       minimum_hpd_contains
 
 import MCMCDiagnostics.effective_sample_size
 
@@ -33,9 +34,56 @@ function hpd_interval(X::AbstractMatrix{Float64}; args...)
     return hpds
 end
 
-function hpd_excludes_value(x::AbstractVector{Float64}, value::Float64; alpha::Float64 = 0.05, sorted::Bool = false)
+function hpd_excludes_value(x::AbstractVector{Float64}, value::Float64;
+                            alpha::Float64 = 0.05, sorted::Bool = false)
     hpd = hpd_interval(x, alpha = alpha, sorted = sorted)
     return hpd[1] > value || hpd[2] < value
 end
+
+function minimum_hpd_contains(x::AbstractVector{Float64}, value::Float64)
+    y = sort(x)
+    n = length(y)
+    if value < y[1] || value > y[n]
+        return 0.0
+    end
+
+    if y[1] == y[n]
+        return NaN # situation where value != y[1] is handled by the first if statement
+    end
+
+
+    imx = n
+    imn = 1
+
+    while y[imn] <= value <= y[imx]
+        diff_min = y[imn + 1] - y[imn]
+        diff_max = y[imx] - y[imx - 1]
+
+        if diff_min < diff_max
+            imx -= 1
+        else
+            imn += 1
+        end
+    end
+
+    return 1.0 - ((imx - imn) / n)
+
+    # tol = 1 / length(y)
+
+    # α_high = 1.0
+    # α_low = 0.0
+
+
+    # while ((α_high - α_low)) > tol
+    #     α_new = 0.5 * (α_high + α_low)
+    #     if hpd_excludes_value(y, value, alpha = α_new, sorted = true)
+    #         α_high = α_new
+    #     else
+    #         α_low = α_new
+    #     end
+    # end
+
+end
+
 
 end
