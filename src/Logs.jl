@@ -136,9 +136,13 @@ function import_log(path::String; burnin::Float64 = 0.0, verbose::Bool = true)
                   DataFrame,
                   header=header_row,
                   skipto = skipto,
-                  delim='\t')
+                  delim='\t',
+                  types=Float64,
+                  strict=true)
 
-    return df
+    new_df = DataFrame(df)
+    df = nothing
+    return new_df
 end
 
 
