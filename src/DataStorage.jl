@@ -115,7 +115,9 @@ function df_to_traitdata(df::DataFrame)
             end
         end
     end
-    return TraitData(convert(Vector{String}, df[!, 1]), nms[2:end], data)
+    td = TraitData(convert(Vector{String}, df[!, 1]), nms[2:end], data)
+    df = nothing # there's a memory leak somewhere that this might help with
+    return td
 end
 
 function df_to_data(df::DataFrame)
@@ -145,8 +147,15 @@ function parse_traitdata(path::String)
     delims = Dict("csv" => ',', "tsv" => '\t', "txt" => '\t')
     ext = path[(findlast(isequal('.'), path) + 1):end]
     delim = delims[ext]
-    df = CSV.read(path, DataFrame, delim=delim, missingstrings=["", "NA"])
-    return df_to_traitdata(df)
+    df = CSV.read(path, DataFrame, delim=delim, missingstring=["", "NA"])
+    for i = 2:size(df, 2) #not sure why CSV isn't properly parsing some columns
+        if eltype(df[!, i]) <: AbstractString
+            df[!, i] = parse.(Float64, df[!, i])
+        end
+    end
+    td = df_to_traitdata(df)
+    df = nothing
+    return td
 end
 
 
